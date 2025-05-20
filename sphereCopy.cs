@@ -16,7 +16,6 @@ public class sphereCopy : MonoBehaviour
         {
             a--;
         }
-        //int add = 0;
         for (int x = -a / 2; x <= a / 2; x++) {
             for (int y = -a / 2; y <= a / 2; y++)
             {
