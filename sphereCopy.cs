@@ -16,7 +16,6 @@ public class sphereCopy : MonoBehaviour
         {
             a--;
         }
-        o.GetComponent<setParent>().self = gameObject;
         //int add = 0;
         for (int x = -a / 2; x <= a / 2; x++) {
             for (int y = -a / 2; y <= a / 2; y++)
@@ -32,7 +31,7 @@ public class sphereCopy : MonoBehaviour
         }
         GetComponent<MeshRenderer>().enabled = false;
     }
-    //1 2 3 4 5 6 7
+
     // Update is called once per frame
     
 
