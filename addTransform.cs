@@ -5,6 +5,7 @@ using UnityEngine;
 public class addTransfrom : MonoBehaviour
 {
     public Vector3 addPos;
+    public bool posLocation;
     public Vector3 addRotation;
     public Vector3 addScale;
     public Transform thisAddTrans;
@@ -20,13 +21,27 @@ public class addTransfrom : MonoBehaviour
     {
         if (null != thisAddTrans)
         {
-            transform.position += thisAddTrans.position * (secondAdd ? Time.deltaTime : 1);
+            if (posLocation)
+            {
+                transform.localPosition += thisAddTrans.position * (secondAdd ? Time.deltaTime : 1);
+            }
+            else
+            {
+                transform.position += thisAddTrans.position * (secondAdd ? Time.deltaTime : 1);
+            }
             transform.Rotate(thisAddTrans.rotation.eulerAngles * (secondAdd ? Time.deltaTime : 1));
             transform.localScale += thisAddTrans.localScale * (secondAdd ? Time.deltaTime : 1);
         }
         else
         {
-            transform.position += addPos * (secondAdd ? Time.deltaTime : 1);
+            if (posLocation)
+            {
+                transform.localPosition += addPos * (secondAdd ? Time.deltaTime : 1);
+            }
+            else
+            {
+                transform.position += addPos * (secondAdd ? Time.deltaTime : 1);
+            }
             transform.Rotate(addRotation * (secondAdd ? Time.deltaTime : 1));
             transform.localScale += addScale * (secondAdd ? Time.deltaTime : 1);
         }
