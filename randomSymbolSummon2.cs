@@ -57,6 +57,10 @@ public class randomSymbolSummon2 : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (null == GetComponent<LineRenderer>())
+        {
+            transform.AddComponent<LineRenderer>();
+        }
         summon();
     }
 
