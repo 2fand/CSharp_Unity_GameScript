@@ -28,7 +28,10 @@ public class sphereCopy : MonoBehaviour
                 }
             }
         }
-        GetComponent<MeshRenderer>().enabled = false;
+        if (null != GetComponent<MeshRenderer>())
+        {
+            GetComponent<MeshRenderer>().enabled = false;
+        }
     }
 
     // Update is called once per frame
