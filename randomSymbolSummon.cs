@@ -43,7 +43,6 @@ public class randomSymbolSummon : MonoBehaviour
             }
             pos += modeMove[mode];
             dotuse |= (short)(1 << pos);
-            Debug.Log(dotuse.ToString());
         }
         GetComponent<LineRenderer>().positionCount = paths.Count;
         GetComponent<LineRenderer>().SetPositions(paths.ToArray());
