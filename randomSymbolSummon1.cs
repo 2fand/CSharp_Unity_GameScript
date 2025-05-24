@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 public class randomSymbolSummon1 : MonoBehaviour
 {
-    public uint space = 10;
+    public float space = 10;
     public Material lineMaterial;
     public bool isChange = true;
     public float waitTime = 0.1f;
@@ -59,6 +59,7 @@ public class randomSymbolSummon1 : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        space *= space < 0 ? -1 : 1; 
         if (null == GetComponent<LineRenderer>())
         {
             transform.AddComponent<LineRenderer>();
