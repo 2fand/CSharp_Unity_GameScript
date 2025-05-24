@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 public class randomSymbolSummon1 : MonoBehaviour
 {
     public uint space = 10;
+    public Material lineMaterial;
     public bool isChange = true;
     public float waitTime = 0.1f;
     private bool isEnd = true;
@@ -61,6 +62,7 @@ public class randomSymbolSummon1 : MonoBehaviour
         if (null == GetComponent<LineRenderer>())
         {
             transform.AddComponent<LineRenderer>();
+            GetComponent<LineRenderer>().material = lineMaterial;
         }
         summon();
     }
