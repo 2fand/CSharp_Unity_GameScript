@@ -5,7 +5,7 @@ using Unity.Collections;
 using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
 
-public class randomSymbolSummon : MonoBehaviour
+public class randomSymbolSummon2 : MonoBehaviour
 {
     public uint space = 10;
     public bool isChange = true;
