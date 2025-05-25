@@ -42,6 +42,12 @@ public class fly : MonoBehaviour
     {
         if (isEnd)
         {
+            if (r > 1){
+                r = 1;
+            }
+            if (r < 0){
+                r = 0;
+            }
             float x = UnityEngine.Random.Range(-r, r);
             float y = UnityEngine.Random.Range(-r, r);
             if (null != o.GetComponent<randomSymbolSummon>())
