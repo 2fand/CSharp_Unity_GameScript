@@ -5,14 +5,13 @@ using Unity.Collections;
 using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
 
-public class randomSymbolSummon1 : MonoBehaviour
+public class randomSymbolSummon : MonoBehaviour
 {
     public float space = 10;
     public Material lineMaterial;
     public bool isChange = true;
     public float waitTime = 0.1f;
     private bool isEnd = true;
-
     private void summon()
     {
         Vector3[] dots = { new Vector3(0, 0, 0), new Vector3(space, 0, 0), new Vector3(2 * space, 0, 0), new Vector3(0, -space, 0), new Vector3(space, -space, 0), new Vector3(2 * space, -space, 0), new Vector3(0, -2 * space, 0), new Vector3(space, -2 * space, 0), new Vector3(2 * space, -2 * space, 0), new Vector3(0, -3 * space, 0), new Vector3(space, -3 * space, 0), new Vector3(2 * space, -3 * space, 0) };
