@@ -5,7 +5,7 @@ using Unity.Collections;
 using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
 
-public class randomSymbolSummon2 : MonoBehaviour
+public class randomSymbolSummon1 : MonoBehaviour
 {
     public float space = 10;
     public Material lineMaterial;
