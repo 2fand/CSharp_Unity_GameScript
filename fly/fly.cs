@@ -58,9 +58,12 @@ public class fly : MonoBehaviour
                 o.GetComponent<randomSymbolSummon>().b = b;
                 o.GetComponent<randomSymbolSummon>().lineMaterial = m;
             }
-            o.GetComponent<addTransform>().addPos = new Vector3(x, Mathf.Sqrt(1 - x * x - y * y), y) * speed;
-            o.GetComponent<die>().dieTime = dieTime;
-            StartCoroutine(shot());
+            if (x * x + y * y <= 1)
+            {
+                o.GetComponent<addTransform>().addPos = new Vector3(x, Mathf.Sqrt(1 - x * x - y * y), y) * speed;
+                o.GetComponent<die>().dieTime = dieTime;
+                StartCoroutine(shot());
+            }
         }
     }
 }
