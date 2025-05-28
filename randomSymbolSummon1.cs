@@ -29,8 +29,14 @@ public class randomSymbolSummon1 : MonoBehaviour
         }
         chars = new char[127 - 33];
         char ch = (char)33;
+        int offset = 0;
         for (; ch < 127; ch++)
         {
+            if ('~' == ch || '{' == ch)
+            {
+                offset--;
+                continue;
+            }
             chars[ch - 33] = ch;
         }
         write();
