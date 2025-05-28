@@ -7,12 +7,7 @@ using UnityEngine;
 public class fly : MonoBehaviour
 {
     public GameObject o;
-    public float space = 0.809f;
-    public float waitTime = 0.1f;
-    public uint a = 2;
-    public uint b = 3;
     public float r = 0.5f;
-    public Material m;
     public float summonTime = 0.1f;
     public float speed = 0.618f;
     public float dieTime = 0.16f;
@@ -50,14 +45,6 @@ public class fly : MonoBehaviour
             }
             float x = UnityEngine.Random.Range(-r, r);
             float y = UnityEngine.Random.Range(-r, r);
-            if (null != o.GetComponent<randomSymbolSummon>())
-            {
-                o.GetComponent<randomSymbolSummon>().space = space;
-                o.GetComponent<randomSymbolSummon>().waitTime = waitTime;
-                o.GetComponent<randomSymbolSummon>().a = a;
-                o.GetComponent<randomSymbolSummon>().b = b;
-                o.GetComponent<randomSymbolSummon>().lineMaterial = m;
-            }
             if (x * x + y * y <= 1)
             {
                 o.GetComponent<addTransform>().addPos = new Vector3(x, Mathf.Sqrt(1 - x * x - y * y), y) * speed;
