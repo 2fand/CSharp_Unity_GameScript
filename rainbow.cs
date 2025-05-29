@@ -7,26 +7,24 @@ using UnityEngine.PlayerLoop;
 public class rainbow : MonoBehaviour
 {
     private float h, s, v;
-    public float colorS = 1, colorV = 1;
+    public Color color;
     // Start is called before the first frame update
     void Start()
     {
-        if (colorS < 0 || colorS > 1)
+        if (0 == color.a || 0 == color.r && 0 == color.g && 0 == color.b || 1 == color.r && 1 == color.g && 1 == color.b)
         {
-            colorS = 1;
+            color = Color.red;
         }
-        if (colorV < 0 || colorV > 1)
-        {
-            colorV = 1;
-        }
-        GetComponent<MeshRenderer>().material.color = Color.HSVToRGB(Random.Range(0.00f, 1.00f), colorS, colorV);
+        GetComponent<MeshRenderer>().material.color = color;
     }
 
     // Update is called once per frame
     void Update()
     {
         Color.RGBToHSV(GetComponent<MeshRenderer>().material.color, out h, out s, out v);
-        GetComponent<MeshRenderer>().material.color = Color.HSVToRGB(h + 1 / 360.0f, s, v);
+        Color addc = Color.HSVToRGB(h + 1 / 360.0f, s, v);
+        addc.a = GetComponent<MeshRenderer>().material.color.a;
+        GetComponent<MeshRenderer>().material.color = addc;
     }
 }
 
