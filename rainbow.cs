@@ -7,10 +7,19 @@ using UnityEngine.PlayerLoop;
 public class rainbow : MonoBehaviour
 {
     private float h, s, v;
+    public float colorS = 1, colorV = 1;
     // Start is called before the first frame update
     void Start()
     {
-        GetComponent<MeshRenderer>().material.color = Color.HSVToRGB(Random.Range(0.00f, 1.00f), 1, 1);
+        if (colorS < 0 || colorS > 1)
+        {
+            colorS = 1;
+        }
+        if (colorV < 0 || colorV > 1)
+        {
+            colorV = 1;
+        }
+        GetComponent<MeshRenderer>().material.color = Color.HSVToRGB(Random.Range(0.00f, 1.00f), colorS, colorV);
     }
 
     // Update is called once per frame
@@ -20,3 +29,4 @@ public class rainbow : MonoBehaviour
         GetComponent<MeshRenderer>().material.color = Color.HSVToRGB(h + 1 / 360.0f, s, v);
     }
 }
+
