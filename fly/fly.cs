@@ -19,7 +19,7 @@ public class fly : MonoBehaviour
         Instantiate(o, this.transform.position, Quaternion.Euler(Vector3.zero));
         isEnd = true;
     }
-    // Start is called before the first frame update
+
     void Start()
     {
         if (null == o.GetComponent<addTransform>())
@@ -32,7 +32,6 @@ public class fly : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (isEnd)
