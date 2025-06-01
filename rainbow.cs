@@ -8,7 +8,6 @@ public class rainbow : MonoBehaviour
 {
     private float h, s, v;
     public Color color;
-    // Start is called before the first frame update
     void Start()
     {
         if (0 == color.a || 0 == color.r && 0 == color.g && 0 == color.b || 1 == color.r && 1 == color.g && 1 == color.b)
@@ -18,7 +17,6 @@ public class rainbow : MonoBehaviour
         GetComponent<MeshRenderer>().material.color = color;
     }
 
-    // Update is called once per frame
     void Update()
     {
         Color.RGBToHSV(GetComponent<MeshRenderer>().material.color, out h, out s, out v);
