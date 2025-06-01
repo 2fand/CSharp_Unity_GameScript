@@ -81,7 +81,6 @@ public class randomSymbolSummon : MonoBehaviour
         summon();
         isEnd = true;
     }
-    // Start is called before the first frame update
     void Start()
     {
         if (0 == a || 0 == b)
@@ -100,8 +99,6 @@ public class randomSymbolSummon : MonoBehaviour
         GetComponent<LineRenderer>().useWorldSpace = false;
         summon();
     }
-
-    // Update is called once per frame
     void Update()
     {
         if (!summonOneShot && isEnd)
