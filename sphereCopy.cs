@@ -34,9 +34,4 @@ public class sphereCopy : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    
-
-
-    
 }
