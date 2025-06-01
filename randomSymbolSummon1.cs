@@ -41,8 +41,6 @@ public class randomSymbolSummon1 : MonoBehaviour
         }
         write();
     }
-
-    // Update is called once per frame
     void Update()
     {
         if (isEnd)
