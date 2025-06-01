@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class color : MonoBehaviour
 {
-    // Start is called before the first frame update
     public enum colors
     {
         red,
@@ -42,7 +41,6 @@ public class color : MonoBehaviour
         GetComponent<MeshRenderer>().material.color = cs[(int)c];
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (IsUpdate)
