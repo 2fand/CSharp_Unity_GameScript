@@ -22,13 +22,12 @@ public class die : MonoBehaviour
         }
         gameObject.SetActive(false);
     }
-    // Start is called before the first frame update
+
     void Start()
     {
         StartCoroutine(toDie());
     }
 
-    // Update is called once per frame
     void Update()
     {
         
