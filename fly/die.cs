@@ -11,14 +11,7 @@ public class die : MonoBehaviour
         for (int i = 0; i < 10; i++)
         {
             yield return new WaitForSeconds(dieTime / 10);
-            if (null != GetComponent<LineRenderer>())
-            {
-                GetComponent<LineRenderer>().material.color -= new Color(0, 0, 0, 0.1f);
-            }
-            else
-            {
-                GetComponent<TextMeshPro>().color -= new Color(0, 0, 0, 0.1f);
-            }
+            GetComponent<MeshRenderer>().material.color -= new Color(0, 0, 0, 0.1f);
         }
         gameObject.SetActive(false);
     }
