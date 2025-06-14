@@ -4,36 +4,21 @@ using UnityEngine;
 
 public class Float : MonoBehaviour
 {
-    private float f;
-    private bool b;
-
+    private float f = -6.28f;
+    public float limit = 10;
+    public float y = 0;
     void Start()
     {
-        f = UnityEngine.Random.Range(-0.5f, 0.5f);
-        this.transform.localPosition += new Vector3(0, f, 0);
-        b = f > 0;
+
     }
 
     void Update()
     {
-        if (f < -0.5f)
+        this.transform.position = new Vector3(transform.position.x, Mathf.Cos(f / 2.0f) * limit + y, transform.position.z);
+        f += 0.01f;
+        if (f > 6.28f)
         {
-            b = false;
-            f = -0.45f;
+            f = -6.28f;
         }
-        else if(f > 0.5f)
-        {
-            b = true;
-            f = 0.45f;
-        }
-        if (b)
-        {
-            f -= 0.05f;
-        }
-        else
-        {
-            f += 0.05f;
-        }
-        this.transform.localPosition += new Vector3(0, f, 0);
     }
 }
