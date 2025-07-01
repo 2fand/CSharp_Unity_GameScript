@@ -12,7 +12,7 @@ public class wall : MonoBehaviour
     {
         if (ChangeTransform)
         {
-            //根据地图xyz轴进行transform计算
+            //鏍规嵁鍦板浘xyz杞磋繘琛宼ransform璁＄畻
             transform.position = new Vector3(map.minX + map.heightX / map.x * (0.5f + x), transform.position.y, map.maxY - map.widthY / map.y * (0.5f + y));
         }
         map.wmap[x, y] = 'X';
