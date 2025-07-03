@@ -13,19 +13,16 @@ public class move : MonoBehaviour
         n
     };
     private bool isEnd = true;
-    public float moveTime = 0.01f;
-    public float waitTime = 0.2f;
-    public int speed = 2;
+    public static float waitTime = 0.01f;
     public int x = 5;
     public int y = 5;
     public static wasd front;
     public map m;
     private float high = 5;
     public static bool isTele = false;
-    //public static int lastteleX = -1;
-    //public static int lastteleY = -1;
     public static int teleX = 0;
     public static int teleY = 0;
+    public static float speed = 2;
     wasd getwasd()
     {
         if (Input.GetKey("w"))
@@ -96,38 +93,38 @@ public class move : MonoBehaviour
 
     IEnumerator pmove()
     {
-        //≥ı º
+        //ÂàùÂßã
         isEnd = false;
         wasd i = getwasd();
-        for (int j = 0; j < 100 / speed; j++)
+        for (int j = 0; j < 20; j++)
         {
-            switch (i)//“∆∂Ø
+            switch (i)//ÁßªÂä®
             {
                 case wasd.w:
                     front = wasd.w;
-                    transform.position += new Vector3(0, 0, m.widthY / m.y / (100.0f / speed));
-                    yield return new WaitForSeconds(moveTime);
+                    transform.position += new Vector3(0, 0, m.widthY / m.y / 20.0f);
+                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
                     break;
                 case wasd.a:
                     front = wasd.a;
-                    transform.position += new Vector3(-m.heightX / m.x / (100.0f / speed), 0, 0);
-                    yield return new WaitForSeconds(moveTime);
+                    transform.position += new Vector3(-m.heightX / m.x / 20.0f, 0, 0);
+                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
                     break;
                 case wasd.s:
                     front = wasd.s;
-                    transform.position += new Vector3(0, 0, -m.widthY / m.y / (100.0f / speed));
-                    yield return new WaitForSeconds(moveTime);
+                    transform.position += new Vector3(0, 0, -m.widthY / m.y / 20.0f);
+                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
                     break;
                 case wasd.d:
                     front = wasd.d;
-                    transform.position += new Vector3(m.heightX / m.x / (100.0f / speed), 0, 0);
-                    yield return new WaitForSeconds(moveTime);//“∆∂Øº‰∏Ù ±º‰
+                    transform.position += new Vector3(m.heightX / m.x / 20.0f, 0, 0);
+                    yield return new WaitForSeconds(0.2f / speed / 20.0f);//ÁßªÂä®Èó¥ÈöîÊó∂Èó¥
                     break;
-                default://wasd.n ±Œﬁ
+                default://wasd.nÊó∂Êó†
                     goto nowait;
             }
         }
-        yield return new WaitForSeconds(waitTime);//“∆∂Øµ»¥˝ ±º‰
+        yield return new WaitForSeconds(waitTime);//ÁßªÂä®Á≠âÂæÖÊó∂Èó¥
     nowait:
         isEnd = true;
         yield return null;
@@ -135,9 +132,9 @@ public class move : MonoBehaviour
 
     void Start()
     {
-        //∏˘æ›µÿÕºz÷·Ω¯––∏ﬂ∂»º∆À„
+        //Ê†πÊçÆÂú∞ÂõæzËΩ¥ËøõË°åÈ´òÂ∫¶ËÆ°ÁÆó
         high = transform.position.y;
-        //∏˘æ›µÿÕºxy÷·Ω¯––Œª÷√º∆À„
+        //Ê†πÊçÆÂú∞ÂõæxyËΩ¥ËøõË°å‰ΩçÁΩÆËÆ°ÁÆó
         transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), high, m.maxY - m.widthY / m.y * (0.5f + y));
     }
 
