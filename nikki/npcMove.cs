@@ -14,7 +14,6 @@ public class npcMove : MonoBehaviour
     };
     public map m;
     private bool isEnd = true;
-    public float moveTime = 0.01f;
     public float waitTime = 0.2f;
     public int speed = 2;
     public int x = 5;
@@ -76,38 +75,38 @@ public class npcMove : MonoBehaviour
 
     IEnumerator pmove()
     {
-        //³õÊ¼
+        //åˆå§‹
         isEnd = false;
         wasd i = getwasd();
-        for (int j = 0; j < 100 / speed; j++)
+        for (int j = 0; j < 20; j++)
         {
-            switch (i)//ÒÆ¶¯
+            switch (i)//ç§»åŠ¨
             {
                 case wasd.w:
                     transform.rotation = Quaternion.Euler(-90, 0, 180);
-                    transform.position += new Vector3(0, 0, m.widthY / m.y / (100.0f / speed));
-                    yield return new WaitForSeconds(moveTime);
+                    transform.position += new Vector3(0, 0, m.widthY / m.y / 20.0f);
+                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
                     break;
                 case wasd.a:
                     transform.rotation = Quaternion.Euler(-90, 0, 90);
-                    transform.position += new Vector3(-m.heightX / m.x / (100.0f / speed), 0, 0);
-                    yield return new WaitForSeconds(moveTime);
+                    transform.position += new Vector3(-m.heightX / m.x / 20.0f, 0, 0);
+                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
                     break;
                 case wasd.s:
                     transform.rotation = Quaternion.Euler(-90, 0, 0);
-                    transform.position += new Vector3(0, 0, -m.widthY / m.y / (100.0f / speed));
-                    yield return new WaitForSeconds(moveTime);
+                    transform.position += new Vector3(0, 0, -m.widthY / m.y / 20.0f);
+                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
                     break;
                 case wasd.d:
                     transform.rotation = Quaternion.Euler(-90, 0, -90);
-                    transform.position += new Vector3(m.heightX / m.x / (100.0f / speed), 0, 0);
-                    yield return new WaitForSeconds(moveTime);//ÒÆ¶¯¼ä¸ôÊ±¼ä
+                    transform.position += new Vector3(m.heightX / m.x / 20.0f, 0, 0);
+                    yield return new WaitForSeconds(0.2f / speed / 20.0f);//ç§»åŠ¨é—´éš”æ—¶é—´
                     break;
-                default://wasd.nÊ±ÎŞ
+                default://wasd.næ—¶æ— 
                     goto nowait;
             }
         }
-        yield return new WaitForSeconds(waitTime);//ÒÆ¶¯µÈ´ıÊ±¼ä
+        yield return new WaitForSeconds(waitTime);//ç§»åŠ¨ç­‰å¾…æ—¶é—´
     nowait:
         isEnd = true;
         yield return null;
@@ -115,9 +114,9 @@ public class npcMove : MonoBehaviour
 
     void Start()
     {
-        //¸ù¾İµØÍ¼zÖá½øĞĞ¸ß¶È¼ÆËã
+        //æ ¹æ®åœ°å›¾zè½´è¿›è¡Œé«˜åº¦è®¡ç®—
         high = transform.position.y;
-        //¸ù¾İµØÍ¼xyÖá½øĞĞÎ»ÖÃ¼ÆËã
+        //æ ¹æ®åœ°å›¾xyè½´è¿›è¡Œä½ç½®è®¡ç®—
         transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), high, m.maxY - m.widthY / m.y * (0.5f + y));
         m.wmap[x, y] = 'N';
         Vector3[] clones = { new Vector3(-m.heightX, 0, m.widthY), new Vector3(0, 0, m.widthY), new Vector3(m.heightX, 0, m.widthY), new Vector3(-m.heightX, 0, 0), new Vector3(m.heightX, 0, 0), new Vector3(-m.heightX, 0, -m.widthY), new Vector3(0, 0, -m.widthY), new Vector3(m.heightX, 0, -m.widthY) };
