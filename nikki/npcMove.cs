@@ -114,7 +114,7 @@ public class npcMove : MonoBehaviour
 
     void Start()
     {
-        //根据地图z轴进行高度计算
+        //根据游戏y轴进行高度计算
         high = transform.position.y;
         //根据地图xy轴进行位置计算
         transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), high, m.maxY - m.widthY / m.y * (0.5f + y));
