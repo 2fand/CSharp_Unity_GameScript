@@ -94,7 +94,7 @@ public class z : MonoBehaviour
         }
         else
         {
-            Instantiate(getHintPrefab, GameObject.Find("you").transform.position + new Vector3(0, 3, 0), getHintPrefab.transform.rotation);
+            Instantiate(getHintPrefab, you.transform.position + new Vector3(0, 3, 0), getHintPrefab.transform.rotation);
             GetComponent<AudioSource>().PlayOneShot(keySound);
             yield return new WaitForSeconds(2f);
         }
