@@ -32,8 +32,9 @@ public class you : MonoBehaviour
     public static AudioClip catchSound;
     public static bool[] effects = new bool[18];
     public static int effectNum = 0;
-    public readonly string[] effectName = { "ÌìÊ¹" };
+    public readonly string[] effectName = { "å¤©ä½¿" };
     public static enterMode enterMode = enterMode.show;
+    public static bool notOver = false;
     wasd getwasd()
     {
         if (Input.GetKey("w"))
@@ -106,7 +107,7 @@ public class you : MonoBehaviour
     {
         for (int j = 0; j < 20; j++)
         {
-            switch (i)//ÒÆ¶¯
+            switch (i)//ç§»åŠ¨
             {
                 case wasd.w:
                     front = wasd.w;
@@ -168,7 +169,7 @@ public class you : MonoBehaviour
     }
     IEnumerator pmove()
     {
-        //³õÊ¼
+        //åˆå§‹
         isEnd = false;
         wasd i = getwasd();
         if (wasd.n == i)
@@ -177,7 +178,7 @@ public class you : MonoBehaviour
         }
         for (int j = 0; j < 20; j++)
         {
-            switch (i)//ÒÆ¶¯
+            switch (i)//ç§»åŠ¨
             {
                 case wasd.w:
                     front = wasd.w;
@@ -197,13 +198,13 @@ public class you : MonoBehaviour
                 case wasd.d:
                     front = wasd.d;
                     transform.position += new Vector3(m.heightX / m.x / 20.0f, 0, 0);
-                    yield return new WaitForSeconds(0.2f / speed / 20.0f);//ÒÆ¶¯¼ä¸ôÊ±¼ä
+                    yield return new WaitForSeconds(0.2f / speed / 20.0f);//ç§»åŠ¨é—´éš”æ—¶é—´
                     break;
                 default:
                     goto nowait;
             }
         }
-        yield return new WaitForSeconds(waitTime);//ÒÆ¶¯µÈ´ıÊ±¼ä
+        yield return new WaitForSeconds(waitTime);//ç§»åŠ¨ç­‰å¾…æ—¶é—´
     nowait:
         isEnd = true;
         yield return null;
@@ -215,9 +216,9 @@ public class you : MonoBehaviour
         {
             gameObject.AddComponent<AudioSource>();
         }
-        //¸ù¾İµØÍ¼zÖá½øĞĞ¸ß¶È¼ÆËã
+        //æ ¹æ®åœ°å›¾zè½´è¿›è¡Œé«˜åº¦è®¡ç®—
         high = transform.position.y;
-        //¸ù¾İµØÍ¼xyÖá½øĞĞÎ»ÖÃ¼ÆËã
+        //æ ¹æ®åœ°å›¾xyè½´è¿›è¡Œä½ç½®è®¡ç®—
         transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), high, m.maxY - m.widthY / m.y * (0.5f + y));
     }
 
