@@ -47,7 +47,7 @@ public class map : MonoBehaviour
 
     private void Start()
     {
-        //xyÊÇ·ñÑ­»·
+        //xyæ˜¯å¦å¾ªç¯
         for (int i = 0; null != o && i < 9 && (horizontalIsCycle || verticalIsCycle); i++)
         {
             if (4 == i || (!horizontalIsCycle && i % 3 != 1) || (!verticalIsCycle && i / 3 != 1))
