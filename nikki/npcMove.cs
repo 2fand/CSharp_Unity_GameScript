@@ -196,7 +196,7 @@ public class npcMove : MonoBehaviour
             m.wmap[npc.x, npc.y] = 'N';
             return wasd.d;
         }
-        else if (canOver && ((wasd.w == w && (m.verticalIsCycle ? ('I' == m.wmap[npc.x, npc.y - 1 >= 0 ? npc.y - 1 : m.y - 1]) : (0 != npc.y && 'I' == m.wmap[npc.x, npc.y - 1]))) || (wasd.a == w && (m.horizontalIsCycle ? ('I' == m.wmap[npc.x - 1 >= 0 ? npc.x - 1 : m.x - 1, npc.y]) : (0 != npc.x && 'I' == m.wmap[npc.x - 1, npc.y]))) || (wasd.s == w && (m.verticalIsCycle ? ('I' == m.wmap[npc.x, (npc.y + 1) % m.y]) : (npc.y != m.y - 1 && 'I' == m.wmap[npc.x, npc.y + 1]))) || (wasd.d == w && (m.horizontalIsCycle ? ('I' == m.wmap[(npc.x + 1) % m.x, npc.y]) : (npc.x != m.x - 1 && 'I' == m.wmap[npc.x + 1, npc.y]))))) {
+        else if (canOver && !you.notOver && ((wasd.w == w && (m.verticalIsCycle ? ('I' == m.wmap[npc.x, npc.y - 1 >= 0 ? npc.y - 1 : m.y - 1]) : (0 != npc.y && 'I' == m.wmap[npc.x, npc.y - 1]))) || (wasd.a == w && (m.horizontalIsCycle ? ('I' == m.wmap[npc.x - 1 >= 0 ? npc.x - 1 : m.x - 1, npc.y]) : (0 != npc.x && 'I' == m.wmap[npc.x - 1, npc.y]))) || (wasd.s == w && (m.verticalIsCycle ? ('I' == m.wmap[npc.x, (npc.y + 1) % m.y]) : (npc.y != m.y - 1 && 'I' == m.wmap[npc.x, npc.y + 1]))) || (wasd.d == w && (m.horizontalIsCycle ? ('I' == m.wmap[(npc.x + 1) % m.x, npc.y]) : (npc.x != m.x - 1 && 'I' == m.wmap[npc.x + 1, npc.y]))))) {
             StartCoroutine(hurt());
         }
         return wasd.n;
