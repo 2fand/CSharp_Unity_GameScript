@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class npcMove : MonoBehaviour
 {
-    enum wasd
+    public enum wasd
     {
         w,
         a,
@@ -37,6 +37,11 @@ public class npcMove : MonoBehaviour
     public you u;
     public Image image;
     public static bool npcCanMove = true;
+    public string teleWorldName = "nexus";
+    public int teleWorldX = 15;
+    public int teleWorldY = 15;
+    public int teleWorldHigh = 0;
+    public wasd teleYouFront = wasd.s;
     int maxNum(int a, int b)
     {
         return a > b ? a : b;
@@ -213,7 +218,7 @@ public class npcMove : MonoBehaviour
             }
             hurtSound = null;
         }
-        StartCoroutine(you.tele(exitMode, enterMode, image, "nexus", 15, 15, you.wasd.s, null, catchSound));
+        StartCoroutine(you.tele(exitMode, enterMode, image, teleWorldName, teleWorldX, teleWorldY, teleWorldHigh, you.wasd.s, null, catchSound));
     }
 
     IEnumerator pyou()
