@@ -39,6 +39,7 @@ public class change : MonoBehaviour
 
     void Start()
     {
+        you.isChangeEffect = true;
         switch (you.enterMode)
         {
             case enterMode.show:
