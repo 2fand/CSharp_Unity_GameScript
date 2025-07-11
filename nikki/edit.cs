@@ -18,7 +18,7 @@ public class edit : MonoBehaviour
     private List<string> result;
     private bool isEnd = true;
     private int draw = 0;
-    private Material defaultMaterial;
+    private Material[] defaultMaterials;
     private bool wait = false;
     int getMapX(float ox)
     {
@@ -48,7 +48,7 @@ public class edit : MonoBehaviour
         if (!isEdit && Input.GetKeyDown("e"))
         {
             isEdit = true;
-            gameCamera.GetComponent<Camera>().enabled = false;
+            gameCamera.enabled = false;
             editCamera.transform.position = new Vector3((m.minX + m.maxX) / 2, editCamera.transform.position.y, (m.minY + m.maxY) / 2);
             editCamera.GetComponent<Camera>().enabled = true;
             editCamera.tag = "MainCamera";
@@ -117,11 +117,7 @@ public class edit : MonoBehaviour
                 {
                     draw = 0;
                     wall.transform.position = new Vector3(wall.transform.position.x, wallHigh, wall.transform.position.z);
-                    wall.GetComponent<MeshRenderer>().material = defaultMaterial;
-                    for (int i = 0; i < wall.transform.GetComponentsInChildren<MeshRenderer>().Length; i++)
-                    {
-                        wall.transform.GetComponentsInChildren<MeshRenderer>()[i].material = defaultMaterial;
-                    }
+                    wall.GetComponent<MeshRenderer>().materials = defaultMaterials;
                 }
             }
             if (Input.GetKeyDown("i"))
@@ -185,7 +181,7 @@ public class edit : MonoBehaviour
     {
         editMap = new GameObject[m.x, m.y];
         result = new List<string>();
-        defaultMaterial = wallPrefab.GetComponent<MeshRenderer>().sharedMaterial;
+        defaultMaterials = wallPrefab.GetComponent<MeshRenderer>().sharedMaterials;
     }
 
     void Update()
