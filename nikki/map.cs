@@ -54,7 +54,7 @@ public class map : MonoBehaviour
             {
                 continue;
             }
-            Instantiate(o, new Vector3(transform.position.x + (i % 3 - 1) * a, 0, transform.position.z + (i / 3 - 1) * b), transform.rotation);
+            Instantiate(o, new Vector3(transform.position.x + (i % 3 - 1) * a, transform.position.y, transform.position.z + (i / 3 - 1) * b), transform.rotation);
         }
 
     }
