@@ -30,6 +30,7 @@ public class z : MonoBehaviour
     public AudioClip closeSound;
     public int teleX = 0;
     public int teleY = 0;
+    public float teleHigh = 0;
     public change.enterMode enterMode = change.enterMode.show;
     public change.exitMode exitMode = change.exitMode.hide;
     public effect getEffect;
@@ -56,14 +57,14 @@ public class z : MonoBehaviour
             GetComponent<Animation>().Play();
         }
         yield return new WaitForSeconds(teleWaitTime);
-        StartCoroutine(you.tele(exitMode, enterMode, image, worldName, teleX, teleY, w.front, closeSound, null));
+        StartCoroutine(you.tele(exitMode, enterMode, image, worldName, teleX, teleY, teleHigh, w.front, closeSound, null));
     }
 
     private IEnumerator get(effect e)
     {
-        //Ê¾Àý
+        //ç¤ºä¾‹
         npcMove.npcCanMove = false;
-        you.effects[(int)e] = true;
+        you.effecthaves[(int)e] = true;
         you.effectNum++;
         you.canMove = false;
         //audio
@@ -94,16 +95,16 @@ public class z : MonoBehaviour
         //show
         for (int i = 10; i > 0; i--)
         {
-            getImage.GetComponent<Image>().color = new Color(0.4f, 0.4f, 0.4f, 1 / (float)i);
-            getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.2f, 1 / (float)i);
+            getImage.GetComponent<Image>().color = new Color(1, 1, 1, 1 / (float)i);
+            getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.785f, 1 / (float)i);
             yield return new WaitForSeconds(0.01f);
         }
         //hide
         yield return new WaitForSeconds(1);
         for (int i = 1; i <= 10; i++)
         {
-            getImage.GetComponent<Image>().color = new Color(0.4f, 0.4f, 0.4f, 1 / (float)i);
-            getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.2f, 1 / (float)i);
+            getImage.GetComponent<Image>().color = new Color(1, 1, 1, 1 / (float)i);
+            getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.785f, 1 / (float)i);
             yield return new WaitForSeconds(0.01f);
         }
         getImage.GetComponent<Image>().enabled = false;
@@ -136,7 +137,7 @@ public class z : MonoBehaviour
             {
                 StartCoroutine(go());
             }
-            if (mode.effect == mod && !you.effects[(int)getEffect])
+            if (mode.effect == mod && !you.effecthaves[(int)getEffect])
             {
                 StartCoroutine(get(getEffect));
             }
@@ -147,7 +148,7 @@ public class z : MonoBehaviour
             {
                 StartCoroutine(go());
             }
-            if (mode.effect == mod && !you.effects[(int)getEffect])
+            if (mode.effect == mod && !you.effecthaves[(int)getEffect])
             {
                 StartCoroutine(get(getEffect));
             }
@@ -158,7 +159,7 @@ public class z : MonoBehaviour
             {
                 StartCoroutine(go());
             }
-            if (mode.effect == mod && !you.effects[(int)getEffect])
+            if (mode.effect == mod && !you.effecthaves[(int)getEffect])
             {
                 StartCoroutine(get(getEffect));
             }
@@ -169,7 +170,7 @@ public class z : MonoBehaviour
             {
                 StartCoroutine(go());
             }
-            if (mode.effect == mod && !you.effects[(int)getEffect])
+            if (mode.effect == mod && !you.effecthaves[(int)getEffect])
             {
                 StartCoroutine(get(getEffect));
             }
