@@ -19,7 +19,7 @@ public class you : MonoBehaviour
     public static float waitTime = 0.01f;
     public int x = 5;
     public int y = 5;
-    public static wasd front;
+    public static wasd front = wasd.s;
     public map m;
     private float high = 5;
     public static bool isTele = false;
@@ -30,11 +30,22 @@ public class you : MonoBehaviour
     public static uint coins = 0;
     public static AudioClip closeSound;
     public static AudioClip catchSound;
-    public static bool[] effects = new bool[18];
+    public static bool[] effecthaves = new bool[18];
     public static int effectNum = 0;
-    public readonly string[] effectName = { "天使" };
+    public readonly string[] effectName = { "", "天使", "锁门" };
     public static enterMode enterMode = enterMode.show;
     public static bool notOver = false;
+    public static AudioClip defaultWalkSound;
+    public Camera gameCamera;
+    public static AudioClip effectEqiupSound;
+    public static AudioClip effectCancelEqiupSound;
+    public static effect nowEffect = effect.none;
+    public static Material[] screens;
+    public readonly int[] change = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4 };
+    public static GameObject[] effects;
+    public static float teleHigh = 0;
+    public static bool isChangeEffect = false;
+    public static AudioClip[] effectWalkSounds;
     wasd getwasd()
     {
         if (Input.GetKey("w"))
@@ -58,7 +69,7 @@ public class you : MonoBehaviour
             m.wmap[x, y--] = ' ';
             if (y < 0)
             {
-                transform.position = new Vector3(transform.position.x, high, m.minY - m.widthY / m.y / 2.0f);
+                transform.position = new Vector3(transform.position.x, transform.position.y, m.minY - m.widthY / m.y / 2.0f);
                 y = m.y - 1;
             }
             m.wmap[x, y] = 'I';
@@ -69,7 +80,7 @@ public class you : MonoBehaviour
             m.wmap[x--, y] = ' ';
             if (x < 0)
             {
-                transform.position = new Vector3(m.maxX + m.heightX / m.x / 2.0f, high, transform.position.z);
+                transform.position = new Vector3(m.maxX + m.heightX / m.x / 2.0f, transform.position.y, transform.position.z);
                 x = m.x - 1;
             }
             m.wmap[x, y] = 'I';
@@ -91,7 +102,7 @@ public class you : MonoBehaviour
             m.wmap[x++, y] = ' ';
             if (x >= m.x)
             {
-                transform.position = new Vector3(m.minX - m.heightX / m.x / 2.0f, high, transform.position.z);
+                transform.position = new Vector3(m.minX - m.heightX / m.x / 2.0f, transform.position.y, transform.position.z);
             }
             x %= m.x;
             m.wmap[x, y] = 'I';
@@ -133,7 +144,7 @@ public class you : MonoBehaviour
         }
     }
 
-    public static IEnumerator tele(exitMode exitMode, enterMode enterMode, Image image, string worldName, int teleX, int teleY, wasd front = wasd.s, AudioClip closeSound = null, AudioClip catchSound = null)
+    public static IEnumerator tele(exitMode exitMode, enterMode enterMode, Image image, string worldName, int teleX, int teleY, float teleHigh, wasd front = wasd.s, AudioClip closeSound = null, AudioClip catchSound = null)
     {
         you.enterMode = enterMode;
         if (null != image)
@@ -158,6 +169,7 @@ public class you : MonoBehaviour
         SceneManager.LoadScene(worldName);
         you.teleX = teleX;
         you.teleY = teleY;
+        you.teleHigh = teleHigh;
         you.front = front;
         isTele = true;
         canMove = true;
@@ -176,27 +188,35 @@ public class you : MonoBehaviour
         {
             goto nowait;
         }
+        if (null != (effectWalkSounds[(int)nowEffect] ?? defaultWalkSound))
+        {
+            GetComponent<AudioSource>().PlayOneShot(effectWalkSounds[(int)nowEffect] ?? defaultWalkSound);
+        }
         for (int j = 0; j < 20; j++)
         {
             switch (i)//移动
             {
                 case wasd.w:
                     front = wasd.w;
+                    transform.rotation = Quaternion.Euler(-90, 0, 180);
                     transform.position += new Vector3(0, 0, m.widthY / m.y / 20.0f);
                     yield return new WaitForSeconds(0.2f / speed / 20.0f);
                     break;
                 case wasd.a:
                     front = wasd.a;
+                    transform.rotation = Quaternion.Euler(-90, 0, 90);
                     transform.position += new Vector3(-m.heightX / m.x / 20.0f, 0, 0);
                     yield return new WaitForSeconds(0.2f / speed / 20.0f);
                     break;
                 case wasd.s:
                     front = wasd.s;
+                    transform.rotation = Quaternion.Euler(-90, 0, 0);
                     transform.position += new Vector3(0, 0, -m.widthY / m.y / 20.0f);
                     yield return new WaitForSeconds(0.2f / speed / 20.0f);
                     break;
                 case wasd.d:
                     front = wasd.d;
+                    transform.rotation = Quaternion.Euler(-90, 0, -90);
                     transform.position += new Vector3(m.heightX / m.x / 20.0f, 0, 0);
                     yield return new WaitForSeconds(0.2f / speed / 20.0f);//移动间隔时间
                     break;
@@ -210,16 +230,38 @@ public class you : MonoBehaviour
         yield return null;
     }
 
+    IEnumerator changeEffect(effect effect)
+    {
+        canMove = false;
+        npcMove.npcCanMove = false;
+        if (effect.none != effect ? null != effectEqiupSound : null != effectCancelEqiupSound)
+        {
+            GetComponent<AudioSource>().PlayOneShot(effect.none != effect ? effectEqiupSound : effectCancelEqiupSound);
+        }
+        nowEffect = effect;
+        GetComponent<MeshRenderer>().material = screens[change[Random.Range(0, change.Length)]];
+        yield return new WaitForSeconds(0.2f);
+        isChangeEffect = true;
+        canMove = true;
+        npcMove.npcCanMove = true;
+    }
+
     void Start()
     {
         if (null == GetComponent<AudioSource>())
         {
             gameObject.AddComponent<AudioSource>();
         }
-        //根据地图z轴进行高度计算
+        if (null == GetComponent<Float>())
+        {
+            gameObject.AddComponent<Float>();
+        }
+        //根据游戏y轴进行高度计算
         high = transform.position.y;
         //根据地图xy轴进行位置计算
-        transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), high, m.maxY - m.widthY / m.y * (0.5f + y));
+        transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), transform.position.y, m.maxY - m.widthY / m.y * (0.5f + y));
+        GetComponent<MeshRenderer>().sharedMaterials = effects[0].GetComponent<MeshRenderer>().sharedMaterials;
+        GetComponent<MeshFilter>().sharedMesh = effects[0].GetComponent<MeshFilter>().sharedMesh;
     }
 
     void Update()
@@ -228,8 +270,23 @@ public class you : MonoBehaviour
         {
             x = teleX; 
             y = teleY;
-            transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), high, m.maxY - m.widthY / m.y * (0.5f + y));
+            transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), teleHigh, m.maxY - m.widthY / m.y * (0.5f + y));
             isTele = false;
+        }
+        switch (front)
+        {
+            case wasd.w:
+                transform.rotation = Quaternion.Euler(-90, 0, 180);
+                break;
+            case wasd.a:
+                transform.rotation = Quaternion.Euler(-90, 0, 90);
+                break;
+            case wasd.s:
+                transform.rotation = Quaternion.Euler(-90, 0, 0);
+                break;
+            default:
+                transform.rotation = Quaternion.Euler(-90, 0, -90);
+                break;
         }
         if (null != catchSound)
         {
@@ -242,6 +299,34 @@ public class you : MonoBehaviour
             closeSound = null;
         }
         m.wmap[x, y] = 'I';
+        //测试效果
+        if (Input.GetKeyDown("9") && canMove)
+        {
+            StartCoroutine(changeEffect(effect.angel));
+        }
+        if (Input.GetKeyDown("0") && canMove)
+        {
+            StartCoroutine(changeEffect(effect.none));
+        }
+        if (isChangeEffect)
+        {
+            GetComponent<MeshFilter>().sharedMesh = effects[(int)nowEffect].GetComponent<MeshFilter>().sharedMesh ?? effects[0].GetComponent<MeshFilter>().sharedMesh;
+            GetComponent<MeshRenderer>().sharedMaterials = effects[(int)nowEffect].GetComponent<MeshRenderer>().sharedMaterials ?? effects[0].GetComponent<MeshRenderer>().sharedMaterials;
+            switch (nowEffect)
+            {
+                case effect.angel:
+                    speed = 2;
+                    transform.position = new Vector3(transform.position.x, high + 2f, transform.position.z);
+                    gameObject.GetComponent<Float>().enabled = true;
+                    break;
+                default:
+                    speed = 1;
+                    transform.position = new Vector3(transform.position.x, high, transform.position.z);
+                    gameObject.GetComponent<Float>().enabled = false;
+                    break;
+            }
+            isChangeEffect = false;
+        }
         if (isEnd && canMove)
         {
             StartCoroutine(pmove());
