@@ -29,7 +29,7 @@ public class you : MonoBehaviour
     public static bool canMove = true;
     public static uint coins = 0;
     public static AudioClip closeSound;
-    public static AudioClip catchSound;
+    public static AudioClip teleSound;
     public static bool[] effecthaves = new bool[18];
     public static int effectNum = 0;
     public readonly string[] effectName = { "", "天使", "锁门" };
@@ -46,6 +46,8 @@ public class you : MonoBehaviour
     public static float teleHigh = 0;
     public static bool isChangeEffect = false;
     public static AudioClip[] effectWalkSounds;
+    public static bool teleIsEnd = true;
+    public static bool isEndMove = true;
     wasd getwasd()
     {
         if (Input.GetKey("w"))
@@ -144,44 +146,57 @@ public class you : MonoBehaviour
         }
     }
 
-    public static IEnumerator tele(exitMode exitMode, enterMode enterMode, Image image, string worldName, int teleX, int teleY, float teleHigh, wasd front = wasd.s, AudioClip closeSound = null, AudioClip catchSound = null)
+    public static IEnumerator tele(exitMode exitMode, enterMode enterMode, Image image, string worldName, int teleX, int teleY, float teleHigh, wasd front = wasd.s, AudioClip closeSound = null, AudioClip teleSound = null)
     {
-        you.enterMode = enterMode;
-        if (null != image)
+        if (teleIsEnd)
         {
-            switch (exitMode)
+            teleIsEnd = false;
+            canMove = false;
+            you.enterMode = enterMode;
+            if (null != teleSound)
             {
-                case exitMode.hide:
-                    for (int i = 0; i < 50; i++)
-                    {
-                        image.color += new Color(0, 0, 0, 0.02f);
-                        yield return 5;
-                    }
-                    break;
-                default:
-                    break;
+                you.teleSound = teleSound;
             }
-        }
-        if (null != catchSound)
-        {
-            you.catchSound = catchSound;
-        }
-        SceneManager.LoadScene(worldName);
-        you.teleX = teleX;
-        you.teleY = teleY;
-        you.teleHigh = teleHigh;
-        you.front = front;
-        isTele = true;
-        canMove = true;
-        if (null != closeSound)
-        {
-            you.closeSound = closeSound;
+            yield return new WaitForSeconds(null != teleSound ? teleSound.length : 0);
+            if (null != image)
+            {
+                switch (exitMode)
+                {
+                    case exitMode.hide:
+                        for (int i = 0; i < 50; i++)
+                        {
+                            image.color += new Color(0, 0, 0, 0.02f);
+                            yield return 5;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (worldName != SceneManager.GetActiveScene().name)
+            {
+                SceneManager.LoadScene(worldName);
+            }
+            you.teleX = teleX;
+            you.teleY = teleY;
+            you.teleHigh = teleHigh;
+            you.front = front;
+            isTele = true;
+            canMove = true;
+            if (null != closeSound)
+            {
+                you.closeSound = closeSound;
+            }
+            teleIsEnd = true;
+            yield return new WaitForSeconds(0);
+            
         }
         yield return null;
     }
     IEnumerator pmove()
     {
         //初始
+        isEndMove = false;
         isEnd = false;
         wasd i = getwasd();
         if (wasd.n == i)
@@ -224,6 +239,7 @@ public class you : MonoBehaviour
                     goto nowait;
             }
         }
+        isEndMove = true;
         yield return new WaitForSeconds(waitTime);//移动等待时间
     nowait:
         isEnd = true;
@@ -255,6 +271,10 @@ public class you : MonoBehaviour
         if (null == GetComponent<Float>())
         {
             gameObject.AddComponent<Float>();
+        }
+        if (null == GetComponent<changeColor>())
+        {
+            gameObject.AddComponent<changeColor>();
         }
         //根据游戏y轴进行高度计算
         high = transform.position.y;
@@ -288,10 +308,10 @@ public class you : MonoBehaviour
                 transform.rotation = Quaternion.Euler(-90, 0, -90);
                 break;
         }
-        if (null != catchSound)
+        if (null != teleSound)
         {
-            GetComponent<AudioSource>().PlayOneShot(catchSound);
-            catchSound = null;
+            GetComponent<AudioSource>().PlayOneShot(teleSound);
+            teleSound = null;
         }
         if (null != closeSound)
         {
@@ -318,11 +338,13 @@ public class you : MonoBehaviour
                     speed = 2;
                     transform.position = new Vector3(transform.position.x, high + 2f, transform.position.z);
                     gameObject.GetComponent<Float>().enabled = true;
+                    gameObject.GetComponent<changeColor>().enabled = true;
                     break;
                 default:
                     speed = 1;
                     transform.position = new Vector3(transform.position.x, high, transform.position.z);
                     gameObject.GetComponent<Float>().enabled = false;
+                    gameObject.GetComponent<changeColor>().enabled = false;
                     break;
             }
             isChangeEffect = false;
