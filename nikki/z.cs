@@ -43,7 +43,6 @@ public class z : MonoBehaviour
     public AudioClip screenSound;
     private IEnumerator go()
     {
-        you.canMove = false;
         if (null != openSound && null == GetComponent<AudioSource>())
         {
             gameObject.AddComponent<AudioSource>();
