@@ -46,8 +46,9 @@ public class you : MonoBehaviour
     public static float teleHigh = 0;
     public static bool isChangeEffect = false;
     public static AudioClip[] effectWalkSounds;
+    public static bool commandIsEnd = true;
     public static bool teleIsEnd = true;
-    public static bool isEndMove = true;
+    public static bool moveIsEnd = true;
     wasd getwasd()
     {
         if (Input.GetKey("w"))
@@ -116,33 +117,119 @@ public class you : MonoBehaviour
         }
     }
 
-    public IEnumerator move(wasd i)
+    public IEnumerator move(wasd i, int step = 1, float tempSpeed = 1)
     {
-        for (int j = 0; j < 20; j++)
+        float youSpeed = speed;
+        speed = tempSpeed;
+        front = i;
+        if (moveIsEnd)
         {
-            switch (i)//移动
+            moveIsEnd = false;
+            canMove = false;
+            for (; step > 0; step--)
             {
-                case wasd.w:
-                    front = wasd.w;
-                    transform.position += new Vector3(0, 0, m.widthY / m.y / 20.0f);
-                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
-                    break;
-                case wasd.a:
-                    front = wasd.a;
-                    transform.position += new Vector3(-m.heightX / m.x / 20.0f, 0, 0);
-                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
-                    break;
-                case wasd.s:
-                    front = wasd.s;
-                    transform.position += new Vector3(0, 0, -m.widthY / m.y / 20.0f);
-                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
-                    break;
-                case wasd.d:
-                    front = wasd.d;
-                    transform.position += new Vector3(m.heightX / m.x / 20.0f, 0, 0);
-                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
-                    break;
+                switch (i)
+                {
+                    case wasd.w:
+                        if (m.verticalIsCycle || !m.verticalIsCycle && 0 != y)
+                        {
+                            m.wmap[x, y--] = ' ';
+                            if (y < 0)
+                            {
+                                transform.position = new Vector3(transform.position.x, transform.position.y, m.minY - m.widthY / m.y / 2.0f);
+                                y = m.y - 1;
+                            }
+                            m.wmap[x, y] = 'I';
+                        }
+                        else
+                        {
+                            yield break;
+                        }
+                        break;
+                    case wasd.a:
+                        if (m.horizontalIsCycle || !m.horizontalIsCycle && 0 != x)
+                        {
+                            m.wmap[x--, y] = ' ';
+                            if (x < 0)
+                            {
+                                transform.position = new Vector3(m.maxX + m.heightX / m.x / 2.0f, transform.position.y, transform.position.z);
+                                x = m.x - 1;
+                            }
+                            m.wmap[x, y] = 'I';
+                        }
+                        else
+                        {
+                            yield break;
+                        }
+                        break;
+                    case wasd.s:
+
+                        if (m.verticalIsCycle || !m.verticalIsCycle && m.y - 1 != y)
+                        {
+                            m.wmap[x, y++] = ' ';
+                            if (y >= m.y)
+                            {
+                                transform.position = new Vector3(transform.position.x, high, m.maxY + m.widthY / m.y / 2.0f);
+                            }
+                            y %= m.y;
+                            m.wmap[x, y] = 'I';
+                        }
+                        else
+                        {
+                            yield break;
+                        }
+                        break;
+                    default:
+                        if (m.horizontalIsCycle ||!m.horizontalIsCycle && m.x - 1 != x)
+                        {
+                            m.wmap[x++, y] = ' ';
+                            if (x >= m.x)
+                            {
+                                transform.position = new Vector3(m.minX - m.heightX / m.x / 2.0f, transform.position.y, transform.position.z);
+                            }
+                            x %= m.x;
+                            m.wmap[x, y] = 'I';
+                        }
+                        else
+                        {
+                            yield break;
+                        }
+                        break;
+                }
+                if (null != (effectWalkSounds[(int)nowEffect] ?? defaultWalkSound))
+                {
+                    GetComponent<AudioSource>().PlayOneShot(effectWalkSounds[(int)nowEffect] ?? defaultWalkSound);
+                }
+                for (int j = 0; j < 20; j++)
+                {
+                    switch (i)//移动
+                    {
+                        case wasd.w:
+                            front = wasd.w;
+                            transform.position += new Vector3(0, 0, m.widthY / m.y / 20.0f);
+                            yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                            break;
+                        case wasd.a:
+                            front = wasd.a;
+                            transform.position += new Vector3(-m.heightX / m.x / 20.0f, 0, 0);
+                            yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                            break;
+                        case wasd.s:
+                            front = wasd.s;
+                            transform.position += new Vector3(0, 0, -m.widthY / m.y / 20.0f);
+                            yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                            break;
+                        case wasd.d:
+                            front = wasd.d;
+                            transform.position += new Vector3(m.heightX / m.x / 20.0f, 0, 0);
+                            yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                            break;
+                    }
+                }
             }
+            speed = youSpeed;
+            moveIsEnd = true;
+            canMove = true;
         }
     }
 
@@ -196,7 +283,7 @@ public class you : MonoBehaviour
     IEnumerator pmove()
     {
         //初始
-        isEndMove = false;
+        moveIsEnd = false;
         isEnd = false;
         wasd i = getwasd();
         if (wasd.n == i)
@@ -239,10 +326,10 @@ public class you : MonoBehaviour
                     goto nowait;
             }
         }
-        isEndMove = true;
         yield return new WaitForSeconds(waitTime);//移动等待时间
     nowait:
         isEnd = true;
+        moveIsEnd = true;
         yield return null;
     }
 
