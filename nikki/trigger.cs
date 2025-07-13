@@ -2,9 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class trigger : MonoBehaviour
 {
@@ -20,12 +20,12 @@ public class trigger : MonoBehaviour
     public int extendRight = 0;
     public int extendUp = 0;
     public int extendDown = 0;
-    public string[] commands;//目前支持tele命令, help命令, #命令, move命令 talk等命令之后实现
+    public string[] commands;//目前支持tele命令, help命令, #命令, move命令, hide命令, show命令 talk等命令之后实现
     public AudioClip[] sounds;
     public you u;
     private change.enterMode? enterMode;
     private change.exitMode? exitMode;
-    public Image image;
+    public UnityEngine.UI.Image image;
     private string? worldName;
     private int? teleX;
     private int? teleY;
@@ -35,7 +35,7 @@ public class trigger : MonoBehaviour
     private int? teleSoundIndex;
     private bool isEnd = true;
     private readonly Hashtable stringModes = new Hashtable { { "show", change.enterMode.show }, { "fadein", change.enterMode.fadein }, { "hide", change.exitMode.hide }, { "fadeout", change.exitMode.fadeout }, { "W", you.wasd.w }, { "w", you.wasd.w }, { "A", you.wasd.a }, { "a", you.wasd.a }, { "S", you.wasd.s }, { "s", you.wasd.s }, { "D", you.wasd.d }, { "d", you.wasd.d } };
-    private readonly Hashtable commandHelpStrings = new Hashtable { { "tele", "tele命令：让玩家传送至指定地点" }, { "help", "help命令：了解命令的主要作用" }, { "#", "#命令：用来注释命令" }, { "move", "move命令：强制让玩家移动" }};
+    private readonly Hashtable commandHelpStrings = new Hashtable { { "tele", "tele命令：让玩家传送至指定地点(命令格式：tele 退出转场 进入转场 [世界名 = \"nexus\"] [传送x坐标 = 0] [传送y坐标 = 0] [朝向 = 你的朝向] [传送时音效在sounds的索引 = 0] [传送后音效在sounds的索引 = 0])" }, { "help", "help命令：了解命令的主要作用(命令格式：help 命令名称)" }, { "#", "#命令：用来注释命令(命令格式：# ...)" }, { "move", "move命令：强制让玩家移动(命令格式：move [速度]朝向 [步数 = 1])" }, { "show", "show命令：显示玩家(命令格式：show)"}, { "hide", "hide命令，隐藏玩家(命令格式：hide)"} };
     private bool isDone = false;
     private int? step;
     public bool tempSwitch = false;
@@ -180,7 +180,6 @@ public class trigger : MonoBehaviour
                             }
                             break;
                         case "move":
-                            
                             if (1 == i)
                             {
                                 int delimiterIndex = -1;
@@ -218,20 +217,21 @@ public class trigger : MonoBehaviour
                     }
                 }
             }
-            normalEnd:;
+        normalEnd:;
+            Debug.Log(commandName);
             switch (commandName)
             {
                 case "tele":
-                    if (!isDone)
-                    {
-                        funcs.Add(you.tele(exitMode ?? change.exitMode.hide, enterMode ?? change.enterMode.show, image, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, front ?? you.wasd.s, sounds[closeSoundIndex ?? 0] ?? sounds[0], sounds[teleSoundIndex ?? 0] ?? sounds[0]));
-                    }
+                    funcs.Add(you.tele(exitMode ?? change.exitMode.hide, enterMode ?? change.enterMode.show, image, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, front ?? you.wasd.s, sounds[closeSoundIndex ?? 0] ?? sounds[0], sounds[teleSoundIndex ?? 0] ?? sounds[0]));
                     break;
                 case "move":
-                    if (!isDone)
-                    {
-                        funcs.Add(u.move(front ?? you.front, step ?? 1, tempSpeed ?? 1));
-                    }
+                    funcs.Add(u.move(front ?? you.front, step ?? 1, tempSpeed ?? 1));
+                    break;
+                case "show":
+                    funcs.Add(u.show());
+                    break;
+                case "hide":
+                    funcs.Add(u.hide());
                     break;
                 default:
                     break;
@@ -251,9 +251,8 @@ public class trigger : MonoBehaviour
             while (funcs.Count > 0)
             {
                 StartCoroutine(funcs[0]);
-                
                 funcs.RemoveAt(0);
-                yield return new WaitUntil(() => you.teleIsEnd && you.moveIsEnd);
+                yield return new WaitUntil(() => you.teleIsEnd && you.moveIsEnd && you.commandIsEnd);
             }
         }
         you.canMove = true;
