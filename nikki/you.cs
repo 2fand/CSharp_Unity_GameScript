@@ -229,8 +229,22 @@ public class you : MonoBehaviour
             }
             speed = youSpeed;
             moveIsEnd = true;
-            canMove = true;
         }
+    }
+    public IEnumerator hide()
+    {
+        commandIsEnd = false;
+        GetComponent<MeshRenderer>().enabled = false;
+        commandIsEnd = true;
+        yield return null;
+    }
+
+    public IEnumerator show()
+    {
+        commandIsEnd = false;
+        GetComponent<MeshRenderer>().enabled = true;
+        commandIsEnd = true;
+        yield return null;
     }
 
     public static IEnumerator tele(exitMode exitMode, enterMode enterMode, Image image, string worldName, int teleX, int teleY, float teleHigh, wasd front = wasd.s, AudioClip closeSound = null, AudioClip teleSound = null)
