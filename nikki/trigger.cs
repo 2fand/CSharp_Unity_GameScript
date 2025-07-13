@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,7 +20,7 @@ public class trigger : MonoBehaviour
     public int extendRight = 0;
     public int extendUp = 0;
     public int extendDown = 0;
-    public string[] commands;//目前只用tele命令 talk等命令之后
+    public string[] commands;//目前支持tele命令, help命令, #命令, move命令 talk等命令之后实现
     public AudioClip[] sounds;
     public you u;
     private change.enterMode? enterMode;
@@ -33,12 +34,19 @@ public class trigger : MonoBehaviour
     private int? closeSoundIndex;
     private int? teleSoundIndex;
     private bool isEnd = true;
-    private Hashtable stringModes = new Hashtable { { "show", change.enterMode.show }, { "fadein", change.enterMode.fadein }, { "hide", change.exitMode.hide }, { "fadeout", change.exitMode.fadeout } };
+    private readonly Hashtable stringModes = new Hashtable { { "show", change.enterMode.show }, { "fadein", change.enterMode.fadein }, { "hide", change.exitMode.hide }, { "fadeout", change.exitMode.fadeout }, { "W", you.wasd.w }, { "w", you.wasd.w }, { "A", you.wasd.a }, { "a", you.wasd.a }, { "S", you.wasd.s }, { "s", you.wasd.s }, { "D", you.wasd.d }, { "d", you.wasd.d } };
+    private readonly Hashtable commandHelpStrings = new Hashtable { { "tele", "tele命令：让玩家传送至指定地点" }, { "help", "help命令：了解命令的主要作用" }, { "#", "#命令：用来注释命令" }, { "move", "move命令：强制让玩家移动" }};
+    private bool isDone = false;
+    private int? step;
+    public bool tempSwitch = false;
+    private List<IEnumerator> funcs;
+    private bool funcIsEnd = true;
+    private float? tempSpeed = 4;
     private void init()
     {
-        teleX = teleY = closeSoundIndex = teleSoundIndex = null;
+        step = teleX = teleY = closeSoundIndex = teleSoundIndex = null;
         worldName = null;
-        teleHigh = null;
+        tempSpeed = teleHigh = null;
         front = null;
         enterMode = null;
         exitMode = null;
@@ -46,6 +54,7 @@ public class trigger : MonoBehaviour
 
     void Start()
     {
+        funcs = new List<IEnumerator>();
         m = GameObject.Find(mpath).GetComponent<map>();
         if (ChangeTransform)
         {
@@ -77,6 +86,7 @@ public class trigger : MonoBehaviour
         string value = "";
         string commandName = "";
         bool isCount = true;
+        //bool isHave = true;
         for (int commandI = 0; commandI < commands.Length; commandI++)
         {
             init();
@@ -96,6 +106,7 @@ public class trigger : MonoBehaviour
             }
             if (!isCount)
             {
+                Debug.LogError("双引号格式错误");
                 goto errorEnd;
             }
             delimiterIndexs.Add(commands[commandI].Length);
@@ -109,8 +120,9 @@ public class trigger : MonoBehaviour
                 if (0 == i)
                 {
                     commandName = value;
-                    if ("tele" != commandName)
+                    if (!commandHelpStrings.ContainsKey(commandName))
                     {
+                        Debug.LogError("命令" + commandName + "不存在");
                         goto errorEnd;
                     }
                 }
@@ -140,32 +152,12 @@ public class trigger : MonoBehaviour
                                     teleHigh = float.Parse(value);
                                     break;
                                 case 7:
-                                    switch (value)
+                                    if ("u" == value)
                                     {
-                                        case "W":
-                                        case "w":
-                                            front = you.wasd.w;
-                                            break;
-                                        case "A":
-                                        case "a":
-                                            front = you.wasd.a;
-                                            break;
-                                        case "S":
-                                        case "s":
-                                            front = you.wasd.s;
-                                            break;
-                                        case "D":
-                                        case "d":
-                                            front = you.wasd.d;
-                                            break;
-                                        case "U":
-                                        case "u":
-                                            front = you.front;
-                                            break;
-                                        default:
-                                            front = (you.wasd)int.Parse(value);
-                                            break;
+                                        front = you.front;
+                                        break;
                                     }
+                                    front = stringModes.ContainsKey(value) ? (you.wasd)stringModes[value] : (you.wasd)int.Parse(value);
                                     break;
                                 case 8:
                                     closeSoundIndex = int.Parse(value);
@@ -174,7 +166,51 @@ public class trigger : MonoBehaviour
                                     teleSoundIndex = int.Parse(value);
                                     break;
                                 default:
-                                    break;
+                                    goto normalEnd;
+                            }
+                            break;
+                        case "help":
+                            if (1 == i && commandHelpStrings.ContainsKey(value))
+                            {
+                                Debug.Log(commandHelpStrings[value]);
+                            }
+                            else
+                            {
+                                goto normalEnd;
+                            }
+                            break;
+                        case "move":
+                            
+                            if (1 == i)
+                            {
+                                int delimiterIndex = -1;
+                                for (int j = 0; j < value.Length; j++)
+                                {
+                                    if (char.IsLetter(value[j]))
+                                    {
+                                        delimiterIndex = j;
+                                        break;
+                                    }
+                                }
+                                if (-1 == delimiterIndex)
+                                {
+                                    delimiterIndex = value.Length;
+                                }
+                                if (0 != delimiterIndex)
+                                {
+                                    tempSpeed = float.Parse(value.Substring(0, delimiterIndex));
+                                }
+                                if (stringModes.ContainsKey(value.Substring(delimiterIndex))){
+                                    front = ("u" == value.Substring(delimiterIndex) || "U" == value.Substring(delimiterIndex) ? you.front : (you.wasd)stringModes[value.Substring(delimiterIndex)]);
+                                }
+                            }
+                            else if (2 == i)
+                            {
+                                step = int.Parse(value);
+                            }
+                            else
+                            {
+                                goto normalEnd;
                             }
                             break;
                         default:
@@ -182,28 +218,61 @@ public class trigger : MonoBehaviour
                     }
                 }
             }
-        normalEnd:;
+            normalEnd:;
             switch (commandName)
             {
                 case "tele":
-                    if (you.teleIsEnd)
+                    if (!isDone)
                     {
-                        StartCoroutine(you.tele(exitMode ?? change.exitMode.hide, enterMode ?? change.enterMode.show, image, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, front ?? you.wasd.s, sounds[closeSoundIndex ?? 0] ?? sounds[0], sounds[teleSoundIndex ?? 0] ?? sounds[0]));
+                        funcs.Add(you.tele(exitMode ?? change.exitMode.hide, enterMode ?? change.enterMode.show, image, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, front ?? you.wasd.s, sounds[closeSoundIndex ?? 0] ?? sounds[0], sounds[teleSoundIndex ?? 0] ?? sounds[0]));
+                    }
+                    break;
+                case "move":
+                    if (!isDone)
+                    {
+                        funcs.Add(u.move(front ?? you.front, step ?? 1, tempSpeed ?? 1));
                     }
                     break;
                 default:
                     break;
             }
-        errorEnd:;
+            errorEnd:;
         }
         isEnd = true;
+        isDone = true;
+        yield return null;
+    }
+
+    IEnumerator runFunc() {
+        funcIsEnd = false;
+        you.canMove = false;
+        if (you.moveIsEnd && isDone && funcs.Count > 0)
+        {
+            while (funcs.Count > 0)
+            {
+                StartCoroutine(funcs[0]);
+                
+                funcs.RemoveAt(0);
+                yield return new WaitUntil(() => you.teleIsEnd && you.moveIsEnd);
+            }
+        }
+        you.canMove = true;
+        funcIsEnd = true;
         yield return null;
     }
     void Update()
     {
-        if (isEnd && u.x >= x - extendLeft && u.x <= x + extendRight && u.y >= y - extendUp && u.y <= y + extendDown && you.isEndMove)
+        if (funcIsEnd)
+        {
+            StartCoroutine(runFunc());
+        }
+        if (!isDone && isEnd && u.x >= x - extendLeft && u.x <= x + extendRight && u.y >= y - extendUp && u.y <= y + extendDown)
         {
             StartCoroutine(runCommand());
+        }
+        if (isEnd && 0 == funcs.Count && !(u.x >= x - extendLeft && u.x <= x + extendRight && u.y >= y - extendUp && u.y <= y + extendDown && you.commandIsEnd))
+        {
+            isDone = false;
         }
     }
 }
