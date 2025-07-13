@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -247,6 +248,25 @@ public class you : MonoBehaviour
         yield return null;
     }
 
+    public IEnumerator play(AudioClip sound, bool isWait)
+    {
+        if (null == sound)
+        {
+            yield break;
+        }
+        commandIsEnd = !isWait || false;
+        GetComponent<AudioSource>().PlayOneShot(sound);
+        yield return new WaitForSeconds(sound.length);
+        commandIsEnd = true;
+    }
+
+    public static IEnumerator wait(float waitTime)
+    {
+        commandIsEnd = false;
+        yield return new WaitForSeconds(waitTime);
+        commandIsEnd = true;
+    }
+
     public static IEnumerator tele(exitMode exitMode, enterMode enterMode, Image image, string worldName, int teleX, int teleY, float teleHigh, wasd front = wasd.s, AudioClip closeSound = null, AudioClip teleSound = null)
     {
         if (teleIsEnd)
@@ -284,16 +304,30 @@ public class you : MonoBehaviour
             you.front = front;
             isTele = true;
             canMove = true;
-            if (null != closeSound)
-            {
-                you.closeSound = closeSound;
-            }
+            you.closeSound = closeSound ?? you.closeSound;
             teleIsEnd = true;
             yield return new WaitForSeconds(0);
             
         }
         yield return null;
     }
+
+    public static IEnumerator turn(wasd front)
+    {
+        commandIsEnd = false;
+        you.front = front;
+        commandIsEnd = true;
+        yield return null;
+    }
+
+    public IEnumerator stop()
+    {
+        commandIsEnd = false;
+        GetComponent<AudioSource>().Stop();
+        commandIsEnd = true;
+        yield return null;
+    }
+
     IEnumerator pmove()
     {
         //初始
