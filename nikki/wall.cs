@@ -20,15 +20,8 @@ public class wall : MonoBehaviour
         m = GameObject.Find(mpath).GetComponent<map>();
         if (ChangeTransform)
         {
-            //根据地图xyz轴进行transform计算
+            //鏍规嵁鍦板浘xyz杞磋繘琛宼ransform璁＄畻
             transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), transform.position.y, m.maxY - m.widthY / m.y * (0.5f + y));
-        }
-        for (int i = x - extendLeft; i <= x + extendRight; i++)
-        {
-            for (int j = y - extendUp; j <= y + extendDown; j++)
-            {
-                m.wmap[i, j] = 'X';
-            }
         }
         if (null == wallPrefab){
             GameObject emptyWall = new GameObject("EmptyWall");
@@ -49,6 +42,12 @@ public class wall : MonoBehaviour
 
     void Update()
     {
-        
+        for (int i = x - extendLeft; i <= x + extendRight; i++)
+        {
+            for (int j = y - extendUp; j <= y + extendDown; j++)
+            {
+                m.wmap[i, j] = (' ' == m.wmap[i, j] ? 'X' : m.wmap[i ,j]);
+            }
+        }
     }
 }
