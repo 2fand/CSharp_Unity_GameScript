@@ -17,6 +17,7 @@ public class map : MonoBehaviour
     public bool verticalIsCycle = true;
     public const char xyDelimiter = ',';
     public const char itemDelimiter = ' ';
+    public AudioClip worldMusic;
     public int heightX { 
         get
         {
@@ -47,6 +48,16 @@ public class map : MonoBehaviour
 
     private void Start()
     {
+        if (null != worldMusic)
+        {
+            if (null == GetComponent<AudioSource>())
+            {
+                gameObject.AddComponent<AudioSource>();
+            }
+            GetComponent<AudioSource>().loop = true;
+            GetComponent<AudioSource>().clip = worldMusic;
+            GetComponent<AudioSource>().Play();
+        }
         //xy是否循环
         for (int i = 0; null != o && i < 9 && (horizontalIsCycle || verticalIsCycle); i++)
         {
@@ -56,7 +67,6 @@ public class map : MonoBehaviour
             }
             Instantiate(o, new Vector3(transform.position.x + (i % 3 - 1) * a, transform.position.y, transform.position.z + (i / 3 - 1) * b), transform.rotation);
         }
-
     }
     void Update()
     {
