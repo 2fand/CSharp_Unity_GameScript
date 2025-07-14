@@ -147,40 +147,7 @@ public class z : MonoBehaviour
 
     void Update()
     {
-        if ((you.x + 1) % m.x == w.x && you.y == w.y && you.front == you.wasd.d && (!haveFront || you.wasd.a == w.front) && Input.GetKeyDown("z"))
-        {
-            if (mode.tele == mod)
-            {
-                StartCoroutine(go());
-            }
-            if (mode.effect == mod && !you.effecthaves[(int)getEffect])
-            {
-                StartCoroutine(get(getEffect));
-            }
-        }
-        else if ((you.x - 1 < 0 ? m.x - 1 : you.x - 1) == w.x && you.y == w.y && you.front == you.wasd.a && (!haveFront || you.wasd.d == w.front) && Input.GetKeyDown("z"))
-        {
-            if (mode.tele == mod)
-            {
-                StartCoroutine(go());
-            }
-            if (mode.effect == mod && !you.effecthaves[(int)getEffect])
-            {
-                StartCoroutine(get(getEffect));
-            }
-        }
-        if (you.x == w.x && (you.y + 1) % m.y == w.y && you.front == you.wasd.s && (!haveFront || you.wasd.w == w.front) && Input.GetKeyDown("z"))
-        {
-            if (mode.tele == mod)
-            {
-                StartCoroutine(go());
-            }
-            if (mode.effect == mod && !you.effecthaves[(int)getEffect])
-            {
-                StartCoroutine(get(getEffect));
-            }
-        }
-        if (you.x == w.x && (you.y - 1 < 0 ? m.y - 1 : you.y - 1) == w.y && you.front == you.wasd.w && (!haveFront || you.wasd.s == w.front) && Input.GetKeyDown("z"))
+        if (((you.x + 1) % m.x == w.x && you.y == w.y && you.front == you.wasd.d && (!haveFront || you.wasd.a == w.front) && Input.GetKeyDown("z")) || ((you.x - 1 < 0 ? m.x - 1 : you.x - 1) == w.x && you.y == w.y && you.front == you.wasd.a && (!haveFront || you.wasd.d == w.front) && Input.GetKeyDown("z")) || (you.x == w.x && (you.y + 1) % m.y == w.y && you.front == you.wasd.s && (!haveFront || you.wasd.w == w.front) && Input.GetKeyDown("z")) || (you.x == w.x && (you.y - 1 < 0 ? m.y - 1 : you.y - 1) == w.y && you.front == you.wasd.w && (!haveFront || you.wasd.s == w.front) && Input.GetKeyDown("z")))
         {
             if (mode.tele == mod)
             {
