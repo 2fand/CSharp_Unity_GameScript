@@ -20,12 +20,20 @@ public class trigger : MonoBehaviour
     public int extendRight = 0;
     public int extendUp = 0;
     public int extendDown = 0;
-    public string[] commands;//目前支持tele命令, help命令, #命令, move命令, show命令, hide命令, play命令, turn命令, stop命令, wait命令 talk等命令之后实现
+    public string[] commands;//目前支持tele命令, help命令, #命令, move命令, show命令, hide命令, play命令, turn命令, stop命令, wait命令, use命令 talk等命令之后实现
     public AudioClip[] sounds;
     public you u;
+    public UnityEngine.UI.Image image;
+    private bool isEnd = true;
+    private readonly Hashtable stringModes = new Hashtable { { "show", change.enterMode.show }, { "fadein", change.enterMode.fadein }, { "hide", change.exitMode.hide }, { "fadeout", change.exitMode.fadeout }, { "W", you.wasd.w }, { "w", you.wasd.w }, { "A", you.wasd.a }, { "a", you.wasd.a }, { "S", you.wasd.s }, { "s", you.wasd.s }, { "D", you.wasd.d }, { "d", you.wasd.d }, { "true", true }, { "false", false }, { "t", true }, { "f", false } };
+    private readonly Hashtable commandHelpStrings = new Hashtable { { "tele", "tele命令：让玩家传送至指定地点(命令格式：tele 退出转场 进入转场 [世界名 = \"nexus\"] [传送x坐标 = 0] [传送y坐标 = 0] [朝向 = 你的朝向] [传送时音效在sounds的索引 = 0] [传送后音效在sounds的索引 = 0])" }, { "help", "help命令：了解命令的主要作用(命令格式：help 命令名称)" }, { "#", "#命令：用来注释命令(命令格式：# ...)" }, { "move", "move命令：强制让玩家移动(命令格式：move [速度]朝向 [步数 = 1])" }, { "show", "show命令：显示玩家(命令格式：show)" }, { "hide", "hide命令：隐藏玩家(命令格式：hide)" }, {"play", "play命令：播放一段声音(命令格式：play [声音在sounds的索引 = 0] [是否等待声音结束 = false])"}, { "turn", "turn命令：改变玩家的朝向(命令格式：turn [朝向 = s])"}, { "stop", "stop命令：停止发出声音(命令格式：stop)"}, { "wait", "wait命令：等待一段时间(命令格式：wait [等待时间 = 1])"}, { "use", "use命令：使用物品栏里第一个道具名相同的道具(命令格式：use [道具名 = \"default\"])"}, { "debug", "debug命令：输出一些信息(命令格式：debug (信息))" } };
+    private bool isDone = false;
+    public bool tempSwitch = false;
+    public static List<IEnumerator> funcs;
+    private bool funcIsEnd = true;
+#nullable enable
     private change.enterMode? enterMode;
     private change.exitMode? exitMode;
-    public UnityEngine.UI.Image image;
     private string? worldName;
     private int? teleX;
     private int? teleY;
@@ -34,21 +42,17 @@ public class trigger : MonoBehaviour
     private int? closeSoundIndex;
     private int? teleSoundIndex;
     private int? soundIndex;
-    private bool isEnd = true;
-    private readonly Hashtable stringModes = new Hashtable { { "show", change.enterMode.show }, { "fadein", change.enterMode.fadein }, { "hide", change.exitMode.hide }, { "fadeout", change.exitMode.fadeout }, { "W", you.wasd.w }, { "w", you.wasd.w }, { "A", you.wasd.a }, { "a", you.wasd.a }, { "S", you.wasd.s }, { "s", you.wasd.s }, { "D", you.wasd.d }, { "d", you.wasd.d }, { "true", true }, { "false", false }, { "t", true }, { "f", false } };
-    private readonly Hashtable commandHelpStrings = new Hashtable { { "tele", "tele命令：让玩家传送至指定地点(命令格式：tele 退出转场 进入转场 [世界名 = \"nexus\"] [传送x坐标 = 0] [传送y坐标 = 0] [朝向 = 你的朝向] [传送时音效在sounds的索引 = 0] [传送后音效在sounds的索引 = 0])" }, { "help", "help命令：了解命令的主要作用(命令格式：help 命令名称)" }, { "#", "#命令：用来注释命令(命令格式：# ...)" }, { "move", "move命令：强制让玩家移动(命令格式：move [速度]朝向 [步数 = 1])" }, { "show", "show命令：显示玩家(命令格式：show)" }, { "hide", "hide命令：隐藏玩家(命令格式：hide)" }, {"play", "play命令：播放一段声音(命令格式：play [声音在sounds的索引 = 0] [是否等待声音结束 = false])"}, { "turn", "turn命令：改变玩家的朝向(命令格式：turn [朝向 = s])"}, { "stop", "stop命令：停止发出声音(命令格式：stop)"}, { "wait", "wait命令：等待一段时间(命令格式：wait [等待时间 = 1])"} };
-    private bool isDone = false;
     private int? step;
-    public bool tempSwitch = false;
-    private List<IEnumerator> funcs;
-    private bool funcIsEnd = true;
     private float? tempSpeed = 4;
     private bool? isWaitSoundEnd;
     private float? waitTime;
+    private string? itemName;
+    private string? str;
+#nullable disable
     private void init()
     {
         soundIndex = step = teleX = teleY = closeSoundIndex = teleSoundIndex = null;
-        worldName = null;
+        str = itemName = worldName = null;
         waitTime = tempSpeed = teleHigh = null;
         front = null;
         enterMode = null;
@@ -248,6 +252,12 @@ public class trigger : MonoBehaviour
                         case "wait":
                             waitTime = float.Parse(value);
                             goto normalEnd;
+                        case "use":
+                            itemName = value;
+                            goto normalEnd;
+                        case "debug":
+                            Debug.Log(value);
+                            goto normalEnd;
                         default:
                             goto normalEnd;
                     }
@@ -280,6 +290,16 @@ public class trigger : MonoBehaviour
                 case "wait":
                     funcs.Add(you.wait(waitTime ?? 1));
                     break;
+                case "use":
+                    for (int j = 0; j < you.items.Count; j++)
+                    {
+                        if ((itemName ?? "default") == you.items[j].name)
+                        {
+                            you.items[j].use();
+                            break;
+                        }
+                    }
+                    break;
                 default:
                     break;
             }
@@ -308,7 +328,7 @@ public class trigger : MonoBehaviour
     }
     void Update()
     {
-        if (funcIsEnd)
+        if (funcIsEnd && funcs.Count != 0)
         {
             StartCoroutine(runFunc());
         }
