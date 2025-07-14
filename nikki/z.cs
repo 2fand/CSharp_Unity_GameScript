@@ -9,6 +9,7 @@ using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
 using UnityEngine.Device;
 using UnityEditor;
+using System;
 
 public class z : MonoBehaviour
 {
@@ -41,78 +42,94 @@ public class z : MonoBehaviour
     public bool extra = false;
     public GameObject screen;
     public AudioClip screenSound;
+    private bool wait = true;
     private IEnumerator go()
     {
-        if (null != openSound && null == GetComponent<AudioSource>())
+        if (wait)
         {
-            gameObject.AddComponent<AudioSource>();
+            wait = false;
+            you.canMove = false;
+            if (null != openSound && null == GetComponent<AudioSource>())
+            {
+                gameObject.AddComponent<AudioSource>();
+            }
+            if (null != openSound)
+            {
+                GetComponent<AudioSource>().PlayOneShot(openSound);
+            }
+            if (GetComponent<Animation>() != null)
+            {
+                GetComponent<Animation>().Play();
+            }
+            yield return new WaitForSeconds(teleWaitTime);
+
+            StartCoroutine(you.tele(exitMode, enterMode, image, worldName, teleX, teleY, teleHigh, w.front, closeSound, null));
+            wait = true;
         }
-        if (null != openSound)
-        {
-            GetComponent<AudioSource>().PlayOneShot(openSound);
-        }
-        if (GetComponent<Animation>() != null)
-        {
-            GetComponent<Animation>().Play();
-        }
-        yield return new WaitForSeconds(teleWaitTime);
-        StartCoroutine(you.tele(exitMode, enterMode, image, worldName, teleX, teleY, teleHigh, w.front, closeSound, null));
     }
 
     private IEnumerator get(effect e)
     {
-        //示例
-        npcMove.npcCanMove = false;
-        you.effecthaves[(int)e] = true;
-        you.effectNum++;
-        you.canMove = false;
-        //audio
-        if (null == GetComponent<AudioSource>())
+        if (wait)
         {
-            gameObject.AddComponent<AudioSource>();
+            wait = false;
+            //示例
+            npcMove.npcCanMove = false;
+            you.canMove = false;
+            //audio
+            if (null == GetComponent<AudioSource>())
+            {
+                gameObject.AddComponent<AudioSource>();
+            }
+            //play screen
+            if (extra)
+            {
+                screen.GetComponent<Image>().enabled = true;
+                GetComponent<AudioSource>().PlayOneShot(screenSound);
+                yield return new WaitForSeconds(1f);
+                GetComponent<AudioSource>().Stop();
+                screen.GetComponent<Image>().enabled = false;
+                yield return new WaitForSeconds(1f);
+            }
+            else
+            {
+                Instantiate(getHintPrefab, you.transform.position + new Vector3(0, 3, 0), getHintPrefab.transform.rotation);
+                GetComponent<AudioSource>().PlayOneShot(keySound);
+                yield return new WaitForSeconds(2f);
+            }
+            GetComponent<AudioSource>().PlayOneShot(getSound);
+            getImage.GetComponentInChildren<Text>().text = you.effectName[(int)e];
+            getImage.GetComponent<Image>().enabled = true;
+            getImage.GetComponentInChildren<Text>().enabled = true;
+            //show
+            for (int i = 10; i > 0; i--)
+            {
+                getImage.GetComponent<Image>().color = new Color(1, 1, 1, 1 / (float)i);
+                getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.785f, 1 / (float)i);
+                yield return new WaitForSeconds(0.01f);
+            }
+            //hide
+            yield return new WaitForSeconds(1);
+            for (int i = 1; i <= 10; i++)
+            {
+                getImage.GetComponent<Image>().color = new Color(1, 1, 1, 1 / (float)i);
+                getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.785f, 1 / (float)i);
+                yield return new WaitForSeconds(0.01f);
+            }
+            getImage.GetComponent<Image>().enabled = false;
+            getImage.GetComponentInChildren<Text>().enabled = false;
+            //get effect
+            you.canMove = true;
+            npcMove.npcCanMove = true;
+            you.effecthaves[(int)e] = true;
+            you.effectNum++;
+            you.items.Add(new effectItem(e, you));
+            mod = mode.normal;
+            wait = true;
         }
-        //play screen
-        if (extra)
-        {
-            screen.GetComponent<Image>().enabled = true;
-            GetComponent<AudioSource>().PlayOneShot(screenSound);
-            yield return new WaitForSeconds(1f);
-            GetComponent<AudioSource>().Stop();
-            screen.GetComponent<Image>().enabled = false;
-            yield return new WaitForSeconds(1f);
-        }
-        else
-        {
-            Instantiate(getHintPrefab, you.transform.position + new Vector3(0, 3, 0), getHintPrefab.transform.rotation);
-            GetComponent<AudioSource>().PlayOneShot(keySound);
-            yield return new WaitForSeconds(2f);
-        }
-        GetComponent<AudioSource>().PlayOneShot(getSound);
-        getImage.GetComponentInChildren<Text>().text = you.effectName[(int)e];
-        getImage.GetComponent<Image>().enabled = true;
-        getImage.GetComponentInChildren<Text>().enabled = true;
-        //show
-        for (int i = 10; i > 0; i--)
-        {
-            getImage.GetComponent<Image>().color = new Color(1, 1, 1, 1 / (float)i);
-            getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.785f, 1 / (float)i);
-            yield return new WaitForSeconds(0.01f);
-        }
-        //hide
-        yield return new WaitForSeconds(1);
-        for (int i = 1; i <= 10; i++)
-        {
-            getImage.GetComponent<Image>().color = new Color(1, 1, 1, 1 / (float)i);
-            getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.785f, 1 / (float)i);
-            yield return new WaitForSeconds(0.01f);
-        }
-        getImage.GetComponent<Image>().enabled = false;
-        getImage.GetComponentInChildren<Text>().enabled = false;
-        //get effect
-        you.canMove = true;
-        npcMove.npcCanMove = true;
-        mod = mode.normal;
+        
         yield return null;
+
     }
 
     void Start()
