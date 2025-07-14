@@ -5,5 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 public enum effect
 {
-    angel
+    none,
+    angel,
+    door
 }
