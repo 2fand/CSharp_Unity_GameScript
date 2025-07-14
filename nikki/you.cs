@@ -33,7 +33,7 @@ public class you : MonoBehaviour
     public static AudioClip teleSound;
     public static bool[] effecthaves = new bool[18];
     public static int effectNum = 0;
-    public readonly string[] effectName = { "", "天使", "锁门" };
+    public static readonly string[] effectName = { "", "天使", "锁门" };
     public static enterMode enterMode = enterMode.show;
     public static bool notOver = false;
     public static AudioClip defaultWalkSound;
@@ -50,6 +50,7 @@ public class you : MonoBehaviour
     public static bool commandIsEnd = true;
     public static bool teleIsEnd = true;
     public static bool moveIsEnd = true;
+    public static List<item> items = new List<item>();
     wasd getwasd()
     {
         if (Input.GetKey("w"))
@@ -381,8 +382,9 @@ public class you : MonoBehaviour
         yield return null;
     }
 
-    IEnumerator changeEffect(effect effect)
+    public IEnumerator changeEffect(effect effect)
     {
+        commandIsEnd = false;
         canMove = false;
         npcMove.npcCanMove = false;
         if (effect.none != effect ? null != effectEqiupSound : null != effectCancelEqiupSound)
@@ -395,10 +397,12 @@ public class you : MonoBehaviour
         isChangeEffect = true;
         canMove = true;
         npcMove.npcCanMove = true;
+        commandIsEnd = true;
     }
 
     void Start()
     {
+        items.Add(new effectItem(effect.none, this));
         if (null == GetComponent<AudioSource>())
         {
             gameObject.AddComponent<AudioSource>();
@@ -455,7 +459,7 @@ public class you : MonoBehaviour
         }
         m.wmap[x, y] = 'I';
         //测试效果
-        if (Input.GetKeyDown("9") && canMove)
+        if (Input.GetKeyDown("9") && canMove/* && effecthaves[(int)effect.angel]*/)
         {
             StartCoroutine(changeEffect(effect.angel));
         }
