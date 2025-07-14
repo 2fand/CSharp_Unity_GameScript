@@ -51,6 +51,13 @@ public class you : MonoBehaviour
     public static bool teleIsEnd = true;
     public static bool moveIsEnd = true;
     public static List<item> items = new List<item>();
+    private void init()
+    {
+        speed = 1;
+        transform.position = new Vector3(transform.position.x, high, transform.position.z);
+        gameObject.GetComponent<Float>().enabled = false;
+        gameObject.GetComponent<changeColor>().enabled = false;
+    }
     wasd getwasd()
     {
         if (Input.GetKey("w"))
@@ -459,7 +466,7 @@ public class you : MonoBehaviour
         }
         m.wmap[x, y] = 'I';
         //测试效果
-        if (Input.GetKeyDown("9") && canMove/* && effecthaves[(int)effect.angel]*/)
+        if (Input.GetKeyDown("9") && canMove && effecthaves[(int)effect.angel])
         {
             StartCoroutine(changeEffect(effect.angel));
         }
@@ -480,10 +487,7 @@ public class you : MonoBehaviour
                     gameObject.GetComponent<changeColor>().enabled = true;
                     break;
                 default:
-                    speed = 1;
-                    transform.position = new Vector3(transform.position.x, high, transform.position.z);
-                    gameObject.GetComponent<Float>().enabled = false;
-                    gameObject.GetComponent<changeColor>().enabled = false;
+                    init();
                     break;
             }
             isChangeEffect = false;
