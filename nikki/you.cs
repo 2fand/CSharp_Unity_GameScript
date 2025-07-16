@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static change;
@@ -37,7 +38,7 @@ public class you : MonoBehaviour
     public static enterMode enterMode = enterMode.show;
     public static bool notOver = false;
     public static AudioClip defaultWalkSound;
-    public Camera gameCamera;
+    private GameObject gameCamera;
     public static AudioClip effectEqiupSound;
     public static AudioClip effectCancelEqiupSound;
     public static effect nowEffect = effect.none;
@@ -51,6 +52,12 @@ public class you : MonoBehaviour
     public static bool teleIsEnd = true;
     public static bool moveIsEnd = true;
     public static List<item> items = new List<item>();
+    public static bool canTurn = true;
+    public Vector3 cameraPosition = new Vector3(0, 82, -67.5f);
+    public Vector3 cameraRotation = new Vector3(50, 0, 0);
+    public bool cameraIsOrthographic = true;
+    public float cameraOrthographicSize = 20;
+    
     private void init()
     {
         speed = 1;
@@ -131,6 +138,12 @@ public class you : MonoBehaviour
         float youSpeed = speed;
         speed = tempSpeed;
         front = i;
+        if (0 > step)
+        {
+            canTurn = false;
+            i = (wasd)((int)(i + 2) % 4);
+            step = Mathf.Abs(step);
+        }
         if (moveIsEnd)
         {
             moveIsEnd = false;
@@ -214,22 +227,18 @@ public class you : MonoBehaviour
                     switch (i)//移动
                     {
                         case wasd.w:
-                            front = wasd.w;
                             transform.position += new Vector3(0, 0, m.widthY / m.y / 20.0f);
                             yield return new WaitForSeconds(0.2f / speed / 20.0f);
                             break;
                         case wasd.a:
-                            front = wasd.a;
                             transform.position += new Vector3(-m.heightX / m.x / 20.0f, 0, 0);
                             yield return new WaitForSeconds(0.2f / speed / 20.0f);
                             break;
                         case wasd.s:
-                            front = wasd.s;
                             transform.position += new Vector3(0, 0, -m.widthY / m.y / 20.0f);
                             yield return new WaitForSeconds(0.2f / speed / 20.0f);
                             break;
                         case wasd.d:
-                            front = wasd.d;
                             transform.position += new Vector3(m.heightX / m.x / 20.0f, 0, 0);
                             yield return new WaitForSeconds(0.2f / speed / 20.0f);
                             break;
@@ -237,6 +246,7 @@ public class you : MonoBehaviour
                 }
             }
             speed = youSpeed;
+            canTurn = true;
             moveIsEnd = true;
         }
     }
@@ -417,15 +427,37 @@ public class you : MonoBehaviour
         if (null == GetComponent<Float>())
         {
             gameObject.AddComponent<Float>();
+            gameObject.GetComponent<Float>().enabled = false;
         }
         if (null == GetComponent<changeColor>())
         {
             gameObject.AddComponent<changeColor>();
+            gameObject.GetComponent<changeColor>().enabled = false;
         }
         //根据游戏y轴进行高度计算
         high = transform.position.y;
         //根据地图xy轴进行位置计算
         transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), transform.position.y, m.maxY - m.widthY / m.y * (0.5f + y));
+        ConstraintSource source = new ConstraintSource { sourceTransform = transform, weight = 1 };
+        gameCamera = new GameObject("gameCamera");
+        gameCamera.transform.position = cameraPosition;
+        gameCamera.tag = "MainCamera";
+        gameCamera.transform.rotation = Quaternion.Euler(cameraRotation);
+        gameCamera.AddComponent<AudioListener>();
+        gameCamera.AddComponent<Camera>();
+        gameCamera.GetComponent<Camera>().orthographic = cameraIsOrthographic;
+        gameCamera.GetComponent<Camera>().orthographicSize = cameraOrthographicSize;
+        gameCamera.AddComponent<PositionConstraint>().SetSources(new List<ConstraintSource> { source });
+        gameCamera.GetComponent<PositionConstraint>().translationAxis = Axis.X | Axis.Z;
+        gameCamera.GetComponent<PositionConstraint>().translationOffset = cameraPosition;
+        gameCamera.GetComponent<PositionConstraint>().translationAtRest = cameraPosition;
+        gameCamera.GetComponent<PositionConstraint>().constraintActive = true;
+        if (null == effects)
+        {
+            Debug.LogError("初始化错误：当前世界并没有inityou组件");
+            enabled = false;
+            return;
+        }
         GetComponent<MeshRenderer>().sharedMaterials = effects[0].GetComponent<MeshRenderer>().sharedMaterials;
         GetComponent<MeshFilter>().sharedMesh = effects[0].GetComponent<MeshFilter>().sharedMesh;
     }
@@ -439,20 +471,23 @@ public class you : MonoBehaviour
             transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), teleHigh, m.maxY - m.widthY / m.y * (0.5f + y));
             isTele = false;
         }
-        switch (front)
+        if (canTurn)
         {
-            case wasd.w:
-                transform.rotation = Quaternion.Euler(-90, 0, 180);
-                break;
-            case wasd.a:
-                transform.rotation = Quaternion.Euler(-90, 0, 90);
-                break;
-            case wasd.s:
-                transform.rotation = Quaternion.Euler(-90, 0, 0);
-                break;
-            default:
-                transform.rotation = Quaternion.Euler(-90, 0, -90);
-                break;
+            switch (front)
+            {
+                case wasd.w:
+                    transform.rotation = Quaternion.Euler(-90, 0, 180);
+                    break;
+                case wasd.a:
+                    transform.rotation = Quaternion.Euler(-90, 0, 90);
+                    break;
+                case wasd.s:
+                    transform.rotation = Quaternion.Euler(-90, 0, 0);
+                    break;
+                default:
+                    transform.rotation = Quaternion.Euler(-90, 0, -90);
+                    break;
+            }
         }
         if (null != teleSound)
         {
