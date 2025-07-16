@@ -21,7 +21,7 @@ public class npcMove : MonoBehaviour
         Catch,
         escape
     }
-    public map m;
+    private map m;
     private bool isEnd = true;
     public float waitTime = 0.2f;
     public int speed = 2;
@@ -280,6 +280,7 @@ public class npcMove : MonoBehaviour
 
     void Start()
     {
+        m = npc.m;
         if (null == GetComponent<AudioSource>())
         {
             gameObject.AddComponent<AudioSource>();
