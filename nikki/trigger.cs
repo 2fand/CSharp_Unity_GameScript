@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
@@ -95,7 +96,20 @@ public class trigger : MonoBehaviour
         exitMode = null;
         isWaitSoundEnd = null;
     }
-
+    string easyNum(string stringNum) {
+        string symbol = Regex.Match(stringNum, "^[+-]*").Value;
+        string absNum = Regex.Match(stringNum, "[^+-]*$").Value;
+        absNum = ("" == absNum ? "1" : absNum);
+        bool isNegative = false;
+        foreach (char ch in symbol)
+        {
+            if (ch == '-')
+            {
+                isNegative = !isNegative;
+            }
+        }
+        return (isNegative ? "-" : "") + absNum;
+    }
     void Start()
     {
         funcs = new List<IEnumerator>();
@@ -237,7 +251,7 @@ public class trigger : MonoBehaviour
                                 }
                                 if (0 != delimiterIndex)
                                 {
-                                    tempSpeed = float.Parse(value.Substring(0, delimiterIndex));
+                                    tempSpeed = float.Parse(easyNum(value.Substring(0, delimiterIndex)));
                                 }
                                 if (stringModes.ContainsKey(value.Substring(delimiterIndex))){
                                     front = ("u" == value.Substring(delimiterIndex) || "U" == value.Substring(delimiterIndex) ? you.front : (you.wasd)stringModes[value.Substring(delimiterIndex)]);
@@ -312,6 +326,12 @@ public class trigger : MonoBehaviour
                     funcs.Add(you.tele(exitMode ?? change.exitMode.hide, enterMode ?? change.enterMode.show, image, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, front ?? you.wasd.s, sounds[closeSoundIndex ?? 0] ?? sounds[0], sounds[teleSoundIndex ?? 0] ?? sounds[0]));
                     break;
                 case "move":
+                    step ??= 1;
+                    if (0 > tempSpeed)
+                    {
+                        tempSpeed *= -1;
+                        step *= -1;
+                    }
                     funcs.Add(u.move(front ?? you.front, step ?? 1, tempSpeed ?? 1));
                     break;
                 case "show":
@@ -383,7 +403,7 @@ public class trigger : MonoBehaviour
         {
             StartCoroutine(runCommand());
         }
-        if (isEnd && 0 == funcs.Count && !(u.x >= x - extendLeft && u.x <= x + extendRight && u.y >= y - extendUp && u.y <= y + extendDown && you.commandIsEnd))
+        if (isEnd && 0 == funcs.Count && !(u.x >= x - extendLeft && u.x <= x + extendRight && u.y >= y - extendUp && u.y <= y + extendDown && you.teleIsEnd && you.moveIsEnd && you.commandIsEnd))
         {
             isDone = false;
         }
