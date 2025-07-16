@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class setyou : MonoBehaviour
+public class inityou : MonoBehaviour
 {
     public AudioClip defaultWalkSound;
     public AudioClip effectEqiupSound;
