@@ -19,7 +19,7 @@ public class z : MonoBehaviour
         effect,
         talk
     };
-    public map m;
+    private map m;
     public you you;
     public wall w;
     public bool haveFront = true;
@@ -127,13 +127,12 @@ public class z : MonoBehaviour
             mod = mode.normal;
             wait = true;
         }
-        
         yield return null;
-
     }
 
     void Start()
     {
+        m = w.m;
         if ("" == worldName)
         {
             worldName = "nexus";
