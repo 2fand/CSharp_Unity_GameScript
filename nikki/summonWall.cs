@@ -22,6 +22,7 @@ public class summonWall : MonoBehaviour
         {
             wall.AddComponent<wall>();
         }
+        wall.GetComponent<wall>().enabled = true;
         if (0 == wallXY.Length)
         {
             int begin = 0;
