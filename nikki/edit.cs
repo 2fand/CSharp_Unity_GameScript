@@ -6,7 +6,7 @@ using UnityEngine;
 public class edit : MonoBehaviour
 {
     public map m;
-    public Camera gameCamera;
+    public you u;
     private GameObject editCamera;
     public Material editMaterial;
     public Material[] delMaterials;
@@ -53,7 +53,7 @@ public class edit : MonoBehaviour
         if (!isEdit && Input.GetKeyDown("e"))
         {
             isEdit = true;
-            gameCamera.enabled = false;
+            u.gameCamera.GetComponent<Camera>().enabled = false;
             editCamera.GetComponent<Camera>().enabled = true;
             GameObject canEditMap = GameObject.CreatePrimitive(PrimitiveType.Cube);
             canEditMap.GetComponent<MeshRenderer>().material = editMaterial;
