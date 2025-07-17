@@ -226,7 +226,7 @@ public class npcMove : MonoBehaviour
         //初始
         isEnd = false;
         wasd i = getwasd();
-        for (int j = 0; j < 20; j++)
+        for (int j = 0; j < 10; j++)
         {
             switch (i)//移动
             {
@@ -235,32 +235,32 @@ public class npcMove : MonoBehaviour
                     {
                         npc.front = you.wasd.w;
                     }
-                    transform.position += new Vector3(0, 0, m.widthY / m.y / 20.0f);
-                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                    transform.position += new Vector3(0, 0, m.widthY / m.y / 10.0f);
+                    yield return new WaitForSeconds(0.1f / speed / 10.0f);
                     break;
                 case wasd.a:
                     if (isTurn)
                     {
                         npc.front = you.wasd.a;
                     }
-                    transform.position += new Vector3(-m.heightX / m.x / 20.0f, 0, 0);
-                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                    transform.position += new Vector3(-m.heightX / m.x / 10.0f, 0, 0);
+                    yield return new WaitForSeconds(0.1f / speed / 10.0f);
                     break;
                 case wasd.s:
                     if (isTurn)
                     {
                         npc.front = you.wasd.s;
                     }
-                    transform.position += new Vector3(0, 0, -m.widthY / m.y / 20.0f);
-                    yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                    transform.position += new Vector3(0, 0, -m.widthY / m.y / 10.0f);
+                    yield return new WaitForSeconds(0.1f / speed / 10.0f);
                     break;
                 case wasd.d:
                     if (isTurn)
                     {
                         npc.front = you.wasd.d;
                     }
-                    transform.position += new Vector3(m.heightX / m.x / 20.0f, 0, 0);
-                    yield return new WaitForSeconds(0.2f / speed / 20.0f);//移动间隔时间
+                    transform.position += new Vector3(m.heightX / m.x / 10.0f, 0, 0);
+                    yield return new WaitForSeconds(0.1f / speed / 10.0f);//移动间隔时间
                     break;
                 default://wasd.n时无
                     goto nowait;
