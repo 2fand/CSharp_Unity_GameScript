@@ -38,7 +38,7 @@ public class you : MonoBehaviour
     public static enterMode enterMode = enterMode.show;
     public static bool notOver = false;
     public static AudioClip defaultWalkSound;
-    private GameObject gameCamera;
+    public GameObject gameCamera;
     public static AudioClip effectEqiupSound;
     public static AudioClip effectCancelEqiupSound;
     public static effect nowEffect = effect.none;
@@ -222,25 +222,25 @@ public class you : MonoBehaviour
                 {
                     GetComponent<AudioSource>().PlayOneShot(effectWalkSounds[(int)nowEffect] ?? defaultWalkSound);
                 }
-                for (int j = 0; j < 20; j++)
+                for (int j = 0; j < 10; j++)
                 {
                     switch (i)//移动
                     {
                         case wasd.w:
-                            transform.position += new Vector3(0, 0, m.widthY / m.y / 20.0f);
-                            yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                            transform.position += new Vector3(0, 0, m.widthY / m.y / 10.0f);
+                            yield return new WaitForSeconds(0.1f / speed / 10.0f);
                             break;
                         case wasd.a:
-                            transform.position += new Vector3(-m.heightX / m.x / 20.0f, 0, 0);
-                            yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                            transform.position += new Vector3(-m.heightX / m.x / 10.0f, 0, 0);
+                            yield return new WaitForSeconds(0.1f / speed / 10.0f);
                             break;
                         case wasd.s:
-                            transform.position += new Vector3(0, 0, -m.widthY / m.y / 20.0f);
-                            yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                            transform.position += new Vector3(0, 0, -m.widthY / m.y / 10.0f);
+                            yield return new WaitForSeconds(0.1f / speed / 10.0f);
                             break;
                         case wasd.d:
-                            transform.position += new Vector3(m.heightX / m.x / 20.0f, 0, 0);
-                            yield return new WaitForSeconds(0.2f / speed / 20.0f);
+                            transform.position += new Vector3(m.heightX / m.x / 10.0f, 0, 0);
+                            yield return new WaitForSeconds(0.1f / speed / 10.0f);
                             break;
                     }
                 }
