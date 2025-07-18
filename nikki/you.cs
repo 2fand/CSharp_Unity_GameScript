@@ -57,7 +57,8 @@ public class you : MonoBehaviour
     public Vector3 cameraRotation = new Vector3(50, 0, 0);
     public bool cameraIsOrthographic = true;
     public float cameraOrthographicSize = 20;
-    
+    public static int money = 0;
+    public static string moneyUnit = "";
     private void init()
     {
         speed = 1;
@@ -501,7 +502,7 @@ public class you : MonoBehaviour
         }
         m.wmap[x, y] = 'I';
         //测试效果
-        if (Input.GetKeyDown("9") && canMove && effecthaves[(int)effect.angel])
+        if (Input.GetKeyDown("9") && canMove)
         {
             StartCoroutine(changeEffect(effect.angel));
         }
