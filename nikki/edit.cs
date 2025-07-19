@@ -53,7 +53,7 @@ public class edit : MonoBehaviour
         if (!isEdit && Input.GetKeyDown("e"))
         {
             isEdit = true;
-            u.gameCamera.GetComponent<Camera>().enabled = false;
+            u.GameCamera.GetComponent<Camera>().enabled = false;
             editCamera.GetComponent<Camera>().enabled = true;
             GameObject canEditMap = GameObject.CreatePrimitive(PrimitiveType.Cube);
             canEditMap.GetComponent<MeshRenderer>().material = editMaterial;
