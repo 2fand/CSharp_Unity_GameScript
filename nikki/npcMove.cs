@@ -218,7 +218,7 @@ public class npcMove : MonoBehaviour
             }
             hurtSound = null;
         }
-        StartCoroutine(you.tele(exitMode, enterMode, image, teleWorldName, teleWorldX, teleWorldY, teleWorldHigh, you.wasd.s, null, catchSound));
+        StartCoroutine(you.tele(exitMode, enterMode, teleWorldName, teleWorldX, teleWorldY, teleWorldHigh, you.wasd.s, null, catchSound));
     }
 
     IEnumerator pyou()
