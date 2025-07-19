@@ -18,7 +18,6 @@ public class change : MonoBehaviour
         hide,
         fadeout
     }
-    public Image image;
     //public IEnumerator hide(Image image)
     //{
     //    for (int i = 0; i < 50; i++)
@@ -43,10 +42,10 @@ public class change : MonoBehaviour
         switch (you.enterMode)
         {
             case enterMode.show:
-                StartCoroutine(show(image));
+                StartCoroutine(show(you.teleScreen.GetComponent<Image>()));
                 break;
             default:
-                image.color -= new Color(0, 0, 0, 1);
+                you.teleScreen.GetComponent<Image>().color -= new Color(0, 0, 0, 1);
                 break;
         }
     }
