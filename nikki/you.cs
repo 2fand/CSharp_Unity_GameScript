@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.SceneManagement;
@@ -38,7 +39,18 @@ public class you : MonoBehaviour
     public static enterMode enterMode = enterMode.show;
     public static bool notOver = false;
     public static AudioClip defaultWalkSound;
-    public GameObject gameCamera;
+    private GameObject gameCamera;
+    public GameObject GameCamera
+    {
+        get
+        {
+            return gameCamera;
+        }
+        set
+        {
+            gameCamera = value;
+        }
+    }
     public static AudioClip effectEqiupSound;
     public static AudioClip effectCancelEqiupSound;
     public static effect nowEffect = effect.none;
@@ -59,6 +71,8 @@ public class you : MonoBehaviour
     public float cameraOrthographicSize = 20;
     public static int money = 0;
     public static string moneyUnit = "";
+    public static GameObject teleScreen;
+    public Canvas canvas;
     private void init()
     {
         speed = 1;
@@ -286,7 +300,7 @@ public class you : MonoBehaviour
         commandIsEnd = true;
     }
 
-    public static IEnumerator tele(exitMode exitMode, enterMode enterMode, Image image, string worldName, int teleX, int teleY, float teleHigh, wasd front = wasd.s, AudioClip closeSound = null, AudioClip teleSound = null)
+    public static IEnumerator tele(exitMode exitMode, enterMode enterMode, string worldName, int teleX, int teleY, float teleHigh, wasd front = wasd.s, AudioClip closeSound = null, AudioClip teleSound = null)
     {
         if (teleIsEnd)
         {
@@ -298,20 +312,17 @@ public class you : MonoBehaviour
                 you.teleSound = teleSound;
             }
             yield return new WaitForSeconds(null != teleSound ? teleSound.length : 0);
-            if (null != image)
+            switch (exitMode)
             {
-                switch (exitMode)
-                {
-                    case exitMode.hide:
-                        for (int i = 0; i < 50; i++)
-                        {
-                            image.color += new Color(0, 0, 0, 0.02f);
-                            yield return 5;
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                case exitMode.hide:
+                    for (int i = 0; i < 50; i++)
+                    {
+                        teleScreen.GetComponent<Image>().color += new Color(0, 0, 0, 0.02f);
+                        yield return 5;
+                    }
+                    break;
+                default:
+                    break;
             }
             if (worldName != SceneManager.GetActiveScene().name)
             {
@@ -418,7 +429,7 @@ public class you : MonoBehaviour
         commandIsEnd = true;
     }
 
-    void Start()
+    void Awake()
     {
         items.Add(new effectItem(effect.none, this));
         if (null == GetComponent<AudioSource>())
@@ -453,6 +464,19 @@ public class you : MonoBehaviour
         gameCamera.GetComponent<PositionConstraint>().translationOffset = cameraPosition;
         gameCamera.GetComponent<PositionConstraint>().translationAtRest = cameraPosition;
         gameCamera.GetComponent<PositionConstraint>().constraintActive = true;
+        teleScreen = new GameObject("teleScreen");
+        teleScreen.AddComponent<Image>().color = Color.black;
+        teleScreen.transform.SetParent(canvas.transform, false);
+        teleScreen.GetComponent<Image>().rectTransform.localScale = Vector3.one;
+        teleScreen.AddComponent<fullscreen>();
+        if (null == canvas.GetComponent<change>())
+        {
+            canvas.AddComponent<change>();
+        }
+    }
+
+    void Start()
+    {
         if (null == effects)
         {
             Debug.LogError("初始化错误：当前世界并没有inityou组件");
