@@ -24,7 +24,6 @@ public class z : MonoBehaviour
     public wall w;
     public bool haveFront = true;
     public mode mod = mode.tele;
-    public Image image;
     public float teleWaitTime = 0.5f;
     public string worldName = "nexus";
     public AudioClip openSound;
@@ -63,7 +62,7 @@ public class z : MonoBehaviour
             }
             yield return new WaitForSeconds(teleWaitTime);
 
-            StartCoroutine(you.tele(exitMode, enterMode, image, worldName, teleX, teleY, teleHigh, w.front, closeSound, null));
+            StartCoroutine(you.tele(exitMode, enterMode, worldName, teleX, teleY, teleHigh, w.front, closeSound, null));
             wait = true;
         }
     }
