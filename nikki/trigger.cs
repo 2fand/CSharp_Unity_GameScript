@@ -33,10 +33,27 @@ public class trigger : MonoBehaviour
         or,
         not
     }
+    public enum commandNames
+    {
+        tele, 
+        help, 
+        move, 
+        show, 
+        hide, 
+        play, 
+        turn, 
+        stop, 
+        wait, 
+        use, 
+        value, 
+        debug, 
+        Goto
+    }
     public change.enterMode enterModesView;
     public change.exitMode exitModesView;
     public commandFronts frontsView;
     public commandTurns turnsView;
+    public commandNames canUseCommandNamesView;
     public int x = 0;
     public int y = 0;
     public bool ChangeTransform = true;
@@ -50,7 +67,6 @@ public class trigger : MonoBehaviour
     public string[] commands;//目前支持tele命令, help命令, #命令, move命令, show命令, hide命令, play命令, turn命令, stop命令, wait命令, use命令, value命令, debug命令, goto命令。 talk等命令之后实现
     public AudioClip[] sounds;
     public you u;
-    public UnityEngine.UI.Image image;
     private bool isEnd = true;
     private readonly Hashtable stringModes = new Hashtable { { "show", change.enterMode.show }, { "fadein", change.enterMode.fadein }, { "hide", change.exitMode.hide }, { "fadeout", change.exitMode.fadeout }, { "W", you.wasd.w }, { "w", you.wasd.w }, { "A", you.wasd.a }, { "a", you.wasd.a }, { "S", you.wasd.s }, { "s", you.wasd.s }, { "D", you.wasd.d }, { "d", you.wasd.d }, { "true", true }, { "false", false }, { "t", true }, { "f", false }};
     private readonly Hashtable turnModes = new Hashtable { { "l", 3 }, { "left", 3 }, { "b", 2 }, { "back", 2 }, { "r", 1 }, { "right", 1 } };
@@ -198,7 +214,7 @@ public class trigger : MonoBehaviour
                 }
                 if (0 == i)
                 {
-                    commandName = value;
+                    commandName = value.ToLower();
                     if (!Regex.Match(commandName, "^[^:]+:$").Success && !commandHelpStrings.ContainsKey(commandName))
                     {
                         Debug.LogError("命令" + commandName + "不存在");
@@ -352,7 +368,7 @@ public class trigger : MonoBehaviour
             switch (commandName)
             {
                 case "tele":
-                    funcs.Add(you.tele(exitMode ?? change.exitMode.hide, enterMode ?? change.enterMode.show, image, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, front ?? you.wasd.s, sounds[closeSoundIndex ?? 0] ?? sounds[0], sounds[teleSoundIndex ?? 0] ?? sounds[0]));
+                    funcs.Add(you.tele(exitMode ?? change.exitMode.hide, enterMode ?? change.enterMode.show, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, front ?? you.wasd.s, sounds[closeSoundIndex ?? 0] ?? sounds[0], sounds[teleSoundIndex ?? 0] ?? sounds[0]));
                     break;
                 case "move":
                     step ??= 1;
