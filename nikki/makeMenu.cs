@@ -2,66 +2,32 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using static MenuTheme;
 public class makeMenu : MonoBehaviour
 {
-    public enum makeMode
-    {
-        scale,
-        concatenate,
-        easyConcatenate
-    }
-    public makeMode mode = makeMode.concatenate;
-    private makeMode last_mode;
-    public string menuName = "default";
-    private string last_menuName;
-    public Sprite menu;
-    private Sprite last_menu;
+    public Vector2 imageSize = Vector2.one;
+    private Vector2 last_imageSize;
     private GameObject image;
-    private Vector2 lastRect = Vector2.zero;
+    private Vector2 last_rect;
     private uint catW;
     private uint catH;
-    public Sprite easyMenu;
-    public Sprite menuLeft;
-    public Sprite menuRight;
-    public Sprite menuUp;
-    public Sprite menuDown;
-    public Sprite menuLeftUp;
-    public Sprite menuRightUp;
-    public Sprite menuLeftDown;
-    public Sprite menuRightDown;
-    public Sprite menuCenter;
-    public Sprite menu_1x1;
-    public Sprite menu_1x_c;
-    public Sprite menu_1x_u;
-    public Sprite menu_1x_d;
-    public Sprite menu_x1_c;
-    public Sprite menu_x1_l;
-    public Sprite menu_x1_r;
-    private Sprite last_easyMenu;
-    private Sprite last_menuLeft;
-    private Sprite last_menuRight;
-    private Sprite last_menuUp;
-    private Sprite last_menuDown;
-    private Sprite last_menuLeftUp;
-    private Sprite last_menuRightUp;
-    private Sprite last_menuLeftDown;
-    private Sprite last_menuRightDown;
-    private Sprite last_menuCenter;
-    private Sprite last_menu_1x1;
-    private Sprite last_menu_1x_c;
-    private Sprite last_menu_1x_u;
-    private Sprite last_menu_1x_d;
-    private Sprite last_menu_x1_c;
-    private Sprite last_menu_x1_l;
-    private Sprite last_menu_x1_r;
     private GameObject[] images;
     private List<Vector2> spriteSizes = new List<Vector2>();
     private List<GameObject> addChildren = new List<GameObject>();
+    private MenuTheme menuTheme;
+    public string menuName = "";
+    private string last_menuName;
+    private bool initIsDone = false;
+    private int last_ID;
     private uint realW
     {
         get
         {
+            if (0 == (int)GetComponent<GridLayoutGroup>().cellSize.x)
+            {
+                GetComponent<GridLayoutGroup>().cellSize = new Vector2(1, GetComponent<GridLayoutGroup>().cellSize.y);
+                imageSize = new Vector2(1, imageSize.y);
+            }
             return (uint)((int)GetComponent<RectTransform>().sizeDelta.x / (int)GetComponent<GridLayoutGroup>().cellSize.x);
         }
     }
@@ -69,34 +35,78 @@ public class makeMenu : MonoBehaviour
     {
         get
         {
+            if (0 == (int)GetComponent<GridLayoutGroup>().cellSize.y)
+            {
+                GetComponent<GridLayoutGroup>().cellSize = new Vector2(GetComponent<GridLayoutGroup>().cellSize.x, 1);
+                imageSize = new Vector2(imageSize.x, 1);
+            }
             return (uint)((int)GetComponent<RectTransform>().sizeDelta.y / (int)GetComponent<GridLayoutGroup>().cellSize.y);
         }
     }
+    void init()
+    {
+        if (!initIsDone && menuThemes.Count > you.myMenuID)
+        {
+            initIsDone = true;
+            menuTheme = menuThemes[you.myMenuID];
+            last_menuName = menuName;
+            last_ID = you.myMenuID;
+            if (null == GetComponent<GridLayoutGroup>())
+            {
+                gameObject.AddComponent<GridLayoutGroup>().enabled = false;
+            }
+            setCellSize();
+            GetComponent<RectTransform>().sizeDelta *= GetComponent<RectTransform>().localScale;
+            GetComponent<RectTransform>().sizeDelta = new Vector2(Mathf.RoundToInt(GetComponent<RectTransform>().sizeDelta.x / GetComponent<GridLayoutGroup>().cellSize.x) * (int)GetComponent<GridLayoutGroup>().cellSize.x, Mathf.RoundToInt(GetComponent<RectTransform>().sizeDelta.y / GetComponent<GridLayoutGroup>().cellSize.y) * (int)GetComponent<GridLayoutGroup>().cellSize.y);
+            GetComponent<RectTransform>().localScale = Vector3.one;
+            last_imageSize = imageSize;
+            last_rect = GetComponent<RectTransform>().sizeDelta;
+            switch (menuTheme.mode)
+            {
+                case makeMode.scale:
+                    image = new GameObject("" != menuName ? menuName : name);
+                    image.transform.parent = transform;
+                    addChildren.Add(image);
+                    image.AddComponent<Image>();
+                    image.GetComponent<Image>().rectTransform.sizeDelta = GetComponent<RectTransform>().sizeDelta;
+                    image.GetComponent<Image>().sprite = menuTheme.menu ?? image.GetComponent<Image>().sprite;
+                    image.GetComponent<RectTransform>().position = GetComponent<RectTransform>().position;
+                    image.GetComponent<RectTransform>().localScale = Vector3.one;
+                    break;
+                default:
+                    gameObject.GetComponent<GridLayoutGroup>().enabled = true;
+                    makeGrid();
+                    break;
+            }
+        }
+    }
+
     void setCellSize()
     {
         if (1 == realH && 1 == realW)
         {
-            GetComponent<GridLayoutGroup>().cellSize = (mode == makeMode.easyConcatenate ? easyMenu : menu_1x1).rect.size;
+            GetComponent<GridLayoutGroup>().cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x1).rect.size;
         }
         else if (1 == realH)
         {
-            GetComponent<GridLayoutGroup>().cellSize = (mode == makeMode.easyConcatenate ? easyMenu : menu_x1_l).rect.size;
+            GetComponent<GridLayoutGroup>().cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_l).rect.size;
         }
         else if (1 == realW)
         {
-            GetComponent<GridLayoutGroup>().cellSize = (mode == makeMode.easyConcatenate ? easyMenu : menu_1x_u).rect.size;
+            GetComponent<GridLayoutGroup>().cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_u).rect.size;
         }
         else
         {
-            GetComponent<GridLayoutGroup>().cellSize = (mode == makeMode.easyConcatenate ? easyMenu : menuLeftUp).rect.size;
+            GetComponent<GridLayoutGroup>().cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftUp).rect.size;
         }
+        GetComponent<GridLayoutGroup>().cellSize *= imageSize;
     }
     void makeGrid()
     {
         setCellSize();
         catW = realW;
         catH = realH;
-        if ((0 == catH || 0 == catW) || mode == makeMode.easyConcatenate ? null == easyMenu : ((1 == catH && 1 != catW && (null == menu_x1_l || null == menu_x1_r || 2 < catW && null == menu_x1_c)) || (1 != catH && 1 == catW && (null == menu_1x_u || null == menu_1x_d || 2 < catH && null == menu_1x_c)) || (1 == catH && 1 == catW && null == menu_1x1) || (1 != catH && 1 != catW && (null == menuLeftDown || null == menuRightDown || null == menuLeftUp || null == menuRightUp || 2 < catH && (null == menuLeft || null == menuRight) || 2 < catW && (null == menuUp || null == menuDown) || 2 < catH && 2 < catW && null == menuCenter))))
+        if ((0 == catH || 0 == catW) || menuTheme.mode == makeMode.easyConcatenate ? null == menuTheme.menu : ((1 == catH && 1 != catW && (null == menuTheme.menu_x1_l || null == menuTheme.menu_x1_r || 2 < catW && null == menuTheme.menu_x1_c)) || (1 != catH && 1 == catW && (null == menuTheme.menu_1x_u || null == menuTheme.menu_1x_d || 2 < catH && null == menuTheme.menu_1x_c)) || (1 == catH && 1 == catW && null == menuTheme.menu_1x1) || (1 != catH && 1 != catW && (null == menuTheme.menuLeftDown || null == menuTheme.menuRightDown || null == menuTheme.menuLeftUp || null == menuTheme.menuRightUp || 2 < catH && (null == menuTheme.menuLeft || null == menuTheme.menuRight) || 2 < catW && (null == menuTheme.menuUp || null == menuTheme.menuDown) || 2 < catH && 2 < catW && null == menuTheme.menuCenter))))
         {
             return;
         }
@@ -105,73 +115,74 @@ public class makeMenu : MonoBehaviour
         {
             for (int x = 0; x < catW; x++)
             {
-                image = new GameObject(menuName + " - " + (y * catW + x));
+                image = new GameObject(("" != menuName ? menuName : name) + " - " + (y * catW + x));
                 image.transform.parent = transform;
+                image.transform.localScale = imageSize;
                 addChildren.Add(image);
                 image.AddComponent<Image>();
                 if (1 == catH && 1 == catW)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menu_1x1);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x1);
                 }
                 else if (1 == catW && 0 == y)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menu_1x_u);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_u);
                 }
                 else if (1 == catW && catH - 1 == y)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menu_1x_d);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_d);
                 }
                 else if (1 == catW)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menu_1x_c);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_c);
                 }
                 else if (1 == catH && 0 == x)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menu_x1_l);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_l);
                 }
                 else if (1 == catH && catW - 1 == x)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menu_x1_r);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_r);
                 }
                 else if (1 == catH)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menu_x1_c);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_c);
                 }
                 else if (0 == x && 0 == y)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menuLeftUp);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftUp);
                 }
                 else if (catW - 1 == x && 0 == y)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menuRightUp);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuRightUp);
                 }
                 else if (0 == y)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menuUp);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuUp);
                 }
                 else if (0 == x && catH - 1 == y)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menuLeftDown);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftDown);
                 }
                 else if (catW - 1 == x && catH - 1 == y)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menuRightDown);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuRightDown);
                 }
                 else if (catH - 1 == y)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menuDown);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuDown);
                 }
                 else if (0 == x)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menuLeft);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeft);
                 }
                 else if (catW - 1 == x)
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menuRight);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuRight);
                 }
                 else
                 {
-                    image.GetComponent<Image>().sprite = (mode == makeMode.easyConcatenate ? easyMenu : menuCenter);
+                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuCenter);
                 }
                 image.GetComponent<RectTransform>().localScale = Vector3.one;
             }
@@ -180,96 +191,47 @@ public class makeMenu : MonoBehaviour
 
     void Start()
     {
-        last_mode = mode;
-        lastRect = GetComponent<RectTransform>().sizeDelta;
-        last_menu = menu;
-        last_menuName = menuName;
-        last_easyMenu = easyMenu;
-        last_menuLeft = menuLeft;
-        last_menuRight = menuRight;
-        last_menuUp = menuUp;
-        last_menuDown = menuDown;
-        last_menuLeftUp = menuLeftUp;
-        last_menuRightUp = menuRightUp;
-        last_menuLeftDown = menuLeftDown;
-        last_menuRightDown = menuRightDown;
-        last_menuCenter = menuCenter;
-        last_menu_1x1 = menu_1x1;
-        last_menu_1x_c = menu_1x_c;
-        last_menu_1x_u = menu_1x_u;
-        last_menu_1x_d = menu_1x_d;
-        last_menu_x1_c = menu_x1_c;
-        last_menu_x1_l = menu_x1_l;
-        last_menu_x1_r = menu_x1_r;
-        if (null == GetComponent<GridLayoutGroup>())
-        {
-            gameObject.AddComponent<GridLayoutGroup>().enabled = false;
-        }
-        switch (mode)
-        {
-            case makeMode.scale:
-                image = new GameObject(menuName);
-                image.transform.parent = transform;
-                addChildren.Add(image);
-                image.AddComponent<Image>();
-                image.GetComponent<Image>().rectTransform.sizeDelta = GetComponent<RectTransform>().sizeDelta;
-                image.GetComponent<Image>().sprite = menu ?? image.GetComponent<Image>().sprite;
-                image.GetComponent<RectTransform>().position = GetComponent<RectTransform>().position;
-                image.GetComponent<RectTransform>().localScale = Vector3.one;
-                break;
-            default:
-                gameObject.GetComponent<GridLayoutGroup>().enabled = true;
-                makeGrid();
-                break;
-        }
+        init();
     }
 
     void Update()
     {
-        if (lastRect != GetComponent<RectTransform>().sizeDelta || last_menu != menu || last_easyMenu != easyMenu || last_menuLeft != menuLeft || last_menuRight != menuRight || last_menuUp != menuUp || last_menuDown != menuDown || last_menuLeftUp != menuLeftUp || last_menuRightUp != menuRightUp || last_menuLeftDown != menuLeftDown || last_menuRightDown != menuRightDown || last_menuCenter != menuCenter || last_menu_1x1 != menu_1x1 || last_menu_1x_c != menu_1x_c || last_menu_1x_u != menu_1x_u || last_menu_1x_d != menu_1x_d || last_menu_x1_c != menu_x1_c || last_menu_x1_l != menu_x1_l || last_menu_x1_r != menu_x1_r || last_menuName != menuName || last_mode != mode)
+        GetComponent<RectTransform>().localScale = Vector3.one;
+        init();
+        if (initIsDone)
         {
-            lastRect = GetComponent<RectTransform>().sizeDelta;
-            last_mode = mode;
-            last_menu = menu;
-            last_menuName = menuName;
-            last_easyMenu = easyMenu;
-            last_menuLeft = menuLeft;
-            last_menuRight = menuRight;
-            last_menuUp = menuUp;
-            last_menuDown = menuDown;
-            last_menuLeftUp = menuLeftUp;
-            last_menuRightUp = menuRightUp;
-            last_menuLeftDown = menuLeftDown;
-            last_menuRightDown = menuRightDown;
-            last_menuCenter = menuCenter;
-            last_menu_1x1 = menu_1x1;
-            last_menu_1x_c = menu_1x_c;
-            last_menu_1x_u = menu_1x_u;
-            last_menu_1x_d = menu_1x_d;
-            last_menu_x1_c = menu_x1_c;
-            last_menu_x1_l = menu_x1_l;
-            last_menu_x1_r = menu_x1_r;
-            for (int i = 0; i < addChildren.Count; i++) { 
-                Destroy(addChildren[i]);
-            }
-            addChildren.Clear();
-            switch (mode)
+            menuTheme = menuThemes[you.myMenuID];
+            if (last_rect != GetComponent<RectTransform>().sizeDelta || last_imageSize != imageSize || last_menuName != menuName || last_ID != you.myMenuID || menuTheme.isEdit)
             {
-                case makeMode.scale:
-                    GetComponent<GridLayoutGroup>().enabled = false;
-                    image = new GameObject(menuName);
-                    image.transform.parent = transform;
-                    addChildren.Add(image);
-                    image.AddComponent<Image>();
-                    image.GetComponent<Image>().rectTransform.sizeDelta = GetComponent<RectTransform>().sizeDelta;
-                    image.GetComponent<Image>().sprite = menu ?? image.GetComponent<Image>().sprite;
-                    image.GetComponent<RectTransform>().position = GetComponent<RectTransform>().position;
-                    image.GetComponent<RectTransform>().localScale = Vector3.one;
-                    break;
-                default:
-                    GetComponent<GridLayoutGroup>().enabled = true;
-                    makeGrid();
-                    break;
+                menuThemes[you.myMenuID].isEdit = false;
+                menuTheme.isEdit = false;
+                last_rect = GetComponent<RectTransform>().sizeDelta;
+                last_imageSize = imageSize;
+                last_menuName = menuName;
+                last_ID = you.myMenuID;
+                for (int i = 0; i < addChildren.Count; i++)
+                {
+                    Destroy(addChildren[i]);
+                }
+                addChildren.Clear();
+                switch (menuTheme.mode)
+                {
+                    case makeMode.scale:
+                        GetComponent<GridLayoutGroup>().enabled = false;
+                        image = new GameObject("" != menuName ? menuName : name);
+                        image.transform.parent = transform;
+                        addChildren.Add(image);
+                        image.AddComponent<Image>();
+                        image.GetComponent<Image>().rectTransform.sizeDelta = GetComponent<RectTransform>().sizeDelta;
+                        image.GetComponent<Image>().sprite = menuTheme.menu ?? image.GetComponent<Image>().sprite;
+                        image.GetComponent<RectTransform>().position = GetComponent<RectTransform>().position;
+                        image.GetComponent<RectTransform>().localScale = Vector3.one;
+                        break;
+                    default:
+                        GetComponent<GridLayoutGroup>().enabled = true;
+                        makeGrid();
+                        break;
+                }
             }
         }
     }
