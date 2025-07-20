@@ -34,6 +34,7 @@ public class z : MonoBehaviour
     public change.enterMode enterMode = change.enterMode.show;
     public change.exitMode exitMode = change.exitMode.hide;
     public effect getEffect;
+    public Canvas canvas;
     public GameObject getImage;
     public GameObject getHintPrefab;
     public AudioClip getSound;
@@ -42,6 +43,7 @@ public class z : MonoBehaviour
     public GameObject screen;
     public AudioClip screenSound;
     private bool wait = true;
+    private GameObject effectGetScreen;
     private IEnumerator go()
     {
         if (wait)
@@ -103,16 +105,16 @@ public class z : MonoBehaviour
             //show
             for (int i = 10; i > 0; i--)
             {
-                getImage.GetComponent<Image>().color = new Color(1, 1, 1, 1 / (float)i);
-                getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.785f, 1 / (float)i);
+                getImage.GetComponent<Image>().color = new Color(getImage.GetComponent<Image>().color.r, getImage.GetComponent<Image>().color.g, getImage.GetComponent<Image>().color.b, 1 / (float)i);
+                getImage.GetComponentInChildren<Text>().color = new Color(getImage.GetComponentInChildren<Text>().color.r, getImage.GetComponentInChildren<Text>().color.g, getImage.GetComponentInChildren<Text>().color.b, 1 / (float)i);
                 yield return new WaitForSeconds(0.01f);
             }
             //hide
             yield return new WaitForSeconds(1);
             for (int i = 1; i <= 10; i++)
             {
-                getImage.GetComponent<Image>().color = new Color(1, 1, 1, 1 / (float)i);
-                getImage.GetComponentInChildren<Text>().color = new Color(0, 0, 0.785f, 1 / (float)i);
+                getImage.GetComponent<Image>().color = new Color(getImage.GetComponent<Image>().color.r, getImage.GetComponent<Image>().color.g, getImage.GetComponent<Image>().color.b, 1 / (float)i);
+                getImage.GetComponentInChildren<Text>().color = new Color(getImage.GetComponentInChildren<Text>().color.r, getImage.GetComponentInChildren<Text>().color.g, getImage.GetComponentInChildren<Text>().color.b, 1 / (float)i);
                 yield return new WaitForSeconds(0.01f);
             }
             getImage.GetComponent<Image>().enabled = false;
@@ -131,6 +133,12 @@ public class z : MonoBehaviour
 
     void Start()
     {
+        if (mode.effect == mod)
+        {
+            effectGetScreen = new GameObject("effectGetScreen");
+            effectGetScreen.transform.parent = canvas.transform;
+            effectGetScreen.AddComponent<RectTransform>();
+        }
         m = w.m;
         if ("" == worldName)
         {
