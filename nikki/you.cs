@@ -40,6 +40,7 @@ public class you : MonoBehaviour
     public static bool notOver = false;
     public static AudioClip defaultWalkSound;
     private GameObject gameCamera;
+    public static int myMenuID = 0;
     public GameObject GameCamera
     {
         get
