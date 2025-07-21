@@ -11,6 +11,7 @@ using UnityEngine.Device;
 using UnityEditor;
 using System;
 
+[RequireComponent(typeof(wall))]
 public class z : MonoBehaviour
 {
     public enum mode{
@@ -21,7 +22,6 @@ public class z : MonoBehaviour
     };
     private map m;
     public you you;
-    public wall w;
     public bool haveFront = true;
     public mode mod = mode.tele;
     public float teleWaitTime = 0.5f;
@@ -35,7 +35,6 @@ public class z : MonoBehaviour
     public change.exitMode exitMode = change.exitMode.hide;
     public effect getEffect;
     public Canvas canvas;
-    public GameObject getImage;
     public GameObject getHintPrefab;
     public AudioClip getSound;
     public AudioClip keySound;
@@ -43,7 +42,6 @@ public class z : MonoBehaviour
     public GameObject screen;
     public AudioClip screenSound;
     private bool wait = true;
-    private GameObject effectGetScreen;
     private IEnumerator go()
     {
         if (wait)
@@ -64,7 +62,7 @@ public class z : MonoBehaviour
             }
             yield return new WaitForSeconds(teleWaitTime);
 
-            StartCoroutine(you.tele(exitMode, enterMode, worldName, teleX, teleY, teleHigh, w.front, closeSound, null));
+            StartCoroutine(you.tele(exitMode, enterMode, worldName, teleX, teleY, teleHigh, GetComponent<wall>().front, closeSound, null));
             wait = true;
         }
     }
@@ -77,14 +75,8 @@ public class z : MonoBehaviour
             //示例
             npcMove.npcCanMove = false;
             you.canMove = false;
-            //audio
-            if (null == GetComponent<AudioSource>())
-            {
-                gameObject.AddComponent<AudioSource>();
-            }
-            //play screen
-            if (extra)
-            {
+            //play screen(额外)
+            /*
                 screen.GetComponent<Image>().enabled = true;
                 GetComponent<AudioSource>().PlayOneShot(screenSound);
                 yield return new WaitForSeconds(1f);
@@ -92,33 +84,34 @@ public class z : MonoBehaviour
                 screen.GetComponent<Image>().enabled = false;
                 yield return new WaitForSeconds(1f);
             }
-            else
+            */
+            //audio
+            if (null != keySound && null != getSound && null == GetComponent<AudioSource>())
             {
-                Instantiate(getHintPrefab, you.transform.position + new Vector3(0, 3, 0), getHintPrefab.transform.rotation);
-                GetComponent<AudioSource>().PlayOneShot(keySound);
-                yield return new WaitForSeconds(2f);
+                gameObject.AddComponent<AudioSource>();
             }
+            Instantiate(getHintPrefab, you.transform.position + new Vector3(0, 3, 0), getHintPrefab.transform.rotation);
+            GetComponent<AudioSource>().PlayOneShot(keySound);
+            yield return new WaitForSeconds(2f);
             GetComponent<AudioSource>().PlayOneShot(getSound);
-            getImage.GetComponentInChildren<Text>().text = you.effectName[(int)e];
-            getImage.GetComponent<Image>().enabled = true;
-            getImage.GetComponentInChildren<Text>().enabled = true;
+            you.EffectText.GetComponent<Text>().text = you.effectName[(int)e];
             //show
             for (int i = 10; i > 0; i--)
             {
-                getImage.GetComponent<Image>().color = new Color(getImage.GetComponent<Image>().color.r, getImage.GetComponent<Image>().color.g, getImage.GetComponent<Image>().color.b, 1 / (float)i);
-                getImage.GetComponentInChildren<Text>().color = new Color(getImage.GetComponentInChildren<Text>().color.r, getImage.GetComponentInChildren<Text>().color.g, getImage.GetComponentInChildren<Text>().color.b, 1 / (float)i);
+                you.EffectText.GetComponent<Text>().color = new Color(you.EffectText.GetComponent<Text>().color.r, you.EffectText.GetComponent<Text>().color.g, you.EffectText.GetComponent<Text>().color.b, 1 / (float)i);
+                you.EffectGetScreen.GetComponent<makeMenu>().menuColor = new Color(you.EffectGetScreen.GetComponent<makeMenu>().menuColor.r, you.EffectGetScreen.GetComponent<makeMenu>().menuColor.g, you.EffectGetScreen.GetComponent<makeMenu>().menuColor.b, 1 / (float)i);
                 yield return new WaitForSeconds(0.01f);
             }
             //hide
             yield return new WaitForSeconds(1);
             for (int i = 1; i <= 10; i++)
             {
-                getImage.GetComponent<Image>().color = new Color(getImage.GetComponent<Image>().color.r, getImage.GetComponent<Image>().color.g, getImage.GetComponent<Image>().color.b, 1 / (float)i);
-                getImage.GetComponentInChildren<Text>().color = new Color(getImage.GetComponentInChildren<Text>().color.r, getImage.GetComponentInChildren<Text>().color.g, getImage.GetComponentInChildren<Text>().color.b, 1 / (float)i);
+                you.EffectText.GetComponent<Text>().color = new Color(you.EffectText.GetComponent<Text>().color.r, you.EffectText.GetComponent<Text>().color.g, you.EffectText.GetComponent<Text>().color.b, 1 / (float)i);
+                you.EffectGetScreen.GetComponent<makeMenu>().menuColor = new Color(you.EffectGetScreen.GetComponent<makeMenu>().menuColor.r, you.EffectGetScreen.GetComponent<makeMenu>().menuColor.g, you.EffectGetScreen.GetComponent<makeMenu>().menuColor.b, 1 / (float)i);
                 yield return new WaitForSeconds(0.01f);
             }
-            getImage.GetComponent<Image>().enabled = false;
-            getImage.GetComponentInChildren<Text>().enabled = false;
+            you.EffectGetScreen.GetComponent<makeMenu>().menuColor = new Color(you.EffectGetScreen.GetComponent<makeMenu>().menuColor.r, you.EffectGetScreen.GetComponent<makeMenu>().menuColor.g, you.EffectGetScreen.GetComponent<makeMenu>().menuColor.b, 0);
+            you.EffectText.GetComponent<Text>().enabled = false;
             //get effect
             you.canMove = true;
             npcMove.npcCanMove = true;
@@ -133,27 +126,21 @@ public class z : MonoBehaviour
 
     void Start()
     {
-        if (mode.effect == mod)
-        {
-            effectGetScreen = new GameObject("effectGetScreen");
-            effectGetScreen.transform.parent = canvas.transform;
-            effectGetScreen.AddComponent<RectTransform>();
-        }
-        m = w.m;
+        m = GetComponent<wall>().m;
         if ("" == worldName)
         {
             worldName = "nexus";
         }
-        if (you.wasd.n == w.front)
+        if (you.wasd.n == GetComponent<wall>().front)
         {
             haveFront = false;
-            w.front = you.wasd.s;
+            GetComponent<wall>().front = you.wasd.s;
         }
     }
 
     void Update()
     {
-        if (((you.x + 1) % m.x == w.x && you.y == w.y && you.front == you.wasd.d && (!haveFront || you.wasd.a == w.front) && Input.GetKeyDown("z")) || ((you.x - 1 < 0 ? m.x - 1 : you.x - 1) == w.x && you.y == w.y && you.front == you.wasd.a && (!haveFront || you.wasd.d == w.front) && Input.GetKeyDown("z")) || (you.x == w.x && (you.y + 1) % m.y == w.y && you.front == you.wasd.s && (!haveFront || you.wasd.w == w.front) && Input.GetKeyDown("z")) || (you.x == w.x && (you.y - 1 < 0 ? m.y - 1 : you.y - 1) == w.y && you.front == you.wasd.w && (!haveFront || you.wasd.s == w.front) && Input.GetKeyDown("z")))
+        if (((you.x + 1) % m.x == GetComponent<wall>().x && you.y == GetComponent<wall>().y && you.front == you.wasd.d && (!haveFront || you.wasd.a == GetComponent<wall>().front) && Input.GetKeyDown("z")) || ((you.x - 1 < 0 ? m.x - 1 : you.x - 1) == GetComponent<wall>().x && you.y == GetComponent<wall>().y && you.front == you.wasd.a && (!haveFront || you.wasd.d == GetComponent<wall>().front) && Input.GetKeyDown("z")) || (you.x == GetComponent<wall>().x && (you.y + 1) % m.y == GetComponent<wall>().y && you.front == you.wasd.s && (!haveFront || you.wasd.w == GetComponent<wall>().front) && Input.GetKeyDown("z")) || (you.x == GetComponent<wall>().x && (you.y - 1 < 0 ? m.y - 1 : you.y - 1) == GetComponent<wall>().y && you.front == you.wasd.w && (!haveFront || you.wasd.s == GetComponent<wall>().front) && Input.GetKeyDown("z")))
         {
             if (mode.tele == mod)
             {
