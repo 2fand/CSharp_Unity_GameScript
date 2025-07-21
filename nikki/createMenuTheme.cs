@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using static MenuTheme;
@@ -29,68 +30,17 @@ public class createMenuTheme : MonoBehaviour
     public Sprite menu_x1_c;
     public Sprite menu_x1_l;
     public Sprite menu_x1_r;
+    public Color menuTextColor = Color.white;
     private MenuTheme menuTheme;
     private static List<int> IDs = new List<int>();
     private bool isCreated = false;
-    private void Start()
+    void Start()
     {
-        List<Vector2?> sizes = new List<Vector2?>{ menu?.rect.size, menuLeft?.rect.size, menuRight?.rect.size, menuUp?.rect.size, menuDown?.rect.size, menuLeftUp?.rect.size, menuRightUp?.rect.size, menuLeftDown?.rect.size, menuRightDown?.rect.size, menuCenter?.rect.size, menu_1x1?.rect.size, menu_1x_c?.rect.size, menu_1x_u?.rect.size, menu_1x_d?.rect.size, menu_x1_c?.rect.size, menu_x1_l?.rect.size, menu_x1_r?.rect.size };
-        List<string> spriteNames = new List<string> { "menu", "menuLeft", "menuRight", "menuUp", "menuDown", "menuLeftUp", "menuRightUp", "menuLeftDown", "menuRightDown", "menuCenter", "menu_1x1", "menu_1x_c", "menu_1x_u", "menu_1x_d", "menu_x1_c", "menu_x1_l", "menu_x1_r" };
-        Vector2 maxCountSize = Vector2.zero;
-        int maxCount = 0;
-        bool isOk = true;
-        Hashtable sizeCounts = new Hashtable();
-        for (int i = 0; i < sizes.Count; i++) {
-            if (null == sizes[i])
-            {
-                Debug.LogWarning("²Ëµ¥ÑùÊ½¾¯¸æ£º" + spriteNames[i] + "Îªnull");
-                sizes.RemoveAt(i);
-                spriteNames.RemoveAt(i--);
-            }
-            else if (0 == sizes[i].Value.x || 0 == sizes[i].Value.y)
-            {
-                Debug.LogWarning("²Ëµ¥ÑùÊ½¾¯¸æ£º" + spriteNames[i] + "³¤»ò¿íÎª0");
-            }
-        }
-        for (int i = 0; i < sizes.Count; i++) {
-            if (i < sizes.Count - 1 && sizes[i] != sizes[i + 1]) 
-            { 
-                isOk = false;
-            }
-            if (!sizeCounts.ContainsKey(sizes[i]))
-            {
-                sizeCounts.Add(sizes[i], 1);
-            }
-            else
-            {
-                sizeCounts[sizes[i]] = (int)sizeCounts[sizes[i]] + 1;
-            }
-            if (maxCount < (int)sizeCounts[sizes[i]])
-            {
-                maxCount = (int)sizeCounts[sizes[i]];
-                maxCountSize = sizes[i].Value;
-            }
-        }
-        if (!isOk)
-        {
-            string warning = "²Ëµ¥ÑùÊ½¾¯¸æ£º¾«Áé´óÐ¡²»Í¬£¬½¨ÒéÐÞ¸Ä²Ëµ¥";
-            for (int i = 0; i < sizes.Count; i++)
-            {
-                if (maxCount != (int)sizeCounts[sizes[i]])
-                {
-                    warning += spriteNames[i];
-                    warning += ", ";
-                }
-            }
-            warning = warning.Substring(0, warning.Length - 2);
-            warning = warning.Substring(0, Regex.Match(warning, ", ", RegexOptions.RightToLeft).Index) + Regex.Replace(warning.Substring(Regex.Match(warning, ", ", RegexOptions.RightToLeft).Index), ", ", "ºÍ");
-            Debug.LogWarning(warning);
-        }
-        menuTheme = new MenuTheme(mode, menu, menuLeft, menuRight, menuUp, menuDown, menuLeftUp, menuRightUp, menuLeftDown, menuRightDown, menuCenter, menu_1x1, menu_1x_c, menu_1x_u, menu_1x_d, menu_x1_c, menu_x1_l, menu_x1_r);
+        menuTheme = new MenuTheme(mode, menu, menuLeft, menuRight, menuUp, menuDown, menuLeftUp, menuRightUp, menuLeftDown, menuRightDown, menuCenter, menu_1x1, menu_1x_c, menu_1x_u, menu_1x_d, menu_x1_c, menu_x1_l, menu_x1_r, menuTextColor);
         if (null == menuTheme)
         {
             ID = -1;
-            Debug.LogError("²Ëµ¥´íÎó£º²Ëµ¥ÎÞ·¨´´½¨");
+            Debug.LogError("èœå•é”™è¯¯ï¼šèœå•æ— æ³•åˆ›å»º");
             enabled = false;
         }
         IDs.Add(ID);
