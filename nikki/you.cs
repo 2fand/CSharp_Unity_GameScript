@@ -8,6 +8,9 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static change;
 
+[RequireComponent(typeof(AudioSource))]
+[RequireComponent(typeof(changeColor))]
+[RequireComponent(typeof(Float))]
 public class you : MonoBehaviour
 {
     public enum wasd
@@ -74,13 +77,99 @@ public class you : MonoBehaviour
     public static string moneyUnit = "";
     public static GameObject teleScreen;
     public Canvas canvas;
-    private void init()
+    private GameObject effectGetScreen;
+    public GameObject EffectGetScreen
+    {
+        get
+        {
+            return effectGetScreen;
+        }
+        set
+        {
+            effectGetScreen = value;
+        }
+    }
+    private GameObject effectText;
+    public GameObject EffectText
+    {
+        get
+        {
+            return effectText;
+        }
+        set
+        {
+            effectText = value;
+        }
+    }
+    private bool isDone = false;
+    private void effectInit()
     {
         speed = 1;
         transform.position = new Vector3(transform.position.x, high, transform.position.z);
         gameObject.GetComponent<Float>().enabled = false;
         gameObject.GetComponent<changeColor>().enabled = false;
     }
+
+    IEnumerator init()
+    {
+        items.Add(new effectItem(effect.none, this));
+        gameObject.GetComponent<Float>().enabled = false;
+        gameObject.GetComponent<changeColor>().enabled = false;
+        //根据游戏y轴进行高度计算
+        high = transform.position.y;
+        //根据地图xy轴进行位置计算
+        transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), transform.position.y, m.maxY - m.widthY / m.y * (0.5f + y));
+        ConstraintSource source = new ConstraintSource { sourceTransform = transform, weight = 1 };
+        gameCamera = new GameObject("gameCamera");
+        gameCamera.transform.position = cameraPosition;
+        gameCamera.tag = "MainCamera";
+        gameCamera.transform.rotation = Quaternion.Euler(cameraRotation);
+        gameCamera.AddComponent<AudioListener>();
+        gameCamera.AddComponent<Camera>();
+        gameCamera.GetComponent<Camera>().orthographic = cameraIsOrthographic;
+        gameCamera.GetComponent<Camera>().orthographicSize = cameraOrthographicSize;
+        gameCamera.AddComponent<PositionConstraint>().SetSources(new List<ConstraintSource> { source });
+        gameCamera.GetComponent<PositionConstraint>().translationAxis = Axis.X | Axis.Z;
+        gameCamera.GetComponent<PositionConstraint>().translationOffset = cameraPosition;
+        gameCamera.GetComponent<PositionConstraint>().translationAtRest = cameraPosition;
+        gameCamera.GetComponent<PositionConstraint>().constraintActive = true;
+        teleScreen = new GameObject("teleScreen");
+        teleScreen.AddComponent<Image>().color = Color.black;
+        teleScreen.transform.SetParent(canvas.transform, false);
+        teleScreen.GetComponent<Image>().rectTransform.localScale = Vector3.one;
+        teleScreen.AddComponent<SetScreen>();
+        if (null == canvas.GetComponent<change>())
+        {
+            canvas.AddComponent<change>();
+        }
+        effectGetScreen = new GameObject("effectGetScreen");
+        effectGetScreen.transform.parent = canvas.transform;
+        effectGetScreen.AddComponent<RectTransform>().localScale = Vector3.one;
+        effectGetScreen.GetComponent<RectTransform>().localPosition = new Vector3(0, 40, 0);
+        effectGetScreen.GetComponent<RectTransform>().sizeDelta = new Vector2(360, 48);
+        effectGetScreen.GetComponent<RectTransform>().anchorMin = effectGetScreen.GetComponent<RectTransform>().anchorMax = new Vector3(0.5f, 0, 0);
+        effectGetScreen.AddComponent<makeMenu>().imageSize = new Vector2(1.5f, 1.5f);
+        effectGetScreen.GetComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
+        yield return new WaitUntil(() => myMenuID < MenuTheme.menuThemes.Count && InitGame.IsInit);
+        effectText = new GameObject("effectText");
+        ConstraintSource sourcea = new ConstraintSource();
+        sourcea.weight = 1;
+        sourcea.sourceTransform = effectGetScreen.transform;
+        effectText.transform.parent = canvas.transform;
+        effectText.AddComponent<Text>().color = MenuTheme.menuThemes[myMenuID].menuTextColor;
+        effectText.GetComponent<Text>().alignment = TextAnchor.MiddleCenter;
+        effectText.GetComponent<Text>().font = Game.gameFont;
+        effectText.GetComponent<Text>().fontSize = 30;
+        effectText.GetComponent<RectTransform>().localPosition = new Vector3(0, 40, 0);
+        effectText.GetComponent<RectTransform>().sizeDelta = new Vector2(360, 48);
+        effectText.GetComponent<RectTransform>().anchorMin = effectText.GetComponent<RectTransform>().anchorMax = new Vector3(0.5f, 0, 0);
+        effectText.AddComponent<PositionConstraint>().weight = 1;
+        effectText.GetComponent<PositionConstraint>().translationOffset = Vector3.zero;
+        effectText.GetComponent<PositionConstraint>().translationAtRest = effectGetScreen.GetComponent<RectTransform>().position;
+        effectText.GetComponent<PositionConstraint>().SetSources(new List<ConstraintSource> {source});
+        isDone = true;
+    }
+
     wasd getwasd()
     {
         if (Input.GetKey("w"))
@@ -432,48 +521,7 @@ public class you : MonoBehaviour
 
     void Awake()
     {
-        items.Add(new effectItem(effect.none, this));
-        if (null == GetComponent<AudioSource>())
-        {
-            gameObject.AddComponent<AudioSource>();
-        }
-        if (null == GetComponent<Float>())
-        {
-            gameObject.AddComponent<Float>();
-            gameObject.GetComponent<Float>().enabled = false;
-        }
-        if (null == GetComponent<changeColor>())
-        {
-            gameObject.AddComponent<changeColor>();
-            gameObject.GetComponent<changeColor>().enabled = false;
-        }
-        //根据游戏y轴进行高度计算
-        high = transform.position.y;
-        //根据地图xy轴进行位置计算
-        transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), transform.position.y, m.maxY - m.widthY / m.y * (0.5f + y));
-        ConstraintSource source = new ConstraintSource { sourceTransform = transform, weight = 1 };
-        gameCamera = new GameObject("gameCamera");
-        gameCamera.transform.position = cameraPosition;
-        gameCamera.tag = "MainCamera";
-        gameCamera.transform.rotation = Quaternion.Euler(cameraRotation);
-        gameCamera.AddComponent<AudioListener>();
-        gameCamera.AddComponent<Camera>();
-        gameCamera.GetComponent<Camera>().orthographic = cameraIsOrthographic;
-        gameCamera.GetComponent<Camera>().orthographicSize = cameraOrthographicSize;
-        gameCamera.AddComponent<PositionConstraint>().SetSources(new List<ConstraintSource> { source });
-        gameCamera.GetComponent<PositionConstraint>().translationAxis = Axis.X | Axis.Z;
-        gameCamera.GetComponent<PositionConstraint>().translationOffset = cameraPosition;
-        gameCamera.GetComponent<PositionConstraint>().translationAtRest = cameraPosition;
-        gameCamera.GetComponent<PositionConstraint>().constraintActive = true;
-        teleScreen = new GameObject("teleScreen");
-        teleScreen.AddComponent<Image>().color = Color.black;
-        teleScreen.transform.SetParent(canvas.transform, false);
-        teleScreen.GetComponent<Image>().rectTransform.localScale = Vector3.one;
-        teleScreen.AddComponent<fullscreen>();
-        if (null == canvas.GetComponent<change>())
-        {
-            canvas.AddComponent<change>();
-        }
+        StartCoroutine(init());
     }
 
     void Start()
@@ -490,72 +538,75 @@ public class you : MonoBehaviour
 
     void Update()
     {
-        if (isTele)
+        if (isDone)
         {
-            x = teleX; 
-            y = teleY;
-            transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), teleHigh, m.maxY - m.widthY / m.y * (0.5f + y));
-            isTele = false;
-        }
-        if (canTurn)
-        {
-            switch (front)
+            if (isTele)
             {
-                case wasd.w:
-                    transform.rotation = Quaternion.Euler(-90, 0, 180);
-                    break;
-                case wasd.a:
-                    transform.rotation = Quaternion.Euler(-90, 0, 90);
-                    break;
-                case wasd.s:
-                    transform.rotation = Quaternion.Euler(-90, 0, 0);
-                    break;
-                default:
-                    transform.rotation = Quaternion.Euler(-90, 0, -90);
-                    break;
+                x = teleX;
+                y = teleY;
+                transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), teleHigh, m.maxY - m.widthY / m.y * (0.5f + y));
+                isTele = false;
             }
-        }
-        if (null != teleSound)
-        {
-            GetComponent<AudioSource>().PlayOneShot(teleSound);
-            teleSound = null;
-        }
-        if (null != closeSound)
-        {
-            GetComponent<AudioSource>().PlayOneShot(closeSound);
-            closeSound = null;
-        }
-        m.wmap[x, y] = 'I';
-        //测试效果
-        if (Input.GetKeyDown("9") && canMove)
-        {
-            StartCoroutine(changeEffect(effect.angel));
-        }
-        if (Input.GetKeyDown("0") && canMove)
-        {
-            StartCoroutine(changeEffect(effect.none));
-        }
-        if (isChangeEffect)
-        {
-            GetComponent<MeshFilter>().sharedMesh = effects[(int)nowEffect].GetComponent<MeshFilter>().sharedMesh ?? effects[0].GetComponent<MeshFilter>().sharedMesh;
-            GetComponent<MeshRenderer>().sharedMaterials = effects[(int)nowEffect].GetComponent<MeshRenderer>().sharedMaterials ?? effects[0].GetComponent<MeshRenderer>().sharedMaterials;
-            switch (nowEffect)
+            if (canTurn)
             {
-                case effect.angel:
-                    speed = 2;
-                    transform.position = new Vector3(transform.position.x, high + 2f, transform.position.z);
-                    gameObject.GetComponent<Float>().enabled = true;
-                    gameObject.GetComponent<changeColor>().enabled = true;
-                    break;
-                default:
-                    init();
-                    break;
+                switch (front)
+                {
+                    case wasd.w:
+                        transform.rotation = Quaternion.Euler(-90, 0, 180);
+                        break;
+                    case wasd.a:
+                        transform.rotation = Quaternion.Euler(-90, 0, 90);
+                        break;
+                    case wasd.s:
+                        transform.rotation = Quaternion.Euler(-90, 0, 0);
+                        break;
+                    default:
+                        transform.rotation = Quaternion.Euler(-90, 0, -90);
+                        break;
+                }
             }
-            isChangeEffect = false;
-        }
-        if (isEnd && canMove)
-        {
-            StartCoroutine(pmove());
+            if (null != teleSound)
+            {
+                GetComponent<AudioSource>().PlayOneShot(teleSound);
+                teleSound = null;
+            }
+            if (null != closeSound)
+            {
+                GetComponent<AudioSource>().PlayOneShot(closeSound);
+                closeSound = null;
+            }
+            m.wmap[x, y] = 'I';
+            //测试效果
+            if (Input.GetKeyDown("9") && canMove)
+            {
+                StartCoroutine(changeEffect(effect.angel));
+            }
+            if (Input.GetKeyDown("0") && canMove)
+            {
+                StartCoroutine(changeEffect(effect.none));
+            }
+            if (isChangeEffect)
+            {
+                GetComponent<MeshFilter>().sharedMesh = effects[(int)nowEffect].GetComponent<MeshFilter>().sharedMesh ?? effects[0].GetComponent<MeshFilter>().sharedMesh;
+                GetComponent<MeshRenderer>().sharedMaterials = effects[(int)nowEffect].GetComponent<MeshRenderer>().sharedMaterials ?? effects[0].GetComponent<MeshRenderer>().sharedMaterials;
+                switch (nowEffect)
+                {
+                    case effect.angel:
+                        speed = 2;
+                        transform.position = new Vector3(transform.position.x, high + 2f, transform.position.z);
+                        gameObject.GetComponent<Float>().enabled = true;
+                        gameObject.GetComponent<changeColor>().enabled = true;
+                        break;
+                    default:
+                        effectInit();
+                        break;
+                }
+                isChangeEffect = false;
+            }
+            if (isEnd && canMove)
+            {
+                StartCoroutine(pmove());
+            }
         }
     }
 }
