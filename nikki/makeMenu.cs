@@ -19,6 +19,8 @@ public class makeMenu : MonoBehaviour
     private string last_menuName;
     private bool initIsDone = false;
     private int last_ID;
+    public Color menuColor = Color.white;
+    private Color last_menuColor = Color.white;
     private uint realW
     {
         get
@@ -184,6 +186,7 @@ public class makeMenu : MonoBehaviour
                 {
                     image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuCenter);
                 }
+                image.GetComponent<Image>().color = menuColor;
                 image.GetComponent<RectTransform>().localScale = Vector3.one;
             }
         }
@@ -201,7 +204,7 @@ public class makeMenu : MonoBehaviour
         if (initIsDone)
         {
             menuTheme = menuThemes[you.myMenuID];
-            if (last_rect != GetComponent<RectTransform>().sizeDelta || last_imageSize != imageSize || last_menuName != menuName || last_ID != you.myMenuID || menuTheme.isEdit)
+            if (last_rect != GetComponent<RectTransform>().sizeDelta || last_imageSize != imageSize || last_menuName != menuName || last_ID != you.myMenuID || menuTheme.isEdit || last_menuColor != menuColor)
             {
                 menuThemes[you.myMenuID].isEdit = false;
                 menuTheme.isEdit = false;
@@ -209,6 +212,7 @@ public class makeMenu : MonoBehaviour
                 last_imageSize = imageSize;
                 last_menuName = menuName;
                 last_ID = you.myMenuID;
+                last_menuColor = menuColor;
                 for (int i = 0; i < addChildren.Count; i++)
                 {
                     Destroy(addChildren[i]);
@@ -221,7 +225,7 @@ public class makeMenu : MonoBehaviour
                         image = new GameObject("" != menuName ? menuName : name);
                         image.transform.parent = transform;
                         addChildren.Add(image);
-                        image.AddComponent<Image>();
+                        image.AddComponent<Image>().color = menuColor;
                         image.GetComponent<Image>().rectTransform.sizeDelta = GetComponent<RectTransform>().sizeDelta;
                         image.GetComponent<Image>().sprite = menuTheme.menu ?? image.GetComponent<Image>().sprite;
                         image.GetComponent<RectTransform>().position = GetComponent<RectTransform>().position;
