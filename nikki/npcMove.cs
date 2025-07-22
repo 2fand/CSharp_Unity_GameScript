@@ -26,7 +26,6 @@ public class npcMove : MonoBehaviour
     public float waitTime = 0.2f;
     public int speed = 2;
     public wall npc;
-    public float high = 5;
     public bool isTurn = true;
     public move moveMode;
     public bool canOver = false;
@@ -162,7 +161,7 @@ public class npcMove : MonoBehaviour
             m.wmap[npc.x, npc.y--] = ' ';
             if (npc.y < 0)
             {
-                transform.position = new Vector3(transform.position.x, high, m.minY - m.widthY / m.y / 2.0f);
+                transform.position = new Vector3(transform.position.x, transform.position.y, m.minY - m.widthY / m.y / 2.0f);
                 npc.y = m.y - 1;
             }
             m.wmap[npc.x, npc.y] = 'N';
@@ -173,7 +172,7 @@ public class npcMove : MonoBehaviour
             m.wmap[npc.x--, npc.y] = ' ';
             if (npc.x < 0)
             {
-                transform.position = new Vector3(m.maxX + m.heightX / m.x / 2.0f, high, transform.position.z);
+                transform.position = new Vector3(m.maxX + m.heightX / m.x / 2.0f, transform.position.y, transform.position.z);
                 npc.x = m.x - 1;
             }
             m.wmap[npc.x, npc.y] = 'N';
@@ -184,7 +183,7 @@ public class npcMove : MonoBehaviour
             m.wmap[npc.x, npc.y++] = ' ';
             if (npc.y >= m.y)
             {
-                transform.position = new Vector3(transform.position.x, high, m.maxY + m.widthY / m.y / 2.0f);
+                transform.position = new Vector3(transform.position.x, transform.position.y, m.maxY + m.widthY / m.y / 2.0f);
             }
             npc.y %= m.y;
             m.wmap[npc.x, npc.y] = 'N';
@@ -195,7 +194,7 @@ public class npcMove : MonoBehaviour
             m.wmap[npc.x++, npc.y] = ' ';
             if (npc.x >= m.x)
             {
-                transform.position = new Vector3(m.minX - m.heightX / m.x / 2.0f, high, transform.position.z);
+                transform.position = new Vector3(m.minX - m.heightX / m.x / 2.0f, transform.position.y, transform.position.z);
             }
             npc.x %= m.x;
             m.wmap[npc.x, npc.y] = 'N';
@@ -237,6 +236,7 @@ public class npcMove : MonoBehaviour
                     }
                     transform.position += new Vector3(0, 0, m.widthY / m.y / 10.0f);
                     yield return new WaitForSeconds(0.1f / speed / 10.0f);
+                    yield return new WaitUntil(() => !you.IsOpenMenu);
                     break;
                 case wasd.a:
                     if (isTurn)
@@ -245,6 +245,7 @@ public class npcMove : MonoBehaviour
                     }
                     transform.position += new Vector3(-m.heightX / m.x / 10.0f, 0, 0);
                     yield return new WaitForSeconds(0.1f / speed / 10.0f);
+                    yield return new WaitUntil(() => !you.IsOpenMenu);
                     break;
                 case wasd.s:
                     if (isTurn)
@@ -253,6 +254,7 @@ public class npcMove : MonoBehaviour
                     }
                     transform.position += new Vector3(0, 0, -m.widthY / m.y / 10.0f);
                     yield return new WaitForSeconds(0.1f / speed / 10.0f);
+                    yield return new WaitUntil(() => !you.IsOpenMenu);
                     break;
                 case wasd.d:
                     if (isTurn)
@@ -261,6 +263,7 @@ public class npcMove : MonoBehaviour
                     }
                     transform.position += new Vector3(m.heightX / m.x / 10.0f, 0, 0);
                     yield return new WaitForSeconds(0.1f / speed / 10.0f);//移动间隔时间
+                    yield return new WaitUntil(() => !you.IsOpenMenu);
                     break;
                 default://wasd.n时无
                     goto nowait;
@@ -274,8 +277,7 @@ public class npcMove : MonoBehaviour
 
     void Awake()
     {
-        //根据地图z轴进行高度计算
-        high = transform.position.y;
+
     }
 
     void Start()
@@ -290,7 +292,6 @@ public class npcMove : MonoBehaviour
 
     void Update()
     {
-        transform.position = new Vector3(transform.position.x, high, transform.position.z);
         switch (npc.front)
         {
             case you.wasd.w:
