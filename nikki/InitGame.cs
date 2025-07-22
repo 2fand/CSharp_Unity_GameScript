@@ -10,8 +10,8 @@ public class InitGame : MonoBehaviour
     public GameObject[] effects;
     public AudioClip[] effectWalkSounds;
     public Font gameFont;
-    //额外的↓
-    public Material[] screens;
+    public AudioClip openMenuSound;
+    public AudioClip closeMenuSound;
     private static bool isInit = false;
     public static bool IsInit
     {
@@ -20,6 +20,8 @@ public class InitGame : MonoBehaviour
             return isInit;
         }
     }
+    //额外的↓
+    public Material[] screens;
     void Awake()
     {
         Game.gameFont = gameFont ?? Game.gameFont;
@@ -29,6 +31,8 @@ public class InitGame : MonoBehaviour
         you.screens = screens ?? you.screens;
         you.effects = effects ?? you.effects;
         you.effectWalkSounds = effectWalkSounds ?? you.effectWalkSounds;
+        you.openMenuSound = openMenuSound ?? you.openMenuSound;
+        you.closeMenuSound = closeMenuSound ?? you.closeMenuSound;
         isInit = true;
     }
 
