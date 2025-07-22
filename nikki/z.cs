@@ -48,6 +48,7 @@ public class z : MonoBehaviour
         {
             wait = false;
             you.canMove = false;
+            you.canOpenMenu = false;
             if (null != openSound && null == GetComponent<AudioSource>())
             {
                 gameObject.AddComponent<AudioSource>();
@@ -61,7 +62,6 @@ public class z : MonoBehaviour
                 GetComponent<Animation>().Play();
             }
             yield return new WaitForSeconds(teleWaitTime);
-
             StartCoroutine(you.tele(exitMode, enterMode, worldName, teleX, teleY, teleHigh, GetComponent<wall>().front, closeSound, null));
             wait = true;
         }
@@ -75,6 +75,7 @@ public class z : MonoBehaviour
             //示例
             npcMove.npcCanMove = false;
             you.canMove = false;
+            you.canOpenMenu = false;
             //play screen(额外)
             /*
                 screen.GetComponent<Image>().enabled = true;
@@ -115,6 +116,7 @@ public class z : MonoBehaviour
             //get effect
             you.canMove = true;
             npcMove.npcCanMove = true;
+            you.canOpenMenu = true;
             you.effecthaves[(int)e] = true;
             you.effectNum++;
             you.items.Add(new effectItem(e, you));
