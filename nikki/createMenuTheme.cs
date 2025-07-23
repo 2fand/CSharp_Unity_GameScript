@@ -30,13 +30,16 @@ public class createMenuTheme : MonoBehaviour
     public Sprite menu_x1_c;
     public Sprite menu_x1_l;
     public Sprite menu_x1_r;
+    public Sprite cursor;
+    public Cursor.dodgeMode cursorDodgeMode;
+    public Sprite[] cursorAnimation;
     public Color menuTextColor = Color.white;
     private MenuTheme menuTheme;
     private static List<int> IDs = new List<int>();
     private bool isCreated = false;
     void Start()
     {
-        menuTheme = new MenuTheme(mode, menu, menuLeft, menuRight, menuUp, menuDown, menuLeftUp, menuRightUp, menuLeftDown, menuRightDown, menuCenter, menu_1x1, menu_1x_c, menu_1x_u, menu_1x_d, menu_x1_c, menu_x1_l, menu_x1_r, menuTextColor);
+        menuTheme = new MenuTheme(mode, menu, menuLeft, menuRight, menuUp, menuDown, menuLeftUp, menuRightUp, menuLeftDown, menuRightDown, menuCenter, menu_1x1, menu_1x_c, menu_1x_u, menu_1x_d, menu_x1_c, menu_x1_l, menu_x1_r, cursor, cursorDodgeMode, cursorAnimation, menuTextColor);
         if (null == menuTheme)
         {
             ID = -1;
