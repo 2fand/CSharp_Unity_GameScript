@@ -8,7 +8,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static change;
 using static Unity.VisualScripting.Member;
-using static getChangeObject;
 using UnityEditor;
 
 public class you : MonoBehaviour
