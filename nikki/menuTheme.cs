@@ -33,11 +33,21 @@ public class MenuTheme
     public Sprite menu_x1_c;
     public Sprite menu_x1_l;
     public Sprite menu_x1_r;
+    public Sprite cursor;
+    public Sprite[] cursorAnimation;
+    public Cursor.dodgeMode cursorDodgeMode;
     public Color menuTextColor = Color.white;
     public bool isEdit = false;
     public bool isDebug = true;
     public static List<MenuTheme> menuThemes = new List<MenuTheme>();
-    public MenuTheme(makeMode mode, Sprite menu, Sprite menuLeft, Sprite menuRight, Sprite menuUp, Sprite menuDown, Sprite menuLeftUp, Sprite menuRightUp, Sprite menuLeftDown, Sprite menuRightDown, Sprite menuCenter, Sprite menu_1x1, Sprite menu_1x_c, Sprite menu_1x_u, Sprite menu_1x_d, Sprite menu_x1_c, Sprite menu_x1_l, Sprite menu_x1_r, Color menuTextColor, string menuName = "")
+    public static MenuTheme myMenu
+    {
+        get 
+        {
+            return menuThemes[you.myMenuID];
+        }
+    }
+    public MenuTheme(makeMode mode, Sprite menu, Sprite menuLeft, Sprite menuRight, Sprite menuUp, Sprite menuDown, Sprite menuLeftUp, Sprite menuRightUp, Sprite menuLeftDown, Sprite menuRightDown, Sprite menuCenter, Sprite menu_1x1, Sprite menu_1x_c, Sprite menu_1x_u, Sprite menu_1x_d, Sprite menu_x1_c, Sprite menu_x1_l, Sprite menu_x1_r, Sprite cursor, Cursor.dodgeMode dodgeMode, Sprite[] animation, Color menuTextColor, string menuName = "")
     {
         bool[] isNull = { menu.IsUnityNull(), menuLeft.IsUnityNull(), menuRight.IsUnityNull(), menuUp.IsUnityNull(), menuDown.IsUnityNull(), menuLeftUp.IsUnityNull(), menuRightUp.IsUnityNull(), menuLeftDown.IsUnityNull(), menuRightDown.IsUnityNull(), menuCenter.IsUnityNull(), menu_1x1.IsUnityNull(), menu_1x_c.IsUnityNull(), menu_1x_u.IsUnityNull(), menu_1x_d.IsUnityNull(), menu_x1_c.IsUnityNull(), menu_x1_l.IsUnityNull(), menu_x1_r.IsUnityNull() };
         Sprite emptySprite = Sprite.Create(new Texture2D(0, 0), new Rect(0, 0, 0, 0), new Vector2(0f, 0f));
@@ -129,6 +139,9 @@ public class MenuTheme
         this.menu_x1_r = menu_x1_r.IsUnityNull() ? emptySprite : menu_x1_r;
         this.menuName = menuName;
         this.menuTextColor = menuTextColor;
+        this.cursor = cursor;
+        cursorAnimation = animation;
+        cursorDodgeMode = dodgeMode;
         if (isDebug)
         {
             Vector2[] sizes = { this.menu.rect.size, this.menuLeft.rect.size, this.menuRight.rect.size, this.menuUp.rect.size, this.menuDown.rect.size, this.menuLeftUp.rect.size, this.menuRightUp.rect.size, this.menuLeftDown.rect.size, this.menuRightDown.rect.size, this.menuCenter.rect.size, this.menu_1x1.rect.size, this.menu_1x_c.rect.size, this.menu_1x_u.rect.size, this.menu_1x_d.rect.size, this.menu_x1_c.rect.size, this.menu_x1_l.rect.size, this.menu_x1_r.rect.size };
