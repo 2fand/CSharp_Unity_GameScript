@@ -12,6 +12,7 @@ public class InitGame : MonoBehaviour
     public Font gameFont;
     public AudioClip openMenuSound;
     public AudioClip closeMenuSound;
+    public AudioClip changeSelectSound;
     private static bool isInit = false;
     public static bool IsInit
     {
@@ -33,6 +34,7 @@ public class InitGame : MonoBehaviour
         you.effectWalkSounds = effectWalkSounds ?? you.effectWalkSounds;
         you.openMenuSound = openMenuSound ?? you.openMenuSound;
         you.closeMenuSound = closeMenuSound ?? you.closeMenuSound;
+        you.changeSelectSound = changeSelectSound ?? you.changeSelectSound;
         isInit = true;
     }
 
