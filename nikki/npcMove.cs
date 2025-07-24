@@ -236,7 +236,7 @@ public class npcMove : MonoBehaviour
                     }
                     transform.position += new Vector3(0, 0, m.widthY / m.y / 10.0f);
                     yield return new WaitForSeconds(0.1f / speed / 10.0f);
-                    yield return new WaitUntil(() => !you.IsOpenMenu);
+                    yield return new WaitUntil(() => 0 == you.Menus.Count);
                     break;
                 case wasd.a:
                     if (isTurn)
@@ -245,7 +245,7 @@ public class npcMove : MonoBehaviour
                     }
                     transform.position += new Vector3(-m.heightX / m.x / 10.0f, 0, 0);
                     yield return new WaitForSeconds(0.1f / speed / 10.0f);
-                    yield return new WaitUntil(() => !you.IsOpenMenu);
+                    yield return new WaitUntil(() => 0 == you.Menus.Count);
                     break;
                 case wasd.s:
                     if (isTurn)
@@ -254,7 +254,7 @@ public class npcMove : MonoBehaviour
                     }
                     transform.position += new Vector3(0, 0, -m.widthY / m.y / 10.0f);
                     yield return new WaitForSeconds(0.1f / speed / 10.0f);
-                    yield return new WaitUntil(() => !you.IsOpenMenu);
+                    yield return new WaitUntil(() => 0 == you.Menus.Count);
                     break;
                 case wasd.d:
                     if (isTurn)
@@ -263,7 +263,7 @@ public class npcMove : MonoBehaviour
                     }
                     transform.position += new Vector3(m.heightX / m.x / 10.0f, 0, 0);
                     yield return new WaitForSeconds(0.1f / speed / 10.0f);//移动间隔时间
-                    yield return new WaitUntil(() => !you.IsOpenMenu);
+                    yield return new WaitUntil(() => 0 == you.Menus.Count);
                     break;
                 default://wasd.n时无
                     goto nowait;
