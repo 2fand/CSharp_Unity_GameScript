@@ -5,6 +5,11 @@ using UnityEngine;
 
 public class edit : MonoBehaviour
 {
+    public enum playMode
+    {
+        edit, 
+        play
+    }
     public map m;
     public you u;
     private GameObject editCamera;
@@ -25,6 +30,7 @@ public class edit : MonoBehaviour
     public int extendRight = 0;
     public int extendUp = 0;
     public int extendDown = 0;
+    public playMode defaultPlayMode = playMode.edit;
     int getMapX(float ox)
     {
         return (int)((ox - m.minX) * m.x / m.heightX - 0.5f);
@@ -50,7 +56,7 @@ public class edit : MonoBehaviour
         isEnd = false;
         Vector3[] clones = { new Vector3(-m.heightX, 0, m.widthY), new Vector3(0, 0, m.widthY), new Vector3(m.heightX, 0, m.widthY), new Vector3(-m.heightX, 0, 0), new Vector3(m.heightX, 0, 0), new Vector3(-m.heightX, 0, -m.widthY), new Vector3(0, 0, -m.widthY), new Vector3(m.heightX, 0, -m.widthY) };
         string debugOut = "";
-        if (!isEdit && Input.GetKeyDown("e"))
+        if (!isEdit && (playMode.edit == defaultPlayMode || Input.GetKeyDown("e")))
         {
             isEdit = true;
             u.GameCamera.GetComponent<Camera>().enabled = false;
