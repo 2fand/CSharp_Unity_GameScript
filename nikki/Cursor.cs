@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -16,43 +17,68 @@ public class Cursor : MonoBehaviour
     private bool isEnd = true;
     private bool moveIsEnd = true;
     private float x = 0;
-    private bool canInit = true;
-    private static int index = 0;
+    private static int indexI = 0;
+    private static int indexJ = 0;
+    public static int IndexI
+    {
+        get
+        {
+            return indexI;
+        }
+    }
+    public static int IndexJ
+    {
+        get
+        {
+            return indexJ;
+        }
+    }
     public Vector2 positionAdjust = new Vector2(0, -2);
+    public bool isWait = true;
+    public static bool cursorCanMove = true;
+    public you u;
+    public static bool update = false;
     IEnumerator move()
     {
         moveIsEnd = false;
-        yield return new WaitForSeconds(0.08f);
         if (Input.GetKey("w"))
         {
-            if (0 == index)
+            GetComponent<AudioSource>().PlayOneShot(you.changeSelectSound);
+            if (0 == indexI)
             {
-                index = you.selects.Length - 1;
+                indexI = you.yourSelects.GetLength(0) - 1;
             }
             else
             {
-                index--;
+                indexI--;
             }
-            GetComponent<RectTransform>().localPosition = new Vector3(you.selects[index].text.GetComponent<RectTransform>().localPosition.x - you.menuSelectsPositionAdjust.x + positionAdjust.x, you.selects[index].text.GetComponent<RectTransform>().localPosition.y - you.menuSelectsPositionAdjust.y + positionAdjust.y, 0);
+            yield return new WaitForSeconds(isWait ? 0.4f : 0.1f);
+            isWait = false;
         }
         else if (Input.GetKey("s"))
         {
-            if (you.selects.Length - 1 == index)
+            GetComponent<AudioSource>().PlayOneShot(you.changeSelectSound);
+            if (you.yourSelects.GetLength(0) - 1 == indexI)
             {
-                index = 0;
+                indexI = 0;
             }
             else
             {
-                index++;
+                indexI++;
             }
-            GetComponent<RectTransform>().localPosition = new Vector3(you.selects[index].text.GetComponent<RectTransform>().localPosition.x - you.menuSelectsPositionAdjust.x + positionAdjust.x, you.selects[index].text.GetComponent<RectTransform>().localPosition.y - you.menuSelectsPositionAdjust.y + positionAdjust.y, 0);
+            yield return new WaitForSeconds(isWait ? 0.4f : 0.1f);
+            isWait = false;
+        }
+        else
+        {
+            isWait = true;
         }
         moveIsEnd = true;
     }
     IEnumerator dodge()
     {
         isEnd = false;
-        switch (MenuTheme.myMenu.cursorDodgeMode)
+        switch (you.myMenu.cursorDodgeMode)
         {
             case dodgeMode.@switch:
                 GetComponent<Image>().color += new Color(0, 0, 0, (int)(x + 1) % 2 - GetComponent<Image>().color.a);
@@ -60,9 +86,9 @@ public class Cursor : MonoBehaviour
                 x++;
                 break;
             case dodgeMode.animation:
-                GetComponent<Image>().sprite = MenuTheme.myMenu.cursorAnimation[(int)x];
+                GetComponent<Image>().sprite = you.myMenu.cursorAnimation[(int)x];
                 x++;
-                x = (int)x % MenuTheme.myMenu.cursorAnimation.Length;
+                x = (int)x % you.myMenu.cursorAnimation.Length;
                 yield return new WaitForSeconds(0.1f);
                 break;
             case dodgeMode.fade:
@@ -76,31 +102,37 @@ public class Cursor : MonoBehaviour
         yield return null;
     }
 
+    void Start()
+    {
+        if (null == GetComponent<AudioSource>())
+        {
+            gameObject.AddComponent<AudioSource>();
+        }        
+    }
+
     void Update()
     {
-        if (you.IsOpenMenu)
+        if (0 != you.Menus.Count)
         {
-            if (canInit)
+            if (update)
             {
-                GetComponent<Image>().color += new Color(0, 0, 0, 1 - GetComponent<Image>().color.a);
-                canInit = false;
+                indexI = indexJ = 0;
+                GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x - you.menuSelectsPositionAdjust.x + positionAdjust.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y - you.menuSelectsPositionAdjust.y + positionAdjust.y, 0);
+                GetComponent<RectTransform>().sizeDelta = you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().sizeDelta;
+                update = false;
             }
             if (isEnd)
             {
                 StartCoroutine(dodge());
             }
-            
-        }
-        else
-        {
-            GetComponent<Image>().color += new Color(0, 0, 0, 0 - GetComponent<Image>().color.a);
-            canInit = true;
-            index = 0;
-            GetComponent<RectTransform>().localPosition = new Vector3(you.selects[index].text.GetComponent<RectTransform>().localPosition.x - you.menuSelectsPositionAdjust.x + positionAdjust.x, you.selects[index].text.GetComponent<RectTransform>().localPosition.y - you.menuSelectsPositionAdjust.y + positionAdjust.y, 0);
-        }
-        if (moveIsEnd)
-        {
-            StartCoroutine(move());
+            if (cursorCanMove && moveIsEnd)
+            {
+                StartCoroutine(move());
+            }
+            if (indexI < you.yourSelects.GetLength(0) && indexJ < you.yourSelects.GetLength(1))
+            {
+                GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x - you.menuSelectsPositionAdjust.x + positionAdjust.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y - you.menuSelectsPositionAdjust.y + positionAdjust.y, 0);
+            }
         }
     }
 }
