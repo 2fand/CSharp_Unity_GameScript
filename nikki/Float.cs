@@ -18,7 +18,7 @@ public class Float : MonoBehaviour
     {
         offset = Mathf.Sin(x) * floatHigh;
         gameObject.transform.position = new Vector3(gameObject.transform.position.x, h + offset, gameObject.transform.position.z);
-        if (!you.IsOpenMenu)
+        if (0 == you.Menus.Count)
         {
             x += 0.01f;
         }
