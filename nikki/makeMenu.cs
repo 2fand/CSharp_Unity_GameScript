@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using static MenuTheme;
 public class makeMenu : MonoBehaviour
 {
-    public Vector2 imageSize = Vector2.one;
+    public Vector2 imageSize = new Vector2(1.5f, 1.5f);
     private Vector2 last_imageSize;
     private GameObject image;
     private Vector2 last_rect;
@@ -21,6 +21,14 @@ public class makeMenu : MonoBehaviour
     private int last_ID;
     public Color menuColor = Color.white;
     private Color last_menuColor = Color.white;
+    private static Vector2 cellSize;
+    public static Vector2 CellSize
+    {
+        get
+        {
+            return cellSize;
+        }
+    }
     private uint realW
     {
         get
@@ -102,6 +110,7 @@ public class makeMenu : MonoBehaviour
             GetComponent<GridLayoutGroup>().cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftUp).rect.size;
         }
         GetComponent<GridLayoutGroup>().cellSize *= imageSize;
+        cellSize = GetComponent<GridLayoutGroup>().cellSize;
     }
     void makeGrid()
     {
