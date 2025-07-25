@@ -22,6 +22,14 @@ public class makeMenu : MonoBehaviour
     public Color menuColor = Color.white;
     private Color last_menuColor = Color.white;
     private static Vector2 cellSize;
+    private Vector2? menuRealSize = null;
+    public Vector2? MenuRealSize
+    {
+        get
+        {
+            return menuRealSize;
+        }
+    }
     public static Vector2 CellSize
     {
         get
@@ -88,6 +96,7 @@ public class makeMenu : MonoBehaviour
                     makeGrid();
                     break;
             }
+            menuRealSize = GetComponent<RectTransform>().sizeDelta;
         }
     }
 
