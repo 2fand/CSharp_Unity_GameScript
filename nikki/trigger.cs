@@ -414,11 +414,10 @@ public class trigger : MonoBehaviour
                     funcs.Add(debugStr(str ?? ""));
                     break;
                 case "exit":
-                    Application.Quit();
-                    EditorApplication.isPlaying = false;
+                    funcs.Add(you.exit());
                     break;
                 case "close":
-                    you._MenuStatus = you.menuStatus.close;
+                    funcs.Add(u.closeMenu());
                     break;
                 default:
                     break;
