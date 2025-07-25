@@ -68,55 +68,19 @@ public class trigger : MonoBehaviour
     public string[] commands;//目前支持tele命令, help命令, #命令, move命令, show命令, hide命令, play命令, turn命令, stop命令, wait命令, use命令, value命令, debug命令, goto命令, exit命令。 talk等命令之后实现
     public AudioClip[] sounds;
     public you u;
-    private bool isEnd = true;
-    private readonly Hashtable stringModes = new Hashtable { { "show", change.enterMode.show }, { "fadein", change.enterMode.fadein }, { "hide", change.exitMode.hide }, { "fadeout", change.exitMode.fadeout }, { "W", you.wasd.w }, { "w", you.wasd.w }, { "A", you.wasd.a }, { "a", you.wasd.a }, { "S", you.wasd.s }, { "s", you.wasd.s }, { "D", you.wasd.d }, { "d", you.wasd.d }, { "true", true }, { "false", false }, { "t", true }, { "f", false }};
-    private readonly Hashtable turnModes = new Hashtable { { "l", 3 }, { "left", 3 }, { "b", 2 }, { "back", 2 }, { "r", 1 }, { "right", 1 } };
-    private readonly you.wasd[] turnArray = { you.wasd.w, you.wasd.d, you.wasd.s, you.wasd.a };
-    private readonly int[] rturnArray = { 0, 3, 2, 1 };
-    private readonly Hashtable commandHelpStrings = new Hashtable { { "tele", "tele命令：让玩家传送至指定地点(命令格式：tele 退出转场 进入转场 [世界名 = \"nexus\"] [传送x坐标 = 0] [传送y坐标 = 0] [朝向 = 你的朝向] [传送时音效在sounds的索引 = 0] [传送后音效在sounds的索引 = 0])" }, { "help", "help命令：了解命令的主要作用(命令格式：help 命令名称)" }, { "#", "#命令：用来注释命令(命令格式：# ...)" }, { "move", "move命令：强制让玩家移动(命令格式：move [速度]朝向 [步数 = 1])" }, { "show", "show命令：显示玩家(命令格式：show)" }, { "hide", "hide命令：隐藏玩家(命令格式：hide)" }, {"play", "play命令：播放一段声音(命令格式：play [声音在sounds的索引 = 0] [是否等待声音结束 = false])"}, { "turn", "turn命令：改变玩家的朝向(命令格式：turn [朝向 = s]|[玩家转的方式 = (l(eft)|b(ack)|r(ight))] ))"}, { "stop", "stop命令：停止发出声音(命令格式：stop)"}, { "wait", "wait命令：等待一段时间(命令格式：wait [等待时间 = 1])"}, { "use", "use命令：使用物品栏里第一个道具名相同的道具(命令格式：use [道具名 = \"default\"])"}, { "debug", "debug命令：输出一些信息(命令格式：debug (信息))" }, { "value", "value命令：查看关于某些特殊类型变量的详细介绍(命令格式：value)"}, { "goto", "goto命令：跳转到某一行(命令格式：goto (标签(标签格式：“(标签名):”)))"}, { "exit", "exit命令：退出游戏(命令格式：exit)"}, { "close", "close命令：跳出当前菜单(命令格式：close)"} };
-    private readonly Hashtable valueHelpStrings = new Hashtable { { "none", "(进入转场|离开转场)：无" }, { "show", "进入转场：逐渐显示" }, { "hide", "离开转场：逐渐隐藏" }, { "fadein", "进入转场：淡入" }, { "fadeout", "离开转场：淡出" }, { "w", "朝向：上" }, { "a", "朝向：左" }, { "s", "朝向：下" }, { "d", "朝向：右" }, { "u", "朝向：你的朝向" }, { "l", "旋转方式：向左旋转90度"}, { "b", "旋转方式：往后旋转" }, { "r", "旋转方式：向右旋转90度" }, { "left", "同“l”" }, { "back", "同“b”" }, { "right", "同“r”" }};
-    private Hashtable labels = new Hashtable();
-    private int[] runCounts;
-    private bool isDone = false;
+    private static bool isEnd = true;
+    private static bool isDone = false;
     public bool tempSwitch = false;
     public static List<IEnumerator> funcs;
     private bool funcIsEnd = true;
-#nullable enable
-    private change.enterMode? enterMode;
-    private change.exitMode? exitMode;
-    private string? worldName;
-    private int? teleX;
-    private int? teleY;
-    private float? teleHigh;
-    private you.wasd? front;
-    private int? closeSoundIndex;
-    private int? teleSoundIndex;
-    private int? soundIndex;
-    private int? step;
-    private float? tempSpeed = 4;
-    private bool? isWaitSoundEnd;
-    private float? waitTime;
-    private string? itemName;
-    private string? str;
-#nullable disable
-    IEnumerator debugStr(string str)
+    static IEnumerator debugStr(string str)
     {
         you.commandIsEnd = false;
         Debug.Log(str);
         you.commandIsEnd = true;
         yield return null;
     }
-    private void init()
-    {
-        soundIndex = step = teleX = teleY = closeSoundIndex = teleSoundIndex = null;
-        str = itemName = worldName = null;
-        waitTime = tempSpeed = teleHigh = null;
-        front = null;
-        enterMode = null;
-        exitMode = null;
-        isWaitSoundEnd = null;
-    }
-    string easyNum(string stringNum) {
+    static string easyNum(string stringNum) {
         string symbol = Regex.Match(stringNum, "^[+-]*").Value;
         string absNum = Regex.Match(stringNum, "[^+-]*$").Value;
         absNum = ("" == absNum ? "1" : absNum);
@@ -132,7 +96,6 @@ public class trigger : MonoBehaviour
     }
     void Start()
     {
-        runCounts = new int[commands.Length];
         funcs = new List<IEnumerator>();
         m = GameObject.Find(mpath).GetComponent<map>();
         if (ChangeTransform)
@@ -158,17 +121,43 @@ public class trigger : MonoBehaviour
         }
     }
 
-    IEnumerator runCommand()
+    public static IEnumerator runCommands(string[] commands, AudioClip[] sounds = null, you u = null)
     {
+        commands ??= new string[0];
         isEnd = false;
+        int[] runCounts = new int[commands.Length];
         List<int> delimiterIndexs = new List<int> { -1 };
         string value = "";
         string commandName = "";
         bool isCount = true;
         int ia = 0;
-        for (int commandI = 0; commandI < commands.Length; commandI++)
+        Hashtable commandHelpStrings = new Hashtable { { "tele", "tele命令：让玩家传送至指定地点(命令格式：tele 退出转场 进入转场 [世界名 = \"nexus\"] [传送x坐标 = 0] [传送y坐标 = 0] [朝向 = 你的朝向] [传送时音效在sounds的索引 = 0] [传送后音效在sounds的索引 = 0])" }, { "help", "help命令：了解命令的主要作用(命令格式：help 命令名称)" }, { "#", "#命令：用来注释命令(命令格式：# ...)" }, { "move", "move命令：强制让玩家移动(命令格式：move [速度]朝向 [步数 = 1])" }, { "show", "show命令：显示玩家(命令格式：show)" }, { "hide", "hide命令：隐藏玩家(命令格式：hide)" }, { "play", "play命令：播放一段声音(命令格式：play [声音在sounds的索引 = 0] [是否等待声音结束 = false])" }, { "turn", "turn命令：改变玩家的朝向(命令格式：turn [朝向 = s]|[玩家转的方式 = (l(eft)|b(ack)|r(ight))] ))" }, { "stop", "stop命令：停止发出声音(命令格式：stop)" }, { "wait", "wait命令：等待一段时间(命令格式：wait [等待时间 = 1])" }, { "use", "use命令：使用物品栏里第一个道具名相同的道具(命令格式：use [道具名 = \"default\"])" }, { "debug", "debug命令：输出一些信息(命令格式：debug (信息))" }, { "value", "value命令：查看关于某些特殊类型变量的详细介绍(命令格式：value)" }, { "goto", "goto命令：跳转到某一行(命令格式：goto (标签(标签格式：“(标签名):”)))" }, { "exit", "exit命令：退出游戏(命令格式：exit)" }, { "close", "close命令：跳出当前菜单(命令格式：close)" } };
+        Hashtable valueHelpStrings = new Hashtable { { "none", "(进入转场|离开转场)：无" }, { "show", "进入转场：逐渐显示" }, { "hide", "离开转场：逐渐隐藏" }, { "fadein", "进入转场：淡入" }, { "fadeout", "离开转场：淡出" }, { "w", "朝向：上" }, { "a", "朝向：左" }, { "s", "朝向：下" }, { "d", "朝向：右" }, { "u", "朝向：你的朝向" }, { "l", "旋转方式：向左旋转90度" }, { "b", "旋转方式：往后旋转" }, { "r", "旋转方式：向右旋转90度" }, { "left", "同“l”" }, { "back", "同“b”" }, { "right", "同“r”" } };
+        Hashtable labels = new Hashtable();
+        Hashtable stringModes = new Hashtable { { "show", change.enterMode.show }, { "fadein", change.enterMode.fadein }, { "hide", change.exitMode.hide }, { "fadeout", change.exitMode.fadeout }, { "W", you.wasd.w }, { "w", you.wasd.w }, { "A", you.wasd.a }, { "a", you.wasd.a }, { "S", you.wasd.s }, { "s", you.wasd.s }, { "D", you.wasd.d }, { "d", you.wasd.d }, { "true", true }, { "false", false }, { "t", true }, { "f", false } };
+        Hashtable turnModes = new Hashtable { { "l", 3 }, { "left", 3 }, { "b", 2 }, { "back", 2 }, { "r", 1 }, { "right", 1 } };
+        you.wasd[] turnArray = { you.wasd.w, you.wasd.d, you.wasd.s, you.wasd.a };
+        int[] rturnArray = { 0, 3, 2, 1 };
+        for (int commandI = 0; null != commands && commandI < commands.Length; commandI++)
         {
-            init();
+#nullable enable
+            change.enterMode? enterMode = null;
+            change.exitMode? exitMode = null;
+            string? worldName = null;
+            int? teleX = null;
+            int? teleY = null;
+            float? teleHigh = null;
+            you.wasd? front = null;
+            int? closeSoundIndex = null;
+            int? teleSoundIndex = null;
+            int? soundIndex = null;
+            int? step = null;
+            float? tempSpeed = null;
+            bool? isWaitSoundEnd = null;
+            float? waitTime = null;
+            string? itemName = null;
+            string? str = null;
+#nullable disable
             delimiterIndexs.Clear();
             delimiterIndexs.Add(-1);
             //参数
@@ -369,9 +358,13 @@ public class trigger : MonoBehaviour
             switch (commandName)
             {
                 case "tele":
-                    funcs.Add(you.tele(exitMode ?? change.exitMode.hide, enterMode ?? change.enterMode.show, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, front ?? you.wasd.s, sounds[closeSoundIndex ?? 0] ?? sounds[0], sounds[teleSoundIndex ?? 0] ?? sounds[0]));
+                    funcs.Add(you.tele(exitMode ?? change.exitMode.hide, enterMode ?? change.enterMode.show, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, front ?? you.wasd.s, null == sounds ? null : sounds[closeSoundIndex ?? 0] ?? sounds[0], null == sounds ? null : sounds[teleSoundIndex ?? 0] ?? sounds[0]));
                     break;
                 case "move":
+                    if (null == u)
+                    {
+                        break;
+                    }
                     step ??= 1;
                     if (0 > tempSpeed)
                     {
@@ -381,19 +374,30 @@ public class trigger : MonoBehaviour
                     funcs.Add(u.move(front ?? you.front, step ?? 1, tempSpeed ?? 1));
                     break;
                 case "show":
+                    if (null == u)
+                    {
+                        break;
+                    }
                     funcs.Add(u.show());
                     break;
                 case "hide":
+                    if (null == u)
+                    {
+                        break;
+                    }
                     funcs.Add(u.hide());
                     break;
                 case "play":
-                    funcs.Add(u.play(sounds[soundIndex ?? 0] ?? sounds[0], isWaitSoundEnd ?? false));
+                    if (null != sounds)
+                    {
+                        funcs.Add(you.play(sounds[soundIndex ?? 0] ?? sounds[0], isWaitSoundEnd ?? false));
+                    }
                     break;
                 case "turn":
                     funcs.Add(you.turn(front ?? you.wasd.s));
                     break;
                 case "stop":
-                    funcs.Add(u.stop());
+                    funcs.Add(you.stop());
                     break;
                 case "wait":
                     funcs.Add(you.wait(waitTime ?? 1));
@@ -417,6 +421,10 @@ public class trigger : MonoBehaviour
                     funcs.Add(you.exit());
                     break;
                 case "close":
+                    if (null == u)
+                    {
+                        break;
+                    }
                     funcs.Add(u.closeMenu());
                     break;
                 default:
@@ -453,7 +461,7 @@ public class trigger : MonoBehaviour
         }
         if (!isDone && isEnd && u.x >= x - extendLeft && u.x <= x + extendRight && u.y >= y - extendUp && u.y <= y + extendDown)
         {
-            StartCoroutine(runCommand());
+            StartCoroutine(runCommands(commands, sounds, u));
         }
         if (isEnd && 0 == funcs.Count && !(u.x >= x - extendLeft && u.x <= x + extendRight && u.y >= y - extendUp && u.y <= y + extendDown && you.teleIsEnd && you.moveIsEnd && you.commandIsEnd))
         {
