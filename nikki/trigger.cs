@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
@@ -64,7 +65,7 @@ public class trigger : MonoBehaviour
     public int extendRight = 0;
     public int extendUp = 0;
     public int extendDown = 0;
-    public string[] commands;//目前支持tele命令, help命令, #命令, move命令, show命令, hide命令, play命令, turn命令, stop命令, wait命令, use命令, value命令, debug命令, goto命令。 talk等命令之后实现
+    public string[] commands;//目前支持tele命令, help命令, #命令, move命令, show命令, hide命令, play命令, turn命令, stop命令, wait命令, use命令, value命令, debug命令, goto命令, exit命令。 talk等命令之后实现
     public AudioClip[] sounds;
     public you u;
     private bool isEnd = true;
@@ -72,7 +73,7 @@ public class trigger : MonoBehaviour
     private readonly Hashtable turnModes = new Hashtable { { "l", 3 }, { "left", 3 }, { "b", 2 }, { "back", 2 }, { "r", 1 }, { "right", 1 } };
     private readonly you.wasd[] turnArray = { you.wasd.w, you.wasd.d, you.wasd.s, you.wasd.a };
     private readonly int[] rturnArray = { 0, 3, 2, 1 };
-    private readonly Hashtable commandHelpStrings = new Hashtable { { "tele", "tele命令：让玩家传送至指定地点(命令格式：tele 退出转场 进入转场 [世界名 = \"nexus\"] [传送x坐标 = 0] [传送y坐标 = 0] [朝向 = 你的朝向] [传送时音效在sounds的索引 = 0] [传送后音效在sounds的索引 = 0])" }, { "help", "help命令：了解命令的主要作用(命令格式：help 命令名称)" }, { "#", "#命令：用来注释命令(命令格式：# ...)" }, { "move", "move命令：强制让玩家移动(命令格式：move [速度]朝向 [步数 = 1])" }, { "show", "show命令：显示玩家(命令格式：show)" }, { "hide", "hide命令：隐藏玩家(命令格式：hide)" }, {"play", "play命令：播放一段声音(命令格式：play [声音在sounds的索引 = 0] [是否等待声音结束 = false])"}, { "turn", "turn命令：改变玩家的朝向(命令格式：turn [朝向 = s]|[玩家转的方式 = (l(eft)|b(ack)|r(ight))] ))"}, { "stop", "stop命令：停止发出声音(命令格式：stop)"}, { "wait", "wait命令：等待一段时间(命令格式：wait [等待时间 = 1])"}, { "use", "use命令：使用物品栏里第一个道具名相同的道具(命令格式：use [道具名 = \"default\"])"}, { "debug", "debug命令：输出一些信息(命令格式：debug (信息))" }, { "value", "value命令：查看关于某些特殊类型变量的详细介绍(命令格式：value)"}, { "goto", "goto命令，跳转到某一行(命令格式：goto (标签(标签格式：“(标签名):”)))"} };
+    private readonly Hashtable commandHelpStrings = new Hashtable { { "tele", "tele命令：让玩家传送至指定地点(命令格式：tele 退出转场 进入转场 [世界名 = \"nexus\"] [传送x坐标 = 0] [传送y坐标 = 0] [朝向 = 你的朝向] [传送时音效在sounds的索引 = 0] [传送后音效在sounds的索引 = 0])" }, { "help", "help命令：了解命令的主要作用(命令格式：help 命令名称)" }, { "#", "#命令：用来注释命令(命令格式：# ...)" }, { "move", "move命令：强制让玩家移动(命令格式：move [速度]朝向 [步数 = 1])" }, { "show", "show命令：显示玩家(命令格式：show)" }, { "hide", "hide命令：隐藏玩家(命令格式：hide)" }, {"play", "play命令：播放一段声音(命令格式：play [声音在sounds的索引 = 0] [是否等待声音结束 = false])"}, { "turn", "turn命令：改变玩家的朝向(命令格式：turn [朝向 = s]|[玩家转的方式 = (l(eft)|b(ack)|r(ight))] ))"}, { "stop", "stop命令：停止发出声音(命令格式：stop)"}, { "wait", "wait命令：等待一段时间(命令格式：wait [等待时间 = 1])"}, { "use", "use命令：使用物品栏里第一个道具名相同的道具(命令格式：use [道具名 = \"default\"])"}, { "debug", "debug命令：输出一些信息(命令格式：debug (信息))" }, { "value", "value命令：查看关于某些特殊类型变量的详细介绍(命令格式：value)"}, { "goto", "goto命令：跳转到某一行(命令格式：goto (标签(标签格式：“(标签名):”)))"}, { "exit", "exit命令：退出游戏(命令格式：exit)"}, { "close", "close命令：跳出当前菜单(命令格式：close)"} };
     private readonly Hashtable valueHelpStrings = new Hashtable { { "none", "(进入转场|离开转场)：无" }, { "show", "进入转场：逐渐显示" }, { "hide", "离开转场：逐渐隐藏" }, { "fadein", "进入转场：淡入" }, { "fadeout", "离开转场：淡出" }, { "w", "朝向：上" }, { "a", "朝向：左" }, { "s", "朝向：下" }, { "d", "朝向：右" }, { "u", "朝向：你的朝向" }, { "l", "旋转方式：向左旋转90度"}, { "b", "旋转方式：往后旋转" }, { "r", "旋转方式：向右旋转90度" }, { "left", "同“l”" }, { "back", "同“b”" }, { "right", "同“r”" }};
     private Hashtable labels = new Hashtable();
     private int[] runCounts;
@@ -411,6 +412,13 @@ public class trigger : MonoBehaviour
                 case "debug":
                 case "value":
                     funcs.Add(debugStr(str ?? ""));
+                    break;
+                case "exit":
+                    Application.Quit();
+                    EditorApplication.isPlaying = false;
+                    break;
+                case "close":
+                    you._MenuStatus = you.menuStatus.close;
                     break;
                 default:
                     break;
