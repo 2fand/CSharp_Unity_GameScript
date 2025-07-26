@@ -33,11 +33,12 @@ public class Cursor : MonoBehaviour
             return indexJ;
         }
     }
-    public Vector2 positionAdjust = new Vector2(0, -2);
     public bool isWait = true;
     public static bool cursorCanMove = true;
     public you u;
     public static bool update = false;
+    private Color cursorBeforeColor;
+    public static Color cursorColor = new Color(1, 1, 1, 0);
     IEnumerator move()
     {
         moveIsEnd = false;
@@ -52,7 +53,7 @@ public class Cursor : MonoBehaviour
             {
                 indexI--;
             }
-            yield return new WaitForSeconds(isWait ? 0.4f : 0.1f);
+            yield return new WaitForSeconds(isWait ? 0.3f : 0.1f);
             isWait = false;
         }
         else if (Input.GetKey("s"))
@@ -66,7 +67,7 @@ public class Cursor : MonoBehaviour
             {
                 indexI++;
             }
-            yield return new WaitForSeconds(isWait ? 0.4f : 0.1f);
+            yield return new WaitForSeconds(isWait ? 0.3f : 0.1f);
             isWait = false;
         }
         else
@@ -104,6 +105,13 @@ public class Cursor : MonoBehaviour
 
     void Start()
     {
+        GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+        if (null == GetComponent<Image>())
+        {
+            gameObject.AddComponent<Image>();
+        }
+        GetComponent<Image>().type = Image.Type.Sliced;
+        cursorBeforeColor = GetComponent<Image>().color;
         if (null == GetComponent<AudioSource>())
         {
             gameObject.AddComponent<AudioSource>();
@@ -112,26 +120,32 @@ public class Cursor : MonoBehaviour
 
     void Update()
     {
+        GetComponent<Image>().color = 0 != you.Menus.Count && null != you.yourSelects && 0 != you.yourSelects.GetLength(0) && 0 != you.yourSelects.GetLength(1) ? cursorColor : new Color(1,1,1,0);
         if (0 != you.Menus.Count)
         {
             if (update)
             {
                 indexI = indexJ = 0;
-                GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x - you.menuSelectsPositionAdjust.x + positionAdjust.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y - you.menuSelectsPositionAdjust.y + positionAdjust.y, 0);
-                GetComponent<RectTransform>().sizeDelta = you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().sizeDelta;
+                if (null != you.yourSelects && 0 != you.yourSelects.GetLength(0) && 0 != you.yourSelects.GetLength(1))
+                {
+                    GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y, 0);
+                    GetComponent<RectTransform>().sizeDelta = you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().sizeDelta;
+                }
+                transform.SetAsLastSibling();
+                x = 0;
                 update = false;
             }
             if (isEnd)
             {
                 StartCoroutine(dodge());
             }
-            if (cursorCanMove && moveIsEnd)
+            if (null != you.yourSelects && cursorCanMove && moveIsEnd)
             {
                 StartCoroutine(move());
             }
-            if (indexI < you.yourSelects.GetLength(0) && indexJ < you.yourSelects.GetLength(1))
+            if (null != you.yourSelects && indexI < you.yourSelects.GetLength(0) && indexJ < you.yourSelects.GetLength(1))
             {
-                GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x - you.menuSelectsPositionAdjust.x + positionAdjust.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y - you.menuSelectsPositionAdjust.y + positionAdjust.y, 0);
+                GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y, 0);
             }
         }
     }
