@@ -22,14 +22,7 @@ public class makeMenu : MonoBehaviour
     public Color menuColor = Color.white;
     private Color last_menuColor = Color.white;
     private static Vector2 cellSize;
-    private Vector2? menuRealSize = null;
-    public Vector2? MenuRealSize
-    {
-        get
-        {
-            return menuRealSize;
-        }
-    }
+    public static bool isDone = false;
     public static Vector2 CellSize
     {
         get
@@ -96,7 +89,7 @@ public class makeMenu : MonoBehaviour
                     makeGrid();
                     break;
             }
-            menuRealSize = GetComponent<RectTransform>().sizeDelta;
+            isDone = true;
         }
     }
 
@@ -121,6 +114,84 @@ public class makeMenu : MonoBehaviour
         GetComponent<GridLayoutGroup>().cellSize *= imageSize;
         cellSize = GetComponent<GridLayoutGroup>().cellSize;
     }
+    IEnumerator makeARow(int y)
+    {
+        for (int x = 0; x < catW; x++)
+        {
+            image = new GameObject(("" != menuName ? menuName : name) + " - " + (y * catW + x));
+            image.transform.parent = transform;
+            image.transform.localScale = imageSize;
+            addChildren.Add(image);
+            image.AddComponent<Image>();
+            if (1 == catH && 1 == catW)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x1);
+            }
+            else if (1 == catW && 0 == y)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_u);
+            }
+            else if (1 == catW && catH - 1 == y)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_d);
+            }
+            else if (1 == catW)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_c);
+            }
+            else if (1 == catH && 0 == x)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_l);
+            }
+            else if (1 == catH && catW - 1 == x)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_r);
+            }
+            else if (1 == catH)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_c);
+            }
+            else if (0 == x && 0 == y)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftUp);
+            }
+            else if (catW - 1 == x && 0 == y)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuRightUp);
+            }
+            else if (0 == y)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuUp);
+            }
+            else if (0 == x && catH - 1 == y)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftDown);
+            }
+            else if (catW - 1 == x && catH - 1 == y)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuRightDown);
+            }
+            else if (catH - 1 == y)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuDown);
+            }
+            else if (0 == x)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeft);
+            }
+            else if (catW - 1 == x)
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuRight);
+            }
+            else
+            {
+                image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuCenter);
+            }
+            image.GetComponent<Image>().color = menuColor;
+            image.GetComponent<RectTransform>().localScale = Vector3.one;
+        }
+        yield return null;
+    }
     void makeGrid()
     {
         setCellSize();
@@ -133,85 +204,13 @@ public class makeMenu : MonoBehaviour
         //GridLayoutGroup的网格大小以第一个构成菜单的图片大小为准
         for (int y = 0; y < catH; y++)
         {
-            for (int x = 0; x < catW; x++)
-            {
-                image = new GameObject(("" != menuName ? menuName : name) + " - " + (y * catW + x));
-                image.transform.parent = transform;
-                image.transform.localScale = imageSize;
-                addChildren.Add(image);
-                image.AddComponent<Image>();
-                if (1 == catH && 1 == catW)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x1);
-                }
-                else if (1 == catW && 0 == y)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_u);
-                }
-                else if (1 == catW && catH - 1 == y)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_d);
-                }
-                else if (1 == catW)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_c);
-                }
-                else if (1 == catH && 0 == x)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_l);
-                }
-                else if (1 == catH && catW - 1 == x)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_r);
-                }
-                else if (1 == catH)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_c);
-                }
-                else if (0 == x && 0 == y)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftUp);
-                }
-                else if (catW - 1 == x && 0 == y)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuRightUp);
-                }
-                else if (0 == y)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuUp);
-                }
-                else if (0 == x && catH - 1 == y)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftDown);
-                }
-                else if (catW - 1 == x && catH - 1 == y)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuRightDown);
-                }
-                else if (catH - 1 == y)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuDown);
-                }
-                else if (0 == x)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeft);
-                }
-                else if (catW - 1 == x)
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuRight);
-                }
-                else
-                {
-                    image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuCenter);
-                }
-                image.GetComponent<Image>().color = menuColor;
-                image.GetComponent<RectTransform>().localScale = Vector3.one;
-            }
+            StartCoroutine(makeARow(y));
         }
     }
 
     void Start()
     {
+        isDone = false;
         init();
     }
 
