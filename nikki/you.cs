@@ -11,6 +11,11 @@ using static Unity.VisualScripting.Member;
 using UnityEditor;
 using System;
 using System.Xml.Linq;
+using System.ComponentModel;
+using static select;
+using JetBrains.Annotations;
+using Unity.VisualScripting.Dependencies.Sqlite;
+using System.Text.RegularExpressions;
 
 public class you : MonoBehaviour
 {
@@ -21,7 +26,7 @@ public class you : MonoBehaviour
         s,
         d,
         n
-    }    
+    }
     private bool isEnd = true;
     public static float waitTime = 0.01f;
     public int x = 5;
@@ -75,7 +80,7 @@ public class you : MonoBehaviour
     public bool cameraIsOrthographic = true;
     public float cameraOrthographicSize = 20;
     public static int money = 0;
-    public static string moneyUnit = "";
+    public static string moneyUnit = "null";
     public static GameObject teleScreen;
     public Canvas canvas;
     private GameObject effectGetScreen;
@@ -110,17 +115,24 @@ public class you : MonoBehaviour
     private GameObject moneyMenu;
     private GameObject youMenu;
     private GameObject blackScreen;
-    public static Vector2 menuSelectsPositionAdjust = new Vector2(7, -2);
-    public static float menuSelectsSpaceAdjust = -2;
     private GameObject selectCursor;
-    private static List<select.menuClass> menus = new List<select.menuClass>();
+    private static List<menuClass> menus = new List<menuClass>();
     private GameObject exitMenu;
     private GameObject exitChooseMenu;
     private GameObject exitHintText;
     public static AudioClip changeSelectSound;
-    public string[] selectNames = { "效果", "醒来", "退出" };
-    public select.menuClass[] selectMenuClasses = { select.menuClass.item, select.menuClass.action, select.menuClass.quit };
-    public static List<select.menuClass> Menus
+    public static string[] selectNames = { "效果", "醒来", "退出" };
+    private menuClass[] selectMenuClasses = { menuClass.item, menuClass.action, menuClass.quit };
+    private GameObject tempCursor1;
+    private GameObject itemMenu;
+    private GameObject statusMenu;
+    private GameObject recommendMenu;
+    private GameObject moneyText;
+    private static bool isStop = false;
+#nullable enable 
+    private static AudioClip? playSound = null;
+#nullable disable
+    public static List<menuClass> Menus
     {
         get
         {
@@ -135,14 +147,22 @@ public class you : MonoBehaviour
     {
         get
         {
-            return (select[,])select.menuSelects[menus[menus.Count - 1]];
+            if (0 == menuSelects.Count)
+            {
+                return null;
+            }
+            return (select[,])menuSelects[menus[menus.Count - 1]];
         }
     }
     public static select yourSelect
     {
         get
         {
-            return ((select[,])select.menuSelects[menus[menus.Count - 1]])[Cursor.IndexI, Cursor.IndexJ];
+            if (0 == menuSelects.Count)
+            {
+                return null;
+            }
+            return ((select[,])menuSelects[menus[menus.Count - 1]])[Cursor.IndexI, Cursor.IndexJ];
         }
     }
     public static MenuTheme myMenu
@@ -160,14 +180,21 @@ public class you : MonoBehaviour
         gameObject.GetComponent<changeColor>().enabled = false;
     }
 
+    GameObject toRightPos(GameObject UIObject)
+    {
+        UIObject.GetComponent<RectTransform>().localPosition += new Vector3(UIObject.GetComponent<RectTransform>().sizeDelta.x / -2, UIObject.GetComponent<RectTransform>().sizeDelta.y / 2, 0);
+        return UIObject;
+    }
+
     GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = postition;
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = postition;
         UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
@@ -175,36 +202,13 @@ public class you : MonoBehaviour
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = postition;
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = postition;
         UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = anchorMin;
         UIObject.GetComponent<RectTransform>().anchorMax = anchorMax;
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
-        return UIObject;
-    }
-
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 pivotPosition)
-    {
-        UIObject = new GameObject(UIName);
-        UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = postition;
-        UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
-        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject.GetComponent<RectTransform>().pivot = pivotPosition;
-        return UIObject;
-    }
-
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivotPosition)
-    {
-        UIObject = new GameObject(UIName);
-        UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = postition;
-        UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
-        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject.GetComponent<RectTransform>().anchorMin = anchorMin;
-        UIObject.GetComponent<RectTransform>().anchorMax = anchorMax;
-        UIObject.GetComponent<RectTransform>().pivot = pivotPosition;
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
@@ -212,21 +216,11 @@ public class you : MonoBehaviour
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
         UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
-        return UIObject;
-    }
-
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, Vector2 pivotPosition)
-    {
-        UIObject = new GameObject(UIName);
-        UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
-        UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
-        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject.GetComponent<RectTransform>().pivot = pivotPosition;
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
@@ -234,11 +228,12 @@ public class you : MonoBehaviour
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
         UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorX, anchorY);
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
@@ -246,25 +241,13 @@ public class you : MonoBehaviour
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
         UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = new Vector2(anchorMinX, anchorMinY);
         UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorMaxX, anchorMaxY);
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
-        return UIObject;
-    }
-
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float pivotX, float pivotY)
-    {
-        UIObject = new GameObject(UIName);
-        UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
-        UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
-        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject.GetComponent<RectTransform>().anchorMin = new Vector2(anchorMinX, anchorMinY);
-        UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorMaxX, anchorMaxY);
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(pivotX, pivotY);
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
@@ -272,12 +255,13 @@ public class you : MonoBehaviour
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = postition;
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = postition;
         UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
@@ -285,42 +269,15 @@ public class you : MonoBehaviour
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = postition;
-        UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
-        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject.GetComponent<RectTransform>().anchorMin = anchorMin;
-        UIObject.GetComponent<RectTransform>().anchorMax = anchorMax;
-        UIObject.AddComponent<makeMenu>().menuColor = menuColor;
-        UIObject.GetComponent<makeMenu>().imageSize = imageSize;
         UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
-        return UIObject;
-    }
-
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 pivotPosition, Color menuColor, Vector2 imageSize)
-    {
-        UIObject = new GameObject(UIName);
-        UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = postition;
-        UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
-        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject.GetComponent<RectTransform>().pivot = pivotPosition;
-        UIObject.AddComponent<makeMenu>().menuColor = menuColor;
-        UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        return UIObject;
-    }
-
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivotPosition, Color menuColor, Vector2 imageSize)
-    {
-        UIObject = new GameObject(UIName);
-        UIObject.transform.parent = canvas.transform;
         UIObject.AddComponent<RectTransform>().localPosition = postition;
         UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = anchorMin;
         UIObject.GetComponent<RectTransform>().anchorMax = anchorMax;
-        UIObject.GetComponent<RectTransform>().pivot = pivotPosition;
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
@@ -328,24 +285,13 @@ public class you : MonoBehaviour
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
         UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        return UIObject;
-    }
-
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, Vector2 pivotPosition, Color menuColor, Vector2 imageSize)
-    {
-        UIObject = new GameObject(UIName);
-        UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
-        UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
-        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject.GetComponent<RectTransform>().pivot = pivotPosition;
-        UIObject.AddComponent<makeMenu>().menuColor = menuColor;
-        UIObject.GetComponent<makeMenu>().imageSize = imageSize;
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
@@ -353,13 +299,14 @@ public class you : MonoBehaviour
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
         UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorX, anchorY);
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
@@ -367,28 +314,132 @@ public class you : MonoBehaviour
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
         UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = new Vector2(anchorMinX, anchorMinY);
         UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorMaxX, anchorMaxY);
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject = toRightPos(UIObject);
         return UIObject;
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float pivotX, float pivotY, Color menuColor, Vector2 imageSize)
+    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().localPosition = new Vector2(x, y);
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = postition;
+        UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
+        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
+        UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
+        UIObject.GetComponent<makeMenu>().imageSize = imageSize;
+        UIObject = toRightPos(UIObject);
+        return UIObject;
+    }
+
+    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 anchorMin, Vector2 anchorMax, Vector2 imageSize)
+    {
+        UIObject = new GameObject(UIName);
+        UIObject.transform.parent = canvas.transform;
+        UIObject.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.AddComponent<RectTransform>().localPosition = postition;
+        UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
+        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
+        UIObject.GetComponent<RectTransform>().anchorMin = anchorMin;
+        UIObject.GetComponent<RectTransform>().anchorMax = anchorMax;
+        UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
+        UIObject.GetComponent<makeMenu>().imageSize = imageSize;
+        UIObject = toRightPos(UIObject);
+        return UIObject;
+    }
+
+    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, Vector2 imageSize)
+    {
+        UIObject = new GameObject(UIName);
+        UIObject.transform.parent = canvas.transform;
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
+        UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
+        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
+        UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
+        UIObject.GetComponent<makeMenu>().imageSize = imageSize;
+        UIObject = toRightPos(UIObject);
+        return UIObject;
+    }
+
+    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorX, float anchorY, Vector2 imageSize)
+    {
+        UIObject = new GameObject(UIName);
+        UIObject.transform.parent = canvas.transform;
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
+        UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
+        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
+        UIObject.GetComponent<RectTransform>().anchorMin = UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorX, anchorY);
+        UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
+        UIObject.GetComponent<makeMenu>().imageSize = imageSize;
+        UIObject = toRightPos(UIObject);
+        return UIObject;
+    }
+
+    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, Vector2 imageSize)
+    {
+        UIObject = new GameObject(UIName);
+        UIObject.transform.parent = canvas.transform;
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
         UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = new Vector2(anchorMinX, anchorMinY);
         UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorMaxX, anchorMaxY);
-        UIObject.GetComponent<RectTransform>().pivot = new Vector2(pivotX, pivotY);
+        UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
+        UIObject.GetComponent<makeMenu>().imageSize = imageSize;
+        UIObject = toRightPos(UIObject);
+        return UIObject;
+    }
+
+    GameObject UIinit(GameObject UIObject, string UIName, RectTransform copyTransform)
+    {
+        UIObject = new GameObject(UIName);
+        UIObject.transform.parent = canvas.transform;
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = copyTransform.localPosition;
+        UIObject.GetComponent<RectTransform>().sizeDelta = copyTransform.sizeDelta;
+        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
+        UIObject.GetComponent<RectTransform>().anchorMin = copyTransform.anchorMin;
+        UIObject.GetComponent<RectTransform>().anchorMax = copyTransform.anchorMax;
+        return UIObject;
+    }
+
+    GameObject UIinit(GameObject UIObject, string UIName, RectTransform copyTransform, Color menuColor, Vector2 imageSize)
+    {
+        UIObject = new GameObject(UIName);
+        UIObject.transform.parent = canvas.transform;
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = copyTransform.localPosition;
+        UIObject.GetComponent<RectTransform>().sizeDelta = copyTransform.sizeDelta;
+        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
+        UIObject.GetComponent<RectTransform>().anchorMin = copyTransform.anchorMin;
+        UIObject.GetComponent<RectTransform>().anchorMax = copyTransform.anchorMax;
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
+        UIObject.GetComponent<makeMenu>().imageSize = imageSize;
+        return UIObject;
+    }
+
+    GameObject UIinit(GameObject UIObject, string UIName, RectTransform copyTransform, Vector2 imageSize)
+    {
+        UIObject = new GameObject(UIName);
+        UIObject.transform.parent = canvas.transform;
+        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.GetComponent<RectTransform>().localPosition = copyTransform.localPosition;
+        UIObject.GetComponent<RectTransform>().sizeDelta = copyTransform.sizeDelta;
+        UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
+        UIObject.GetComponent<RectTransform>().anchorMin = copyTransform.anchorMin;
+        UIObject.GetComponent<RectTransform>().anchorMax = copyTransform.anchorMax;
+        UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
         return UIObject;
     }
@@ -420,58 +471,150 @@ public class you : MonoBehaviour
         return _2DArray.GetLength(0) * _2DArray.GetLength(1);
     }
 
-    select[,] GetSelects(select.menuClass menuClass)
+    select[,] GetSelects(menuClass menuClass)
     {
-        return (select[,])select.menuSelects[menuClass];
-    }
-
-    GameObject textInit(GameObject text, int size, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft)
-    {
-        text.AddComponent<Text>().color = myMenu.menuTextColor;
-        text.GetComponent<Text>().text = str;
-        text.GetComponent<Text>().alignment = alignment;
-        text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize = size;
-        return text;
-    }
-
-    GameObject textInit(GameObject text, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft)
-    {
-        text.AddComponent<Text>().color = myMenu.menuTextColor;
-        text.GetComponent<Text>().text = str;
-        text.GetComponent<Text>().alignment = alignment;
-        text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize = select.textSize;
-        return text;
-    }
-
-    GameObject textInit(GameObject text, int size, Color c, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft)
-    {
-        text.AddComponent<Text>().color = myMenu.menuTextColor * c;
-        text.GetComponent<Text>().text = str;
-        text.GetComponent<Text>().alignment = alignment;
-        text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize = size;
-        return text;
-    }
-
-    GameObject textInit(GameObject text, Color c, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft)
-    {
-        text.AddComponent<Text>().color = myMenu.menuTextColor * c;
-        text.GetComponent<Text>().text = str;
-        text.GetComponent<Text>().alignment = alignment;
-        text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize = select.textSize;
-        return text;
-    }
-
-    void menuSelectsAdd(select.menuClass menuClass, select[,] selects)
-    {
-        if (select.menuSelects.ContainsKey(menuClass))
+        if (null == menuSelects[menuClass])
         {
-            select.menuSelects.Remove(menuClass);
+            return null;
         }
-        select.menuSelects.Add(menuClass, selects);
+        return (select[,])menuSelects[menuClass];
+    }
+
+    GameObject textInit(GameObject text, int size, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
+    {
+        switch (colorClass)
+        {
+            case MenuTheme.menuTextColorClass.normal:
+                text.AddComponent<Text>().color = myMenu.menuTextColor * new Color(1, 1, 1, 0);
+                break;
+            case MenuTheme.menuTextColorClass.highlight:
+                text.AddComponent<Text>().color = myMenu.menuTextHighlightColor * new Color(1, 1, 1, 0);
+                break;
+            default:
+                text.AddComponent<Text>().color = myMenu.menuTextUnselectColor * new Color(1, 1, 1, 0);
+                break;
+        }
+        if (0 == (int)alignment % 3)
+        {
+            text.GetComponent<Text>().text = "  " + str;
+        }
+        else if (1 == (int)alignment % 3)
+        {
+            text.GetComponent<Text>().text = str;
+        }
+        else
+        {
+            text.GetComponent<Text>().text = str + "  ";
+        }
+        text.GetComponent<Text>().alignment = alignment;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = size;
+        return text;
+    }
+
+    GameObject textInit(GameObject text, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
+    {
+        switch (colorClass)
+        {
+            case MenuTheme.menuTextColorClass.normal:
+                text.AddComponent<Text>().color = myMenu.menuTextColor * new Color(1, 1, 1, 0);
+                break;
+            case MenuTheme.menuTextColorClass.highlight:
+                text.AddComponent<Text>().color = myMenu.menuTextHighlightColor * new Color(1, 1, 1, 0);
+                break;
+            default:
+                text.AddComponent<Text>().color = myMenu.menuTextUnselectColor * new Color(1, 1, 1, 0);
+                break;
+        }
+        if (0 == (int)alignment % 3)
+        {
+            text.GetComponent<Text>().text = "  " + str;
+        }
+        else if (1 == (int)alignment % 3)
+        {
+            text.GetComponent<Text>().text = str;
+        }
+        else
+        {
+            text.GetComponent<Text>().text = str + "  ";
+        }
+        text.GetComponent<Text>().alignment = alignment;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = textSize;
+        return text;
+    }
+
+    GameObject textInit(GameObject text, int size, Color menuTextColor, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
+    {
+        switch (colorClass)
+        {
+            case MenuTheme.menuTextColorClass.normal:
+                text.AddComponent<Text>().color = myMenu.menuTextColor * menuTextColor;
+                break;
+            case MenuTheme.menuTextColorClass.highlight:
+                text.AddComponent<Text>().color = myMenu.menuTextHighlightColor * menuTextColor;
+                break;
+            default:
+                text.AddComponent<Text>().color = myMenu.menuTextUnselectColor * menuTextColor;
+                break;
+        }
+        if (0 == (int)alignment % 3)
+        {
+            text.GetComponent<Text>().text = "  " + str;
+        }
+        else if (1 == (int)alignment % 3)
+        {
+            text.GetComponent<Text>().text = str;
+        }
+        else
+        {
+            text.GetComponent<Text>().text = str + "  ";
+        }
+        text.GetComponent<Text>().alignment = alignment;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = size;
+        return text;
+    }
+
+    GameObject textInit(GameObject text, Color menuTextColor, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
+    {
+        switch (colorClass)
+        {
+            case MenuTheme.menuTextColorClass.normal:
+                text.AddComponent<Text>().color = myMenu.menuTextColor * menuTextColor;
+                break;
+            case MenuTheme.menuTextColorClass.highlight:
+                text.AddComponent<Text>().color = myMenu.menuTextHighlightColor * menuTextColor;
+                break;
+            default:
+                text.AddComponent<Text>().color = myMenu.menuTextUnselectColor * menuTextColor;
+                break;
+        }
+        if (0 == (int)alignment % 3)
+        {
+            text.GetComponent<Text>().text = "  " + str;
+        }
+        else if (1 == (int)alignment % 3)
+        {
+            text.GetComponent<Text>().text = str;
+        }
+        else
+        {
+            text.GetComponent<Text>().text = str + "  ";
+        }
+        text.GetComponent<Text>().alignment = alignment;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = textSize;
+        return text;
+    }
+
+    void menuSelectsAdd(menuClass menuClass, select[,] selects)
+    {
+        if (menuSelects.ContainsKey(menuClass))
+        {
+            menuSelects.Remove(menuClass);
+        }
+        menuSelects.Add(menuClass, selects);
     }
 
     IEnumerator init()
@@ -513,38 +656,47 @@ public class you : MonoBehaviour
         {
             canvas.AddComponent<change>();
         }
-        effectGetScreen = UIinit(effectGetScreen, "effectGetScreen", 0, 40, 360, 48, 0.5f, 0, new Color(1, 1, 1, 0), new Vector2(1.5f, 1.5f));
+        effectGetScreen = UIinit(effectGetScreen, "effectGetScreen", 0, 40, 360, 48, 0.5f, 0, new Vector2(1.5f, 1.5f));
         yield return new WaitUntil(() => myMenuID < MenuTheme.menuThemes.Count && InitGame.IsInit);
         effectText = UIinit(effectText, "effectText", 0, 40, 360, 50, 0.5f, 0);
         effectText = textInit(effectText);
         effectText = UIPosLink(effectText, effectGetScreen);
         blackScreen = UIinit(blackScreen, "blackScreen", 0, 0, Screen.width, Screen.height, 0, 0, 1, 1);
         blackScreen.AddComponent<Image>().color = new Color(0, 0, 0, 0);
-        selectMenu = UIinit(selectMenu, "selectMenu", -173.6f, 120, 96, 96, new Vector2(0, 1), new Color(1, 1, 1, 0), new Vector2(1.5f, 1.5f));
+        selectMenu = UIinit(selectMenu, "selectMenu", -167.9f, 180f, 144, 1, new Vector2(1.5f, 1.5f));
         yield return new WaitUntil(() => Vector2.zero != makeMenu.CellSize);
-        moneyMenu = UIinit(moneyMenu, "moneyMenu", -125.6f, -107.82f, 96, 24, new Color(1, 1, 1, 0), new Vector2(1.5f, 1.5f));
-        youMenu = UIinit(youMenu, "youMenu", 51.7f, 0, 260, 240, new Color(1, 1, 1, 0), new Vector2(1.5f, 1.5f));
+        moneyMenu = UIinit(moneyMenu, "moneyMenu", -167.9f, -155f , 144, 48, new Vector2(1.5f, 1.5f));
+        youMenu = UIinit(youMenu, "youMenu", 95f, 0, 384, 360, new Vector2(1.5f, 1.5f));
         selectCursor = UIinit(selectCursor, "selectCursor", selectMenu.GetComponent<RectTransform>().localPosition.x, selectMenu.GetComponent<RectTransform>().localPosition.y - makeMenu.CellSize.y / 2, selectMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y);
         selectCursor.AddComponent<Image>().sprite = myMenu.cursor;
         selectCursor.GetComponent<Image>().color = new Color(1, 1, 1, 0);
         selectCursor.AddComponent<Cursor>();
-        exitMenu = UIinit(exitMenu, "exitMenu", -87, 83, 169, 46, new Vector2(0, 1), new Color(1, 1, 1, 0), new Vector2(1.5f, 1.5f));
-        exitChooseMenu = UIinit(exitChooseMenu, "exitChooseMenu", -23, 11, 38, 69, new Vector2(0, 1), new Color(1, 1, 1, 0), new Vector2(1.5f, 1.5f));
-        exitHintText = UIinit(exitHintText, "exitHintText", -3, 60, 169, 46);
-        exitHintText = textInit(exitHintText, 19, new Color(1, 1, 1, 0), "要结束梦境了吗?", TextAnchor.MiddleCenter);
+        exitMenu = UIinit(exitMenu, "exitMenu", 0, 60, 169, 46, new Vector2(1.5f, 1.5f));
+        exitChooseMenu = UIinit(exitChooseMenu, "exitChooseMenu", 0, -25, 38, 69, new Vector2(1.5f, 1.5f));
+        exitHintText = UIinit(exitHintText, "exitHintText", exitMenu.GetComponent<RectTransform>(), new Vector2(1.5f, 1.5f));
+        exitHintText = textInit(exitHintText, 19, "要结束梦境了吗?", TextAnchor.MiddleCenter);
+        moneyText = UIinit(moneyText, "moneyText", moneyMenu.GetComponent<RectTransform>());
+        moneyText = textInit(moneyText, "<color=#" + myMenu.menuTextColor.ToHexString().Substring(0, 6) + "00>" + money.ToString() + "</color> " + moneyUnit, TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.highlight);
+        /*
+        itemMenu = UIinit(itemMenu, "itemMenu", 0, -1.78f, 480, 360, new Vector2(1.5f, 1.5f));
+        recommendMenu = UIinit(recommendMenu, "recommendMenu", 0, -1.78f, 480, 48, new Vector2(1.5f, 1.5f));
+        */
+        yield return new WaitUntil(() => makeMenu.isDone);
         select[,] mainSelects = new select[selectNames.Length, 1];
         select[,] quitSelects = new select[2, 1];
+        selectMenuClasses = new menuClass[] { menuClass.item, menuClass.action, menuClass.quit };
         for (int i = 0; i < mainSelects.GetLength(0); i++)
         {
-            mainSelects[i, 0] = new select(canvas, new Vector2(selectMenu.GetComponent<RectTransform>().localPosition.x + menuSelectsPositionAdjust.x, (selectMenu.GetComponent<RectTransform>().localPosition.y + menuSelectsPositionAdjust.y) - (makeMenu.CellSize.y + menuSelectsSpaceAdjust) * i), new Vector2(selectMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y), selectNames[i], selectMenuClasses[i]);
+            mainSelects[i, 0] = new select(canvas, new Vector2(selectMenu.GetComponent<RectTransform>().localPosition.x, selectMenu.GetComponent<RectTransform>().localPosition.y - makeMenu.CellSize.y * (i + 0.5f)), new Vector2(selectMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y), selectNames[i], selectMenuClasses[i], TextAnchor.MiddleLeft, 19);
         }
         for (int i = 0; i < 2; i++)
         {
-            quitSelects[i, 0] = new select(canvas, new Vector2(exitChooseMenu.GetComponent<RectTransform>().localPosition.x, exitChooseMenu.GetComponent<RectTransform>().localPosition.y - i * makeMenu.CellSize.y), new Vector2(exitChooseMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y), 0 == i ? "是" : "否", select.menuClass.none, TextAnchor.MiddleCenter);
+            quitSelects[i, 0] = new select(canvas, new Vector2(exitChooseMenu.GetComponent<RectTransform>().localPosition.x, exitChooseMenu.GetComponent<RectTransform>().localPosition.y - (0.5f + i) * makeMenu.CellSize.y), new Vector2(exitChooseMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y), new string[1]{0 == i ? "exit" : ""}, 0 == i ? "是" : "否", 0 == i ? menuClass.none : menuClass.back, TextAnchor.MiddleCenter, 19);
         }
-        menuSelectsAdd(select.menuClass.main, mainSelects);
-        menuSelectsAdd(select.menuClass.quit, quitSelects);
-        selectMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(96, makeMenu.CellSize.y * get2DArrayLength(GetSelects(select.menuClass.main)));
+        menuSelectsAdd(menuClass.main, mainSelects);
+        menuSelectsAdd(menuClass.quit, quitSelects);
+        menuSelectsAdd(menuClass.none, new select[0, 0]);
+        selectMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(selectMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y * (get2DArrayLength(GetSelects(menuClass.main)) + 1));
         isDone = true;
     }
 
@@ -749,14 +901,14 @@ public class you : MonoBehaviour
         yield return null;
     }
 
-    public IEnumerator play(AudioClip sound, bool isWait)
+    public static IEnumerator play(AudioClip sound, bool isWait)
     {
         if (null == sound)
         {
             yield break;
         }
         commandIsEnd = !isWait || false;
-        GetComponent<AudioSource>().PlayOneShot(sound);
+        playSound = sound;
         yield return new WaitForSeconds(sound.length);
         commandIsEnd = true;
     }
@@ -776,10 +928,7 @@ public class you : MonoBehaviour
             canMove = false;
             canOpenMenu = false;
             you.enterMode = enterMode;
-            if (null != teleSound)
-            {
-                you.teleSound = teleSound;
-            }
+            you.teleSound = teleSound ?? you.teleSound;
             yield return new WaitForSeconds(null != teleSound ? teleSound.length : 0);
             switch (exitMode)
             {
@@ -819,12 +968,149 @@ public class you : MonoBehaviour
         yield return null;
     }
 
-    public IEnumerator stop()
+    public static IEnumerator stop()
     {
         commandIsEnd = false;
-        GetComponent<AudioSource>().Stop();
+        isStop = true;
         commandIsEnd = true;
         yield return null;
+    }
+
+    public static IEnumerator exit()
+    {
+        Application.Quit();
+        EditorApplication.isPlaying = false;
+        yield return null;
+    }
+
+    void hideOrShowMenu(menuClass menuClass, bool isHide = true)
+    {
+        string moneyTextColor = Regex.Match(moneyText.GetComponent<Text>().text, "#[0-9a-fA-F]{8}").Value;
+        Hashtable HexToDec = new Hashtable{ { '0', 0 }, { '1', 1 }, { '2', 2 }, { '3', 3 }, { '4', 4 }, { '5', 5 }, { '6', 6 }, { '7', 7 }, { '8', 8 }, { '9', 9 }, { 'a', 10 }, { 'b', 11 }, { 'c', 12 }, { 'd', 13 }, { 'e', 14 }, { 'f', 15 }};
+        string[] DecToHex = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" };
+        int a = (int)HexToDec[moneyTextColor.ToLower()[7]] * 16 + (int)HexToDec[moneyTextColor.ToLower()[8]];
+        switch (menuClass)
+        {
+            case menuClass.main:
+                youMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                moneyMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                selectMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                moneyText.GetComponent<Text>().color += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                a += (int)(255 * (isHide ? -0.2f : 0.2f));
+                moneyTextColor = Regex.Replace(moneyTextColor, "..$", DecToHex[a / 16] + DecToHex[a % 16]);
+                moneyText.GetComponent<Text>().text = Regex.Replace(moneyText.GetComponent<Text>().text, "#[0-9a-fA-F]{8}", moneyTextColor); 
+                break;
+            case menuClass.quit:
+                exitMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                exitChooseMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                exitHintText.GetComponent<Text>().color += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                break;
+            default:
+                break;
+        }
+        if (isHide && null != tempCursor1)
+        {
+            tempCursor1.GetComponent<Image>().color -= new Color(0, 0, 0, 0.2f);
+        }
+        else
+        {
+            Cursor.cursorColor += new Color(0, 0, 0, 0.2f);
+        }
+        addSelectsColor(new Color(0, 0, 0, isHide ? -0.2f : 0.2f), menuClass);
+    }
+
+    public IEnumerator openMenu(menuClass menuClass)
+    {
+        commandIsEnd = false;
+        GetComponent<AudioSource>().PlayOneShot(openMenuSound);
+        canMove = false;
+        npcMove.npcCanMove = false;
+        canOpenMenu = false;
+        Cursor.cursorCanMove = false;
+        Cursor.cursorColor = new Color(1, 1, 1, 0);
+        string[] commands = new string[0];
+        if (0 != menus.Count)
+        {
+            commands = yourSelect.commands;
+        }
+        GetComponent<AudioSource>().PlayOneShot(openMenuSound);
+        menus.Add(menuClass);
+        if (1 != menus.Count)
+        {
+            tempCursor1 = Instantiate(selectCursor, canvas.transform, true);
+            tempCursor1.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
+            tempCursor1.GetComponent<Cursor>().enabled = false;
+            tempCursor1.GetComponent<Image>().color = tempCursor1.GetComponent<Image>().color * new Color(1, 1, 1, 0) + new Color(0, 0, 0, 1);
+        }
+        else
+        {
+            tempCursor1 = null;
+        }
+        Cursor.update = true;
+        for (int i = 0; 1 <= menus.Count && i < 5; i++)
+        {
+            if (1 == menus.Count)
+            {
+                blackScreen.GetComponent<Image>().color += new Color(0, 0, 0, 0.2f);
+            }
+            else
+            {
+                hideOrShowMenu(menus[menus.Count - 2]);
+            }
+            hideOrShowMenu(menus[menus.Count - 1], false);
+            yield return 1;
+        }
+        Cursor.cursorCanMove = true;
+        Destroy(tempCursor1);
+        if (0 != menus.Count)
+        {
+            StartCoroutine(trigger.runCommands(commands, null, this));
+        }
+        canOpenMenu = true;
+        commandIsEnd = true;
+    }
+
+    public IEnumerator closeMenu()
+    {
+        commandIsEnd = false;
+        if (0 < menus.Count)
+        {
+            GetComponent<AudioSource>().PlayOneShot(closeMenuSound);
+            canMove = true;
+            npcMove.npcCanMove = true;
+            canOpenMenu = false;
+            Cursor.cursorCanMove = false;
+            Cursor.cursorColor = new Color(1, 1, 1, 0);
+            menuClass last_menu = menus[menus.Count - 1];
+            if (null != yourSelects && 0 != yourSelects.GetLength(0) && 0 != yourSelects.GetLength(1))
+            {
+                tempCursor1 = Instantiate(selectCursor, canvas.transform, true);
+                tempCursor1.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
+                tempCursor1.GetComponent<Cursor>().enabled = false;
+                tempCursor1.GetComponent<Image>().color = tempCursor1.GetComponent<Image>().color * new Color(1, 1, 1, 0) + new Color(0, 0, 0, 1);
+            }
+            menus.RemoveAt(menus.Count - 1);
+            Cursor.update = true;
+            yield return new WaitUntil(() => 0 == Menus.Count || !Cursor.update);
+            for (int i = 0; i < 5; i++)
+            {
+                if (0 == menus.Count)
+                {
+                    blackScreen.GetComponent<Image>().color -= new Color(0, 0, 0, 0.2f);
+                }
+                else
+                {
+                    hideOrShowMenu(menus[menus.Count - 1], false);
+                }
+                hideOrShowMenu(last_menu);
+                yield return 1;
+            }
+            Cursor.cursorCanMove = true;
+            yield return 10;
+            Destroy(tempCursor1);
+            canOpenMenu = true;
+        }
+        commandIsEnd = true;
     }
 
     IEnumerator pmove()
@@ -921,6 +1207,14 @@ public class you : MonoBehaviour
     {
         if (isDone)
         {
+            if (null != playSound)
+            {
+                GetComponent<AudioSource>().PlayOneShot(playSound);
+            }
+            else if (isStop)
+            {
+                GetComponent<AudioSource>().Stop();
+            }
             if (isTele)
             {
                 x = teleX;
@@ -970,16 +1264,23 @@ public class you : MonoBehaviour
             {
                 if (0 == menus.Count)
                 {
-                    StartCoroutine(openMenu(select.menuClass.main));
+                    StartCoroutine(openMenu(menuClass.main));
                 }
                 else
                 {
                     StartCoroutine(closeMenu());
                 }
             }
-            if (Input.GetKeyDown("z") && 0 != menus.Count && select.menuClass.none != yourSelect.MenuClass)
+            if (Input.GetKeyDown("z") && 0 != menus.Count && null != yourSelect && menuClass.cantIn != yourSelect.MenuClass)
             {
-                StartCoroutine(openMenu(yourSelect.MenuClass));
+                if (menuClass.back == yourSelect.MenuClass) 
+                {
+                    StartCoroutine(closeMenu());
+                }
+                else
+                {
+                    StartCoroutine(openMenu(yourSelect.MenuClass));
+                }
             }
             if (isChangeEffect)
             {
@@ -1002,83 +1303,6 @@ public class you : MonoBehaviour
             if (isEnd && canMove && 0 == menus.Count)
             {
                 StartCoroutine(pmove());
-            }
-        }
-
-        void hideOrShowMenu(select.menuClass menuClass, bool isHide = true)
-        {
-            switch (menuClass)
-            {
-                case select.menuClass.main:
-                    youMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.1f : 0.1f);
-                    moneyMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.1f : 0.1f);
-                    selectMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.1f : 0.1f);
-                    break;
-                case select.menuClass.quit:
-                    exitMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.1f : 0.1f);
-                    exitChooseMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.1f : 0.1f);
-                    exitHintText.GetComponent<Text>().color += new Color(0, 0, 0, isHide ? -0.1f : 0.1f);
-                    break;
-                default:
-                    break;
-            }
-            selectCursor.GetComponent<Image>().color += new Color(0, 0, 0, isHide ? -0.1f : 0.1f);
-            select.addSelectsColor(new Color(0, 0, 0, isHide ? -0.1f : 0.1f), menuClass);
-        }
-
-        IEnumerator openMenu(select.menuClass menuClass)
-        {
-            GetComponent<AudioSource>().PlayOneShot(openMenuSound);
-            canMove = false;
-            npcMove.npcCanMove = false;
-            canOpenMenu = false;
-            Cursor.cursorCanMove = false;
-            Cursor.update = true;
-            menus.Add(menuClass);
-            for (int i = 0; 1 <= menus.Count && i < 10; i++)
-            {
-                if (1 == menus.Count)
-                {
-                    blackScreen.GetComponent<Image>().color += new Color(0, 0, 0, 0.1f);
-                }
-                else
-                {
-                    hideOrShowMenu(menus[menus.Count - 2]);
-                }
-                hideOrShowMenu(menus[menus.Count - 1], false);
-                yield return 1;
-            }
-            Cursor.cursorCanMove = true;
-            canOpenMenu = true;
-        }
-
-        IEnumerator closeMenu()
-        {
-            if (0 < menus.Count)
-            {
-                GetComponent<AudioSource>().PlayOneShot(closeMenuSound);
-                canMove = true;
-                npcMove.npcCanMove = true;
-                canOpenMenu = false;
-                Cursor.cursorCanMove = false;
-                Cursor.update = true;
-                select.menuClass last_menu = menus[menus.Count - 1];
-                for (int i = 0; i < 10; i++)
-                {
-                    if (1 == menus.Count)
-                    {
-                        blackScreen.GetComponent<Image>().color -= new Color(0, 0, 0, 0.1f);
-                    }
-                    else
-                    {
-                        hideOrShowMenu(menus[menus.Count - 2], false);
-                    }
-                    hideOrShowMenu(menus[menus.Count - 1]);
-                    yield return 1;
-                }
-                menus.RemoveAt(menus.Count - 1);
-                Cursor.cursorCanMove = true;
-                canOpenMenu = true;
             }
         }
     }
