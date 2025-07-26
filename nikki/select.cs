@@ -21,9 +21,28 @@ public class select
     public menuClass MenuClass = menuClass.none;
     public GameObject text;
     private Canvas canvas;
-    public static int textSize = 12;
+    public static int textSize = 19;
     public static Hashtable menuSelects = new Hashtable();
     public string[] commands;
+    public bool canSelected = true;
+    public bool CanSelected
+    {
+        get
+        {
+            return canSelected;
+        }
+        set
+        {
+            canSelected = value;
+            if (canSelected) {
+                text.GetComponent<Text>().color = you.myMenu.menuTextColor;
+            }
+            else
+            {
+                text.GetComponent<Text>().color = you.myMenu.menuTextUnselectColor;
+            }
+        }
+    }
     public select(Canvas canvas, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int textSize = 12)
     {
         this.name = name;
