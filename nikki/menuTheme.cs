@@ -37,10 +37,18 @@ public class MenuTheme
     public Sprite[] cursorAnimation;
     public Cursor.dodgeMode cursorDodgeMode;
     public Color menuTextColor = Color.white;
+    public Color menuTextHighlightColor = Color.white;
+    public Color menuTextUnselectColor = Color.white;
     public bool isEdit = false;
     public bool isDebug = true;
     public static List<MenuTheme> menuThemes = new List<MenuTheme>();
-    public MenuTheme(makeMode mode, Sprite menu, Sprite menuLeft, Sprite menuRight, Sprite menuUp, Sprite menuDown, Sprite menuLeftUp, Sprite menuRightUp, Sprite menuLeftDown, Sprite menuRightDown, Sprite menuCenter, Sprite menu_1x1, Sprite menu_1x_c, Sprite menu_1x_u, Sprite menu_1x_d, Sprite menu_x1_c, Sprite menu_x1_l, Sprite menu_x1_r, Sprite cursor, Cursor.dodgeMode dodgeMode, Sprite[] animation, Color menuTextColor, string menuName = "")
+    public enum menuTextColorClass
+    {
+        normal,
+        highlight,
+        unselect
+    }
+    public MenuTheme(makeMode mode, Sprite menu, Sprite menuLeft, Sprite menuRight, Sprite menuUp, Sprite menuDown, Sprite menuLeftUp, Sprite menuRightUp, Sprite menuLeftDown, Sprite menuRightDown, Sprite menuCenter, Sprite menu_1x1, Sprite menu_1x_c, Sprite menu_1x_u, Sprite menu_1x_d, Sprite menu_x1_c, Sprite menu_x1_l, Sprite menu_x1_r, Sprite cursor, Cursor.dodgeMode dodgeMode, Sprite[] animation, Color menuTextColor, Color menuHighlightColor, Color menuUnselectColor, string menuName = "")
     {
         bool[] isNull = { menu.IsUnityNull(), menuLeft.IsUnityNull(), menuRight.IsUnityNull(), menuUp.IsUnityNull(), menuDown.IsUnityNull(), menuLeftUp.IsUnityNull(), menuRightUp.IsUnityNull(), menuLeftDown.IsUnityNull(), menuRightDown.IsUnityNull(), menuCenter.IsUnityNull(), menu_1x1.IsUnityNull(), menu_1x_c.IsUnityNull(), menu_1x_u.IsUnityNull(), menu_1x_d.IsUnityNull(), menu_x1_c.IsUnityNull(), menu_x1_l.IsUnityNull(), menu_x1_r.IsUnityNull() };
         Sprite emptySprite = Sprite.Create(new Texture2D(0, 0), new Rect(0, 0, 0, 0), new Vector2(0f, 0f));
@@ -132,6 +140,8 @@ public class MenuTheme
         this.menu_x1_r = menu_x1_r.IsUnityNull() ? emptySprite : menu_x1_r;
         this.menuName = menuName;
         this.menuTextColor = menuTextColor;
+        this.menuTextHighlightColor = menuHighlightColor;
+        this.menuTextUnselectColor = menuUnselectColor;
         this.cursor = cursor;
         cursorAnimation = animation;
         cursorDodgeMode = dodgeMode;
