@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEditor.PlayerSettings;
 
 public class select
 {
@@ -12,6 +13,7 @@ public class select
         back,
         main,
         item,
+        useItem,
         action,
         //status,
         quit,
@@ -25,6 +27,31 @@ public class select
     public static Hashtable menuSelects = new Hashtable();
     public string[] commands;
     public bool canSelected = true;
+#nullable enable
+    private item? usedItem = null;
+    public item? UsedItem
+    {
+        get
+        {
+            return usedItem;
+        }
+        set
+        {
+            if (null != value && value.isHide) {
+                return;
+            }
+            usedItem = value;
+            if (null == usedItem || usedItem.canUse)
+            {
+                text.GetComponent<Text>().color = you.myMenu.menuTextColor * new Color(1, 1, 1, 0);
+            }
+            else if(!usedItem.canUse)
+            {
+                text.GetComponent<Text>().color = you.myMenu.menuTextUnselectColor * new Color(1, 1, 1, 0);
+            }
+        }
+    }
+#nullable disable
     public bool CanSelected
     {
         get
@@ -35,174 +62,218 @@ public class select
         {
             canSelected = value;
             if (canSelected) {
-                text.GetComponent<Text>().color = you.myMenu.menuTextColor;
+                text.GetComponent<Text>().color = you.myMenu.menuTextColor * new Color(1, 1, 1, 0);
             }
             else
             {
-                text.GetComponent<Text>().color = you.myMenu.menuTextUnselectColor;
+                text.GetComponent<Text>().color = you.myMenu.menuTextUnselectColor * new Color(1, 1, 1, 0);
             }
         }
     }
-    public select(Canvas canvas, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int textSize = 12)
+    public select(Canvas canvas, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
     {
         this.name = name;
         MenuClass = menuClass;
         text = new GameObject(name);
-        if (0 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = "  " + name;
-        }
-        else if (1 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = name;
-        }
-        else
-        {
-            text.AddComponent<Text>().text = name + "  ";
-        }
+        text.AddComponent<Text>().text = name;
         text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize =  textSize;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
         text.transform.SetParent(canvas.transform, false);
+        textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().localScale = Vector3.one;
         text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
     }
 
-    public select(Canvas canvas, string[] commands, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int textSize = 12)
+    public select(Canvas canvas, string[] commands, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
     {
         this.name = name;
         this.commands = commands;
         MenuClass = menuClass;
         text = new GameObject(name);
-        if (0 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = "  " + name;
-        }
-        else if (1 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = name;
-        }
-        else
-        {
-            text.AddComponent<Text>().text = name + "  ";
-        }
+        text.AddComponent<Text>().text = name;
         text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize = textSize;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
         text.transform.SetParent(canvas.transform, false);
+        textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().localScale = Vector3.one;
         text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
     }
 
-    public select(Canvas canvas, Vector2 pos, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int textSize = 12)
+    public select(Canvas canvas, Vector2 pos, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
     {
         this.name = name;
         MenuClass = menuClass;
         text = new GameObject(name);
-        if (0 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = "  " + name;
-        }
-        else if (1 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = name;
-        }
-        else
-        {
-            text.AddComponent<Text>().text = name + "  ";
-        }
+        text.AddComponent<Text>().text = name;
         text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize = textSize;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
         text.transform.SetParent(canvas.transform, false);
         text.GetComponent<RectTransform>().localPosition = pos;
+        textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().localScale = Vector3.one;
         text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
     }
 
-    public select(Canvas canvas, Vector2 pos, string[] commands, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int textSize = 12)
+    public select(Canvas canvas, Vector2 pos, string[] commands, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
     {
         this.name = name;
         this.commands = commands;
         MenuClass = menuClass;
         text = new GameObject(name);
-        if (0 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = "  " + name;
-        }
-        else if (1 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = name;
-        }
-        else
-        {
-            text.AddComponent<Text>().text = name + "  ";
-        }
+        text.AddComponent<Text>().text = name;
         text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize = textSize;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
         text.transform.SetParent(canvas.transform, false);
         text.GetComponent<RectTransform>().localPosition = pos;
+        textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().localScale = Vector3.one;
         text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
     }
 
-    public select(Canvas canvas, Vector2 pos, Vector2 sizeDelta, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int textSize = 12)
+    public select(Canvas canvas, Vector2 pos, Vector2 sizeDelta, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
     {
         this.name = name;
         MenuClass = menuClass;
         text = new GameObject(name);
-        if (0 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = "  " + name;
-        }
-        else if (1 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = name;
-        }
-        else
-        {
-            text.AddComponent<Text>().text = name + "  ";
-        }
+        text.AddComponent<Text>().text = name;
         text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize = textSize;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
         text.transform.SetParent(canvas.transform, false);
         text.GetComponent<RectTransform>().localPosition = pos;
+        textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().sizeDelta = sizeDelta;
         text.GetComponent<RectTransform>().localScale = Vector3.one;
         text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
     }
 
-    public select(Canvas canvas, Vector2 pos, Vector2 sizeDelta, string[] commands, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int textSize = 12)
+    public select(Canvas canvas, Vector2 pos, Vector2 sizeDelta, string[] commands, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
     {
         this.name = name;
         this.commands = commands;
         MenuClass = menuClass;
         text = new GameObject(name);
-        if (0 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = "  " + name;
-        }
-        else if (1 == (int)textAnchor % 3)
-        {
-            text.AddComponent<Text>().text = name;
-        }
-        else
-        {
-            text.AddComponent<Text>().text = name + "  ";
-        }
+        text.AddComponent<Text>().text = name;
         text.GetComponent<Text>().font = Game.gameFont;
-        text.GetComponent<Text>().fontSize = textSize;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
         text.transform.SetParent(canvas.transform, false);
         text.GetComponent<RectTransform>().localPosition = pos;
+        textAdjust.adjustText(ref text, textAnchor);
+        text.GetComponent<RectTransform>().sizeDelta = sizeDelta;
+        text.GetComponent<RectTransform>().localScale = Vector3.one;
+        text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+    }
+
+    public select(GameObject parent, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
+    {
+        this.name = name;
+        MenuClass = menuClass;
+        text = new GameObject(name);
+        text.AddComponent<Text>().text = name;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
+        text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
+        text.GetComponent<Text>().alignment = textAnchor;
+        text.transform.SetParent(parent.transform, true);
+        textAdjust.adjustText(ref text, textAnchor);
+        text.GetComponent<RectTransform>().localScale = Vector3.one;
+        text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+    }
+
+    public select(GameObject parent, string[] commands, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
+    {
+        this.name = name;
+        this.commands = commands;
+        MenuClass = menuClass;
+        text = new GameObject(name);
+        text.AddComponent<Text>().text = name;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
+        text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
+        text.GetComponent<Text>().alignment = textAnchor;
+        text.transform.SetParent(parent.transform, true);
+        textAdjust.adjustText(ref text, textAnchor);
+        text.GetComponent<RectTransform>().localScale = Vector3.one;
+        text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+    }
+
+    public select(GameObject parent, Vector2 pos, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
+    {
+        this.name = name;
+        MenuClass = menuClass;
+        text = new GameObject(name);
+        text.AddComponent<Text>().text = name;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
+        text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
+        text.GetComponent<Text>().alignment = textAnchor;
+        text.transform.SetParent(parent.transform, true);
+        text.GetComponent<RectTransform>().localPosition = pos;
+        textAdjust.adjustText(ref text, textAnchor);
+        text.GetComponent<RectTransform>().localScale = Vector3.one;
+        text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+    }
+
+    public select(GameObject parent, Vector2 pos, string[] commands, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
+    {
+        this.name = name;
+        this.commands = commands;
+        MenuClass = menuClass;
+        text = new GameObject(name);
+        text.AddComponent<Text>().text = name;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
+        text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
+        text.GetComponent<Text>().alignment = textAnchor;
+        text.transform.SetParent(parent.transform, true);
+        textAdjust.adjustText(ref text, textAnchor);
+        text.GetComponent<RectTransform>().localScale = Vector3.one;
+        text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+    }
+
+    public select(GameObject parent, Vector2 pos, Vector2 sizeDelta, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
+    {
+        this.name = name;
+        MenuClass = menuClass;
+        text = new GameObject(name);
+        text.AddComponent<Text>().text = name;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
+        text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
+        text.GetComponent<Text>().alignment = textAnchor;
+        text.transform.SetParent(parent.transform, true);
+        text.GetComponent<RectTransform>().localPosition = pos;
+        textAdjust.adjustText(ref text, textAnchor);
+        text.GetComponent<RectTransform>().sizeDelta = sizeDelta;
+        text.GetComponent<RectTransform>().localScale = Vector3.one;
+        text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+    }
+
+    public select(GameObject parent, Vector2 pos, Vector2 sizeDelta, string[] commands, string name = "", menuClass menuClass = menuClass.none, TextAnchor textAnchor = TextAnchor.MiddleLeft, int? size = null)
+    {
+        this.name = name;
+        this.commands = commands;
+        MenuClass = menuClass;
+        text = new GameObject(name);
+        text.AddComponent<Text>().text = name;
+        text.GetComponent<Text>().font = Game.gameFont;
+        text.GetComponent<Text>().fontSize = size ?? textSize;
+        text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
+        text.GetComponent<Text>().alignment = textAnchor;
+        text.transform.SetParent(parent.transform, true);
+        text.GetComponent<RectTransform>().localPosition = pos;
+        textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().sizeDelta = sizeDelta;
         text.GetComponent<RectTransform>().localScale = Vector3.one;
         text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
@@ -263,6 +334,10 @@ public class select
         {
             for (int j = 0; j < ((select[,])menuSelects[menuClass]).GetLength(1); j++)
             {
+                if (null == ((select[,])menuSelects[menuClass])[i, j])
+                {
+                    continue;
+                }
                 ((select[,])menuSelects[menuClass])[i, j].text.GetComponent<Text>().color += c;
             }
         }
