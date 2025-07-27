@@ -128,6 +128,7 @@ public class you : MonoBehaviour
     private GameObject statusMenu;
     private GameObject recommendMenu;
     private GameObject moneyText;
+    private select[,] itemSelects;
     private static bool isStop = false;
 #nullable enable 
     private static AudioClip? playSound = null;
@@ -494,18 +495,8 @@ public class you : MonoBehaviour
                 text.AddComponent<Text>().color = myMenu.menuTextUnselectColor * new Color(1, 1, 1, 0);
                 break;
         }
-        if (0 == (int)alignment % 3)
-        {
-            text.GetComponent<Text>().text = "  " + str;
-        }
-        else if (1 == (int)alignment % 3)
-        {
-            text.GetComponent<Text>().text = str;
-        }
-        else
-        {
-            text.GetComponent<Text>().text = str + "  ";
-        }
+        text.GetComponent<Text>().text = str;
+        textAdjust.adjustText(ref text, alignment);
         text.GetComponent<Text>().alignment = alignment;
         text.GetComponent<Text>().font = Game.gameFont;
         text.GetComponent<Text>().fontSize = size;
@@ -526,18 +517,8 @@ public class you : MonoBehaviour
                 text.AddComponent<Text>().color = myMenu.menuTextUnselectColor * new Color(1, 1, 1, 0);
                 break;
         }
-        if (0 == (int)alignment % 3)
-        {
-            text.GetComponent<Text>().text = "  " + str;
-        }
-        else if (1 == (int)alignment % 3)
-        {
-            text.GetComponent<Text>().text = str;
-        }
-        else
-        {
-            text.GetComponent<Text>().text = str + "  ";
-        }
+        text.GetComponent<Text>().text = str;
+        textAdjust.adjustText(ref text, alignment);
         text.GetComponent<Text>().alignment = alignment;
         text.GetComponent<Text>().font = Game.gameFont;
         text.GetComponent<Text>().fontSize = textSize;
@@ -558,18 +539,8 @@ public class you : MonoBehaviour
                 text.AddComponent<Text>().color = myMenu.menuTextUnselectColor * menuTextColor;
                 break;
         }
-        if (0 == (int)alignment % 3)
-        {
-            text.GetComponent<Text>().text = "  " + str;
-        }
-        else if (1 == (int)alignment % 3)
-        {
-            text.GetComponent<Text>().text = str;
-        }
-        else
-        {
-            text.GetComponent<Text>().text = str + "  ";
-        }
+        text.GetComponent<Text>().text = str;
+        textAdjust.adjustText(ref text, alignment);
         text.GetComponent<Text>().alignment = alignment;
         text.GetComponent<Text>().font = Game.gameFont;
         text.GetComponent<Text>().fontSize = size;
@@ -590,18 +561,8 @@ public class you : MonoBehaviour
                 text.AddComponent<Text>().color = myMenu.menuTextUnselectColor * menuTextColor;
                 break;
         }
-        if (0 == (int)alignment % 3)
-        {
-            text.GetComponent<Text>().text = "  " + str;
-        }
-        else if (1 == (int)alignment % 3)
-        {
-            text.GetComponent<Text>().text = str;
-        }
-        else
-        {
-            text.GetComponent<Text>().text = str + "  ";
-        }
+        text.GetComponent<Text>().text = str;
+        textAdjust.adjustText(ref text, alignment);
         text.GetComponent<Text>().alignment = alignment;
         text.GetComponent<Text>().font = Game.gameFont;
         text.GetComponent<Text>().fontSize = textSize;
@@ -678,9 +639,8 @@ public class you : MonoBehaviour
         moneyText = UIinit(moneyText, "moneyText", moneyMenu.GetComponent<RectTransform>());
         moneyText = textInit(moneyText, "<color=#" + myMenu.menuTextColor.ToHexString().Substring(0, 6) + "00>" + money.ToString() + "</color> " + moneyUnit, TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.highlight);
         /*
-        itemMenu = UIinit(itemMenu, "itemMenu", 0, -1.78f, 480, 360, new Vector2(1.5f, 1.5f));
-        recommendMenu = UIinit(recommendMenu, "recommendMenu", 0, -1.78f, 480, 48, new Vector2(1.5f, 1.5f));
-        */
+        itemMenu = UIinit(itemMenu, "itemMenu", 0, -23f, 480, 300, new Vector2(1.5f, 1.5f));
+        recommendMenu = UIinit(recommendMenu, "recommendMenu", 0, 152f, 480, 44, new Vector2(1.5f, 1.5f));*/
         yield return new WaitUntil(() => makeMenu.isDone);
         select[,] mainSelects = new select[selectNames.Length, 1];
         select[,] quitSelects = new select[2, 1];
@@ -695,6 +655,7 @@ public class you : MonoBehaviour
         }
         menuSelectsAdd(menuClass.main, mainSelects);
         menuSelectsAdd(menuClass.quit, quitSelects);
+        menuSelectsAdd(menuClass.item, itemSelects);
         menuSelectsAdd(menuClass.none, new select[0, 0]);
         selectMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(selectMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y * (get2DArrayLength(GetSelects(menuClass.main)) + 1));
         isDone = true;
