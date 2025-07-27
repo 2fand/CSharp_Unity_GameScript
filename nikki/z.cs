@@ -119,7 +119,7 @@ public class z : MonoBehaviour
             you.canOpenMenu = true;
             you.effecthaves[(int)e] = true;
             you.effectNum++;
-            you.items.Add(new effectItem(e, you));
+            item.addItem(new effectItem(e, you));
             mod = mode.normal;
             wait = true;
         }
