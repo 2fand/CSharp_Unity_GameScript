@@ -221,7 +221,7 @@ public class makeMenu : MonoBehaviour
         if (initIsDone)
         {
             menuTheme = menuThemes[you.myMenuID];
-            if (last_rect != GetComponent<RectTransform>().sizeDelta || last_imageSize != imageSize || last_menuName != menuName || last_ID != you.myMenuID || menuTheme.isEdit || last_menuColor != menuColor)
+            if (last_rect != GetComponent<RectTransform>().sizeDelta || last_imageSize != imageSize || last_ID != you.myMenuID || menuTheme.isEdit)
             {
                 menuThemes[you.myMenuID].isEdit = false;
                 menuTheme.isEdit = false;
@@ -252,6 +252,25 @@ public class makeMenu : MonoBehaviour
                         GetComponent<GridLayoutGroup>().enabled = true;
                         makeGrid();
                         break;
+                }
+            }
+            if (last_menuName != menuName)
+            {
+                last_menuName = menuName;
+                if (makeMode.scale == menuTheme.mode)
+                {
+                    addChildren[0].name = "" != menuName ? menuName : name;
+                }
+                for (int i = 0; makeMode.scale != menuTheme.mode && i < addChildren.Count; i++) 
+                {
+                    addChildren[i].name = ("" != menuName ? menuName : name) + " - " + i;
+                }
+            }
+            if (last_menuColor != menuColor) {
+                last_menuColor = menuColor;
+                for (int i = 0; i < addChildren.Count; i++)
+                {
+                    addChildren[i].GetComponent<Image>().color = menuColor;
                 }
             }
         }
