@@ -16,6 +16,7 @@ using static select;
 using JetBrains.Annotations;
 using Unity.VisualScripting.Dependencies.Sqlite;
 using System.Text.RegularExpressions;
+using System.Diagnostics.CodeAnalysis;
 
 public class you : MonoBehaviour
 {
@@ -74,6 +75,7 @@ public class you : MonoBehaviour
     public static bool teleIsEnd = true;
     public static bool moveIsEnd = true;
     public static List<item> items = new List<item>();
+    public static bool itemsIsChanged = true;
     public static bool canTurn = true;
     public Vector3 cameraPosition = new Vector3(0, 82, -67.5f);
     public Vector3 cameraRotation = new Vector3(50, 0, 0);
@@ -125,12 +127,16 @@ public class you : MonoBehaviour
     private menuClass[] selectMenuClasses = { menuClass.item, menuClass.action, menuClass.quit };
     private GameObject tempCursor1;
     private GameObject itemMenu;
+    private GameObject itemTextMenu;
     private GameObject statusMenu;
     private GameObject recommendMenu;
+    private GameObject recommendText;
     private GameObject moneyText;
-    private select[,] itemSelects;
+    public static int NotNullItemsNum = 0;
+#nullable enable
+    private select?[,] itemSelects;
+    private select?[,] newItemSelects = new select?[0, 2];
     private static bool isStop = false;
-#nullable enable 
     private static AudioClip? playSound = null;
 #nullable disable
     public static List<menuClass> Menus
@@ -159,11 +165,11 @@ public class you : MonoBehaviour
     {
         get
         {
-            if (0 == menuSelects.Count)
+            if (null == yourSelects || 0 == yourSelects.GetLength(0) || 0 == yourSelects.GetLength(1))
             {
                 return null;
             }
-            return ((select[,])menuSelects[menus[menus.Count - 1]])[Cursor.IndexI, Cursor.IndexJ];
+            return yourSelects[Cursor.IndexI, Cursor.IndexJ];
         }
     }
     public static MenuTheme myMenu
@@ -181,13 +187,12 @@ public class you : MonoBehaviour
         gameObject.GetComponent<changeColor>().enabled = false;
     }
 
-    GameObject toRightPos(GameObject UIObject)
+    void toRightPos(ref GameObject UIObject)
     {
         UIObject.GetComponent<RectTransform>().localPosition += new Vector3(UIObject.GetComponent<RectTransform>().sizeDelta.x / -2, UIObject.GetComponent<RectTransform>().sizeDelta.y / 2, 0);
-        return UIObject;
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta)
+    void UIinit(ref GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -195,11 +200,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().localPosition = postition;
         UIObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 anchorMin, Vector2 anchorMax)
+    void UIinit(ref GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 anchorMin, Vector2 anchorMax)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -209,11 +213,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = anchorMin;
         UIObject.GetComponent<RectTransform>().anchorMax = anchorMax;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY)
+    void UIinit(ref GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -221,11 +224,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().localPosition = new Vector2(x, y);
         UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorX, float anchorY)
+    void UIinit(ref GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorX, float anchorY)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -234,11 +236,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(sizeX, sizeY);
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorX, anchorY);
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY)
+    void UIinit(ref GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -248,11 +249,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = new Vector2(anchorMinX, anchorMinY);
         UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorMaxX, anchorMaxY);
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Color menuColor, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Color menuColor, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -262,11 +262,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 anchorMin, Vector2 anchorMax, Color menuColor, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 anchorMin, Vector2 anchorMax, Color menuColor, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -278,11 +277,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().anchorMax = anchorMax;
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, Color menuColor, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, Color menuColor, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -292,11 +290,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorX, float anchorY, Color menuColor, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorX, float anchorY, Color menuColor, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -307,11 +304,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().anchorMin = UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorX, anchorY);
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, Color menuColor, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, Color menuColor, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -323,11 +319,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorMaxX, anchorMaxY);
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -337,11 +332,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 anchorMin, Vector2 anchorMax, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, Vector2 postition, Vector2 sizeDelta, Vector2 anchorMin, Vector2 anchorMax, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -353,11 +347,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().anchorMax = anchorMax;
         UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -367,11 +360,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorX, float anchorY, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorX, float anchorY, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -382,11 +374,10 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().anchorMin = UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorX, anchorY);
         UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, float x, float y, float sizeX, float sizeY, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
@@ -398,28 +389,26 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().anchorMax = new Vector2(anchorMaxX, anchorMaxY);
         UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        UIObject = toRightPos(UIObject);
-        return UIObject;
+        toRightPos(ref UIObject);
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, RectTransform copyTransform)
+    void UIinit(ref GameObject UIObject, string UIName, RectTransform copyTransform)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.AddComponent<RectTransform>().pivot = copyTransform.pivot;
         UIObject.GetComponent<RectTransform>().localPosition = copyTransform.localPosition;
         UIObject.GetComponent<RectTransform>().sizeDelta = copyTransform.sizeDelta;
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
         UIObject.GetComponent<RectTransform>().anchorMin = copyTransform.anchorMin;
         UIObject.GetComponent<RectTransform>().anchorMax = copyTransform.anchorMax;
-        return UIObject;
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, RectTransform copyTransform, Color menuColor, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, RectTransform copyTransform, Color menuColor, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.AddComponent<RectTransform>().pivot = copyTransform.pivot;
         UIObject.GetComponent<RectTransform>().localPosition = copyTransform.localPosition;
         UIObject.GetComponent<RectTransform>().sizeDelta = copyTransform.sizeDelta;
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
@@ -427,14 +416,13 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().anchorMax = copyTransform.anchorMax;
         UIObject.AddComponent<makeMenu>().menuColor = menuColor;
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        return UIObject;
     }
 
-    GameObject UIinit(GameObject UIObject, string UIName, RectTransform copyTransform, Vector2 imageSize)
+    void UIinit(ref GameObject UIObject, string UIName, RectTransform copyTransform, Vector2 imageSize)
     {
         UIObject = new GameObject(UIName);
         UIObject.transform.parent = canvas.transform;
-        UIObject.AddComponent<RectTransform>().pivot = new Vector2(0, 1);
+        UIObject.AddComponent<RectTransform>().pivot = copyTransform.pivot;
         UIObject.GetComponent<RectTransform>().localPosition = copyTransform.localPosition;
         UIObject.GetComponent<RectTransform>().sizeDelta = copyTransform.sizeDelta;
         UIObject.GetComponent<RectTransform>().localScale = Vector3.one;
@@ -442,10 +430,9 @@ public class you : MonoBehaviour
         UIObject.GetComponent<RectTransform>().anchorMax = copyTransform.anchorMax;
         UIObject.AddComponent<makeMenu>().menuColor = new Color(1, 1, 1, 0);
         UIObject.GetComponent<makeMenu>().imageSize = imageSize;
-        return UIObject;
     }
 
-    GameObject UIPosLink(GameObject child, GameObject parent)
+    void UIPosLink(ref GameObject child, GameObject parent)
     {
         ConstraintSource source = new ConstraintSource { weight = 1, sourceTransform = parent.transform };
         child.AddComponent<PositionConstraint>().weight = 1;
@@ -453,10 +440,9 @@ public class you : MonoBehaviour
         child.GetComponent<PositionConstraint>().translationAtRest = effectGetScreen.GetComponent<RectTransform>().position;
         child.GetComponent<PositionConstraint>().SetSources(new List<ConstraintSource> { source });
         child.GetComponent<PositionConstraint>().constraintActive = true;
-        return child;
     }
 
-    GameObject UIPosLink(GameObject child, GameObject parent, Vector3 offset)
+    void UIPosLink(ref GameObject child, GameObject parent, Vector3 offset)
     {
         ConstraintSource source = new ConstraintSource { weight = 1, sourceTransform = parent.transform };
         child.AddComponent<PositionConstraint>().weight = 1;
@@ -464,7 +450,6 @@ public class you : MonoBehaviour
         child.GetComponent<PositionConstraint>().translationAtRest = effectGetScreen.GetComponent<RectTransform>().position;
         child.GetComponent<PositionConstraint>().SetSources(new List<ConstraintSource> { source });
         child.GetComponent<PositionConstraint>().constraintActive = true;
-        return child;
     }
 
     int get2DArrayLength(object[,] _2DArray)
@@ -481,7 +466,7 @@ public class you : MonoBehaviour
         return (select[,])menuSelects[menuClass];
     }
 
-    GameObject textInit(GameObject text, int size, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
+    void textInit(ref GameObject text, int size, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
     {
         switch (colorClass)
         {
@@ -500,10 +485,9 @@ public class you : MonoBehaviour
         text.GetComponent<Text>().alignment = alignment;
         text.GetComponent<Text>().font = Game.gameFont;
         text.GetComponent<Text>().fontSize = size;
-        return text;
     }
 
-    GameObject textInit(GameObject text, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
+    void textInit(ref GameObject text, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
     {
         switch (colorClass)
         {
@@ -522,10 +506,9 @@ public class you : MonoBehaviour
         text.GetComponent<Text>().alignment = alignment;
         text.GetComponent<Text>().font = Game.gameFont;
         text.GetComponent<Text>().fontSize = textSize;
-        return text;
     }
 
-    GameObject textInit(GameObject text, int size, Color menuTextColor, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
+    void textInit(ref GameObject text, int size, Color menuTextColor, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
     {
         switch (colorClass)
         {
@@ -544,10 +527,9 @@ public class you : MonoBehaviour
         text.GetComponent<Text>().alignment = alignment;
         text.GetComponent<Text>().font = Game.gameFont;
         text.GetComponent<Text>().fontSize = size;
-        return text;
     }
 
-    GameObject textInit(GameObject text, Color menuTextColor, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
+    void textInit(ref GameObject text, Color menuTextColor, string str = "", TextAnchor alignment = TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass colorClass = MenuTheme.menuTextColorClass.normal)
     {
         switch (colorClass)
         {
@@ -566,8 +548,15 @@ public class you : MonoBehaviour
         text.GetComponent<Text>().alignment = alignment;
         text.GetComponent<Text>().font = Game.gameFont;
         text.GetComponent<Text>().fontSize = textSize;
-        return text;
     }
+
+    /*
+    void toCellLayingSize(ref GameObject UIObject, Vector2 imageSize)
+    {
+        Vector2 cellSize = makeMenu.CellSize * imageSize;
+        UIObject.GetComponent<RectTransform>().sizeDelta = new Vector2(Mathf.RoundToInt(UIObject.GetComponent<RectTransform>().sizeDelta.x / cellSize.x) * cellSize.x, Mathf.RoundToInt(UIObject.GetComponent<RectTransform>().sizeDelta.y / cellSize.y) * cellSize.y);
+    }
+    */
 
     void menuSelectsAdd(menuClass menuClass, select[,] selects)
     {
@@ -578,9 +567,21 @@ public class you : MonoBehaviour
         menuSelects.Add(menuClass, selects);
     }
 
+    void setPivot(ref GameObject UIObject, Vector2 pivotPos)
+    {
+        UIObject.GetComponent<RectTransform>().localPosition += new Vector3(((pivotPos - UIObject.GetComponent<RectTransform>().pivot) * UIObject.GetComponent<RectTransform>().sizeDelta).x, ((pivotPos - UIObject.GetComponent<RectTransform>().pivot) * UIObject.GetComponent<RectTransform>().sizeDelta).y);
+        UIObject.GetComponent<RectTransform>().pivot = pivotPos;
+    }
+
+    void setPivot(ref GameObject UIObject, float pivotX, float pivotY)
+    {
+        UIObject.GetComponent<RectTransform>().localPosition += new Vector3(((new Vector2(pivotX, pivotY) - UIObject.GetComponent<RectTransform>().pivot) * UIObject.GetComponent<RectTransform>().sizeDelta).x, ((new Vector2(pivotX, pivotY) - UIObject.GetComponent<RectTransform>().pivot) * UIObject.GetComponent<RectTransform>().sizeDelta).y);
+        UIObject.GetComponent<RectTransform>().pivot = new Vector2(pivotX, pivotY);
+    }
+
     IEnumerator init()
     {
-        items.Add(new effectItem(effect.none, this));
+        item.addItem(new effectItem(effect.none, this, true));
         if (null == gameObject.GetComponent<AudioSource>())
         {
             gameObject.AddComponent<AudioSource>();
@@ -610,40 +611,47 @@ public class you : MonoBehaviour
         gameCamera.GetComponent<PositionConstraint>().translationOffset = cameraPosition;
         gameCamera.GetComponent<PositionConstraint>().translationAtRest = cameraPosition;
         gameCamera.GetComponent<PositionConstraint>().constraintActive = true;
-        teleScreen = UIinit(teleScreen, "teleScreen", 0, 0, Screen.width, Screen.height, 0, 0, 1, 1);
+        UIinit(ref teleScreen, "teleScreen", 0, 0, Screen.width, Screen.height, 0, 0, 1, 1);
         teleScreen.AddComponent<Image>().color = Color.black;
         teleScreen.GetComponent<Image>().rectTransform.localScale = Vector3.one;
         if (null == canvas.GetComponent<change>())
         {
             canvas.AddComponent<change>();
         }
-        effectGetScreen = UIinit(effectGetScreen, "effectGetScreen", 0, 40, 360, 48, 0.5f, 0, new Vector2(1.5f, 1.5f));
+        UIinit(ref effectGetScreen, "effectGetScreen", 0, 40, 360, 48, 0.5f, 0, new Vector2(1.5f, 1.5f));
         yield return new WaitUntil(() => myMenuID < MenuTheme.menuThemes.Count && InitGame.IsInit);
-        effectText = UIinit(effectText, "effectText", 0, 40, 360, 50, 0.5f, 0);
-        effectText = textInit(effectText);
-        effectText = UIPosLink(effectText, effectGetScreen);
-        blackScreen = UIinit(blackScreen, "blackScreen", 0, 0, Screen.width, Screen.height, 0, 0, 1, 1);
+        UIinit(ref effectText, "effectText", 0, 40, 360, 50, 0.5f, 0);
+        textInit(ref effectText, "", TextAnchor.MiddleCenter);
+        UIPosLink(ref effectText, effectGetScreen);
+        UIinit(ref blackScreen, "blackScreen", 0, 0, Screen.width, Screen.height, 0, 0, 1, 1);
         blackScreen.AddComponent<Image>().color = new Color(0, 0, 0, 0);
-        selectMenu = UIinit(selectMenu, "selectMenu", -167.9f, 180f, 144, 1, new Vector2(1.5f, 1.5f));
+        UIinit(ref selectMenu, "selectMenu", -167.9f, 180f, 144, 1, new Vector2(1.5f, 1.5f));
         yield return new WaitUntil(() => Vector2.zero != makeMenu.CellSize);
-        moneyMenu = UIinit(moneyMenu, "moneyMenu", -167.9f, -155f , 144, 48, new Vector2(1.5f, 1.5f));
-        youMenu = UIinit(youMenu, "youMenu", 95f, 0, 384, 360, new Vector2(1.5f, 1.5f));
-        selectCursor = UIinit(selectCursor, "selectCursor", selectMenu.GetComponent<RectTransform>().localPosition.x, selectMenu.GetComponent<RectTransform>().localPosition.y - makeMenu.CellSize.y / 2, selectMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y);
+        UIinit(ref moneyMenu, "moneyMenu", -167.9f, -155f , 144, 48, new Vector2(1.5f, 1.5f));
+        UIinit(ref youMenu, "youMenu", 95f, 0, 384, 360, new Vector2(1.5f, 1.5f));
+        UIinit(ref selectCursor, "selectCursor", selectMenu.GetComponent<RectTransform>().localPosition.x, selectMenu.GetComponent<RectTransform>().localPosition.y - makeMenu.CellSize.y / 2, selectMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y);
         selectCursor.AddComponent<Image>().sprite = myMenu.cursor;
         selectCursor.GetComponent<Image>().color = new Color(1, 1, 1, 0);
         selectCursor.AddComponent<Cursor>();
-        exitMenu = UIinit(exitMenu, "exitMenu", 0, 60, 169, 46, new Vector2(1.5f, 1.5f));
-        exitChooseMenu = UIinit(exitChooseMenu, "exitChooseMenu", 0, -25, 38, 69, new Vector2(1.5f, 1.5f));
-        exitHintText = UIinit(exitHintText, "exitHintText", exitMenu.GetComponent<RectTransform>(), new Vector2(1.5f, 1.5f));
-        exitHintText = textInit(exitHintText, 19, "要结束梦境了吗?", TextAnchor.MiddleCenter);
-        moneyText = UIinit(moneyText, "moneyText", moneyMenu.GetComponent<RectTransform>());
-        moneyText = textInit(moneyText, "<color=#" + myMenu.menuTextColor.ToHexString().Substring(0, 6) + "00>" + money.ToString() + "</color> " + moneyUnit, TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.highlight);
-        /*
-        itemMenu = UIinit(itemMenu, "itemMenu", 0, -23f, 480, 300, new Vector2(1.5f, 1.5f));
-        recommendMenu = UIinit(recommendMenu, "recommendMenu", 0, 152f, 480, 44, new Vector2(1.5f, 1.5f));*/
+        UIinit(ref exitMenu, "exitMenu", 0, 60, 169, 46, new Vector2(1.5f, 1.5f));
+        setPivot(ref exitMenu, new Vector2(0.5f, 0.5f));
+        UIinit(ref exitChooseMenu, "exitChooseMenu", 0, -25, 38, 69, new Vector2(1.5f, 1.5f));
+        UIinit(ref exitHintText, "exitHintText", exitMenu.GetComponent<RectTransform>(), new Vector2(1.5f, 1.5f));
+        textInit(ref exitHintText, 19, "要结束梦境了吗?", TextAnchor.MiddleCenter);
+        exitMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(makeMenu.CellSize.x * exitHintText.GetComponent<Text>().text.Length, exitMenu.GetComponent<RectTransform>().sizeDelta.y);
+        UIinit(ref moneyText, "moneyText", moneyMenu.GetComponent<RectTransform>());
+        textInit(ref moneyText, "<color=#" + myMenu.menuTextColor.ToHexString().Substring(0, 6) + "00>" + money.ToString() + "</color> " + moneyUnit, TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.highlight);
+        UIinit(ref recommendMenu, "recommendMenu", 0, 150, 480, 44, new Vector2(1.5f, 1.5f));
+        UIinit(ref recommendText, "recommendText", recommendMenu.GetComponent<RectTransform>());
+        textInit(ref recommendText);
+        //recommendText.GetComponent<Text>().text = "あ";
+        UIinit(ref itemMenu, "itemMenu", 0, -23f, 480, 288, new Vector2(1.5f, 1.5f));
         yield return new WaitUntil(() => makeMenu.isDone);
+        UIinit(ref itemTextMenu, "itemTextMenu", itemMenu.GetComponent<RectTransform>());
+        itemTextMenu.AddComponent<Mask>();
         select[,] mainSelects = new select[selectNames.Length, 1];
         select[,] quitSelects = new select[2, 1];
+        itemSelects = new select[0, 2];
         selectMenuClasses = new menuClass[] { menuClass.item, menuClass.action, menuClass.quit };
         for (int i = 0; i < mainSelects.GetLength(0); i++)
         {
@@ -966,6 +974,11 @@ public class you : MonoBehaviour
                 exitChooseMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
                 exitHintText.GetComponent<Text>().color += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
                 break;
+            case menuClass.item:
+                itemMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                recommendMenu.GetComponent<makeMenu>().menuColor += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                recommendText.GetComponent<Text>().color += new Color(0, 0, 0, isHide ? -0.2f : 0.2f);
+                break;
             default:
                 break;
         }
@@ -1019,7 +1032,7 @@ public class you : MonoBehaviour
                 hideOrShowMenu(menus[menus.Count - 2]);
             }
             hideOrShowMenu(menus[menus.Count - 1], false);
-            yield return 1;
+            yield return new WaitForSeconds(0.05f);
         }
         Cursor.cursorCanMove = true;
         Destroy(tempCursor1);
@@ -1064,7 +1077,7 @@ public class you : MonoBehaviour
                     hideOrShowMenu(menus[menus.Count - 1], false);
                 }
                 hideOrShowMenu(last_menu);
-                yield return 1;
+                yield return new WaitForSeconds(0.05f);
             }
             Cursor.cursorCanMove = true;
             yield return 10;
@@ -1168,6 +1181,35 @@ public class you : MonoBehaviour
     {
         if (isDone)
         {
+            while (get2DArrayLength(itemSelects) <= items.Count)
+            {
+                newItemSelects = new select[itemSelects.GetLength(0) * 2 + 1, itemSelects.GetLength(1)];
+                itemSelects = newItemSelects;
+            }
+            if (itemsIsChanged) 
+            {
+                itemsIsChanged = false;
+                for (int i = 0; i < itemTextMenu.transform.childCount; i++)
+                {
+                    Destroy(itemTextMenu.transform.GetChild(i).gameObject);
+                }
+                for (int i = 0; i < get2DArrayLength(itemSelects); i++) 
+                {
+                    itemSelects[i / 2, i % 2] = null;
+                }
+                for (int i = 0, ia = 0; i < get2DArrayLength(itemSelects) && ia < items.Count; i++, ia++)
+                {
+                    if (items[ia].isHide)
+                    {
+                        i--;
+                        continue;
+                    }
+                    Debug.Log(items[ia].name);
+                    itemSelects[i / 2, i % 2] = new select(itemTextMenu, new Vector2(i % 2 * itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / 2, -i / 2 * makeMenu.CellSize.y), new Vector2(itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / 2, makeMenu.CellSize.y), items[ia].name, menuClass.useItem);
+                    itemSelects[i / 2, i % 2].UsedItem = items[ia];
+                }
+                menuSelects[menuClass.item] = itemSelects;
+            }
             if (null != playSound)
             {
                 GetComponent<AudioSource>().PlayOneShot(playSound);
@@ -1232,7 +1274,7 @@ public class you : MonoBehaviour
                     StartCoroutine(closeMenu());
                 }
             }
-            if (Input.GetKeyDown("z") && 0 != menus.Count && null != yourSelect && menuClass.cantIn != yourSelect.MenuClass)
+            if (Input.GetKeyDown("z") && 0 != menus.Count && null != yourSelects && null != yourSelect && 0 != yourSelects.GetLength(0) && 0 != yourSelects.GetLength(0) && menuClass.cantIn != yourSelect.MenuClass)
             {
                 if (menuClass.back == yourSelect.MenuClass) 
                 {
