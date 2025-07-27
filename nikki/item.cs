@@ -14,4 +14,23 @@ public abstract class item
         this.canUse = canUse;
         this.isHide = isHide;
     }
+    public static void addItem(item item)
+    {
+        you.items.Add(item);
+        if (!item.isHide)
+        {
+            you.NotNullItemsNum++;
+        }
+        you.itemsIsChanged = true;
+    }
+
+    public static void delItem(item item)
+    {
+        bool isHide = item.isHide;
+        if (you.items.Remove(item) && !isHide)
+        {
+            you.NotNullItemsNum--;
+        }
+        you.itemsIsChanged = true;
+    }
 }
