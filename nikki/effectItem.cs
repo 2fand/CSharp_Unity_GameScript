@@ -11,11 +11,12 @@ public class effectItem : item
     {
         trigger.funcs.Add(you.changeEffect(effect));
     }
-    public effectItem(effect effect, you you)
+    public effectItem(effect effect, you you, bool isHide = false)
     {
         this.effect = effect;
         this.name = you.effectName[(int)effect];
         this.canUse = true;
         this.you = you;
+        this.isHide = isHide;
     }
 }
