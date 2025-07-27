@@ -45,6 +45,7 @@ public class Cursor : MonoBehaviour
         if (Input.GetKey("w"))
         {
             GetComponent<AudioSource>().PlayOneShot(you.changeSelectSound);
+            int last_indexI = indexI;
             if (0 == indexI)
             {
                 indexI = you.yourSelects.GetLength(0) - 1;
@@ -53,12 +54,17 @@ public class Cursor : MonoBehaviour
             {
                 indexI--;
             }
+            if (null == you.yourSelect)
+            {
+                indexI = last_indexI;
+            }
             yield return new WaitForSeconds(isWait ? 0.3f : 0.1f);
             isWait = false;
         }
         else if (Input.GetKey("s"))
         {
             GetComponent<AudioSource>().PlayOneShot(you.changeSelectSound);
+            int last_indexI = indexI;
             if (you.yourSelects.GetLength(0) - 1 == indexI)
             {
                 indexI = 0;
@@ -66,6 +72,10 @@ public class Cursor : MonoBehaviour
             else
             {
                 indexI++;
+            }
+            if (null == you.yourSelect)
+            {
+                indexI = last_indexI;
             }
             yield return new WaitForSeconds(isWait ? 0.3f : 0.1f);
             isWait = false;
@@ -120,13 +130,13 @@ public class Cursor : MonoBehaviour
 
     void Update()
     {
-        GetComponent<Image>().color = 0 != you.Menus.Count && null != you.yourSelects && 0 != you.yourSelects.GetLength(0) && 0 != you.yourSelects.GetLength(1) ? cursorColor : new Color(1,1,1,0);
+        GetComponent<Image>().color = 0 != you.Menus.Count && null != you.yourSelects && 0 != you.yourSelects.GetLength(0) && 0 != you.yourSelects.GetLength(1) && !(select.menuClass.item == you.Menus[you.Menus.Count - 1] && 0 == you.NotNullItemsNum) ? cursorColor : new Color(1,1,1,0);
         if (0 != you.Menus.Count)
         {
             if (update)
             {
                 indexI = indexJ = 0;
-                if (null != you.yourSelects && 0 != you.yourSelects.GetLength(0) && 0 != you.yourSelects.GetLength(1))
+                if (null != you.yourSelects && 0 != you.yourSelects.GetLength(0) && 0 != you.yourSelects.GetLength(1) && null != you.yourSelect)
                 {
                     GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y, 0);
                     GetComponent<RectTransform>().sizeDelta = you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().sizeDelta;
@@ -143,9 +153,9 @@ public class Cursor : MonoBehaviour
             {
                 StartCoroutine(move());
             }
-            if (null != you.yourSelects && indexI < you.yourSelects.GetLength(0) && indexJ < you.yourSelects.GetLength(1))
+            if (null != you.yourSelects && indexI < you.yourSelects.GetLength(0) && indexJ < you.yourSelects.GetLength(1) && null != you.yourSelect)
             {
-                GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y, 0);
+                GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x - textAdjust.getOffset(you.yourSelects[indexI, indexJ].text.GetComponent<Text>().alignment), you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y, 0);
             }
         }
     }
