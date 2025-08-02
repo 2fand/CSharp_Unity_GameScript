@@ -192,7 +192,7 @@ public class select
         text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
-        text.transform.SetParent(parent.transform, true);
+        text.transform.SetParent(parent.transform, false);
         textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().localScale = Vector3.one;
         text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
@@ -209,7 +209,7 @@ public class select
         text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
-        text.transform.SetParent(parent.transform, true);
+        text.transform.SetParent(parent.transform, false);
         textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().localScale = Vector3.one;
         text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
@@ -225,7 +225,7 @@ public class select
         text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
-        text.transform.SetParent(parent.transform, true);
+        text.transform.SetParent(parent.transform, false);
         text.GetComponent<RectTransform>().localPosition = pos;
         textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().localScale = Vector3.one;
@@ -243,7 +243,7 @@ public class select
         text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
-        text.transform.SetParent(parent.transform, true);
+        text.transform.SetParent(parent.transform, false);
         textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().localScale = Vector3.one;
         text.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
@@ -259,7 +259,7 @@ public class select
         text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
-        text.transform.SetParent(parent.transform, true);
+        text.transform.SetParent(parent.transform, false);
         text.GetComponent<RectTransform>().localPosition = pos;
         textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().sizeDelta = sizeDelta;
@@ -278,7 +278,7 @@ public class select
         text.GetComponent<Text>().fontSize = size ?? textSize;
         text.GetComponent<Text>().color = MenuTheme.menuThemes[you.myMenuID].menuTextColor * new Color(1, 1, 1, 0);
         text.GetComponent<Text>().alignment = textAnchor;
-        text.transform.SetParent(parent.transform, true);
+        text.transform.SetParent(parent.transform, false);
         text.GetComponent<RectTransform>().localPosition = pos;
         textAdjust.adjustText(ref text, textAnchor);
         text.GetComponent<RectTransform>().sizeDelta = sizeDelta;
@@ -326,6 +326,10 @@ public class select
         {
             for (int j = 0; j < ((select[,])menuSelects[menuClass]).GetLength(1); j++)
             {
+                if (null == ((select[,])menuSelects[menuClass])[i, j] || null == ((select[,])menuSelects[menuClass])[i, j].text)
+                {
+                    continue;
+                }
                 ((select[,])menuSelects[menuClass])[i, j].text.GetComponent<Text>().color = c;
             }
         }
@@ -341,7 +345,7 @@ public class select
         {
             for (int j = 0; j < ((select[,])menuSelects[menuClass]).GetLength(1); j++)
             {
-                if (null == ((select[,])menuSelects[menuClass])[i, j])
+                if (null == ((select[,])menuSelects[menuClass])[i, j] || null == ((select[,])menuSelects[menuClass])[i, j].text)
                 {
                     continue;
                 }
