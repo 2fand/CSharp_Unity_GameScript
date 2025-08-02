@@ -34,5 +34,9 @@ public class runFunction : MonoBehaviour
         {
             StartCoroutine(runFunc());
         }
+        if (null != you.yourSelect)
+        {
+            //Debug.LogWarning(you.yourSelect.text == null);
+        }
     }
 }
