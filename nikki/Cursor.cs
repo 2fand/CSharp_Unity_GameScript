@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static select;
 
 public class Cursor : MonoBehaviour
 {
@@ -181,19 +182,19 @@ public class Cursor : MonoBehaviour
                         if (indexI > rowLoopField[0] && horizontalLoopField[indexI, 0] == indexJ && -1 != horizontalLoopField[indexI - 1, 0] && !(rowLoopField[0] == rowLoopField[1] && columnLoopField[0] == columnLoopField[1]))
                         {
                             isCanDo = true;
-                            indexJ = verticalLoopField[--indexI, 1];
+                            indexJ = horizontalLoopField[--indexI, 1];
                         }
                         break;
                     case HorizontalMoveMode.toNextRowAndLoop:
                         if (indexI > rowLoopField[0] && horizontalLoopField[indexI, 0] == indexJ && -1 != horizontalLoopField[indexI - 1, 0] && !(rowLoopField[0] == rowLoopField[1] && columnLoopField[0] == columnLoopField[1]))
                         {
                             isCanDo = true;
-                            indexJ = verticalLoopField[--indexI, 1];
+                            indexJ = horizontalLoopField[--indexI, 1];
                         }
                         else if (rowLoopField[0] == indexI && horizontalLoopField[rowLoopField[0], 0] == indexJ && !(rowLoopField[0] == rowLoopField[1] && columnLoopField[0] == columnLoopField[1]))
                         {
                             isCanDo = true;
-                            indexJ = verticalLoopField[indexI = rowLoopField[1], 1];
+                            indexJ = horizontalLoopField[indexI = rowLoopField[1], 1];
                         }
                         break;
                     default:
@@ -229,14 +230,14 @@ public class Cursor : MonoBehaviour
                         if (indexI < rowLoopField[1] && horizontalLoopField[indexI, 1] == indexJ && -1 != horizontalLoopField[indexI + 1, 0] && !(rowLoopField[0] == rowLoopField[1] && columnLoopField[0] == columnLoopField[1]))
                         {
                             isCanDo = true;
-                            indexJ = verticalLoopField[++indexI, 0];
+                            indexJ = horizontalLoopField[++indexI, 0];
                         }
                         break;
                     case HorizontalMoveMode.toNextRowAndLoop:
                         if (indexI < rowLoopField[1] && horizontalLoopField[indexI, 1] == indexJ && -1 != horizontalLoopField[indexI + 1, 0] && !(rowLoopField[0] == rowLoopField[1] && columnLoopField[0] == columnLoopField[1]))
                         {
                             isCanDo = true;
-                            indexJ = verticalLoopField[++indexI, 0];
+                            indexJ = horizontalLoopField[++indexI, 0];
                         }
                         else if (rowLoopField[1] == indexI && horizontalLoopField[rowLoopField[1], 1] == indexJ && !(rowLoopField[0] == rowLoopField[1] && columnLoopField[0] == columnLoopField[1]))
                         {
@@ -422,7 +423,7 @@ public class Cursor : MonoBehaviour
             if (update)
             {
                 indexI = indexJ = 0;
-                if (null != you.yourSelects && 0 != you.yourSelects.GetLength(0) && 0 != you.yourSelects.GetLength(1) && null != you.yourSelect)
+                if (null != you.yourSelects && 0 != you.yourSelects.GetLength(0) && 0 != you.yourSelects.GetLength(1) && null != you.yourSelect && null != you.yourSelects[indexI, indexJ].text)
                 {
                     GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y, 0);
                     GetComponent<RectTransform>().sizeDelta = you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().sizeDelta;
@@ -439,7 +440,7 @@ public class Cursor : MonoBehaviour
             {
                 StartCoroutine(move());
             }
-            if (null != you.yourSelects && indexI < you.yourSelects.GetLength(0) && indexJ < you.yourSelects.GetLength(1) && null != you.yourSelect)
+            if (null != you.yourSelects && indexI < you.yourSelects.GetLength(0) && indexJ < you.yourSelects.GetLength(1) && null != you.yourSelect && null != you.yourSelects[indexI, indexJ].text)
             {
                 GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x - textAdjust.getOffset(you.yourSelects[indexI, indexJ].text.GetComponent<Text>().alignment), you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y, 0);
             }
