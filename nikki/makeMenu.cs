@@ -21,7 +21,7 @@ public class makeMenu : MonoBehaviour
     private int last_ID;
     public Color menuColor = Color.white;
     private Color last_menuColor = Color.white;
-    private static Vector2 cellSize;
+    private static Vector2 cellSize = new Vector2();
     public static bool isDone = false;
     public static Vector2 CellSize
     {
@@ -34,24 +34,22 @@ public class makeMenu : MonoBehaviour
     {
         get
         {
-            if (0 == (int)GetComponent<GridLayoutGroup>().cellSize.x)
+            if (0 == (int)cellSize.x)
             {
-                GetComponent<GridLayoutGroup>().cellSize = new Vector2(1, GetComponent<GridLayoutGroup>().cellSize.y);
-                imageSize = new Vector2(1, imageSize.y);
+                imageSize = cellSize = new Vector2(1, cellSize.y);
             }
-            return (uint)((int)GetComponent<RectTransform>().sizeDelta.x / (int)GetComponent<GridLayoutGroup>().cellSize.x);
+            return (uint)((int)GetComponent<RectTransform>().sizeDelta.x / (int)cellSize.x);
         }
     }
     private uint realH
     {
         get
         {
-            if (0 == (int)GetComponent<GridLayoutGroup>().cellSize.y)
+            if (0 == (int)cellSize.y)
             {
-                GetComponent<GridLayoutGroup>().cellSize = new Vector2(GetComponent<GridLayoutGroup>().cellSize.x, 1);
-                imageSize = new Vector2(imageSize.x, 1);
+                imageSize = cellSize = new Vector2(cellSize.x, 1);
             }
-            return (uint)((int)GetComponent<RectTransform>().sizeDelta.y / (int)GetComponent<GridLayoutGroup>().cellSize.y);
+            return (uint)((int)GetComponent<RectTransform>().sizeDelta.y / (int)cellSize.y);
         }
     }
     void init()
@@ -62,13 +60,9 @@ public class makeMenu : MonoBehaviour
             menuTheme = menuThemes[you.myMenuID];
             last_menuName = menuName;
             last_ID = you.myMenuID;
-            if (null == GetComponent<GridLayoutGroup>())
-            {
-                gameObject.AddComponent<GridLayoutGroup>().enabled = false;
-            }
             setCellSize();
             GetComponent<RectTransform>().sizeDelta *= GetComponent<RectTransform>().localScale;
-            GetComponent<RectTransform>().sizeDelta = new Vector2(Mathf.RoundToInt(GetComponent<RectTransform>().sizeDelta.x / GetComponent<GridLayoutGroup>().cellSize.x) * (int)GetComponent<GridLayoutGroup>().cellSize.x, Mathf.RoundToInt(GetComponent<RectTransform>().sizeDelta.y / GetComponent<GridLayoutGroup>().cellSize.y) * (int)GetComponent<GridLayoutGroup>().cellSize.y);
+            GetComponent<RectTransform>().sizeDelta = new Vector2(Mathf.RoundToInt(GetComponent<RectTransform>().sizeDelta.x / cellSize.x) * (int)cellSize.x, Mathf.RoundToInt(GetComponent<RectTransform>().sizeDelta.y / cellSize.y) * (int)cellSize.y);
             GetComponent<RectTransform>().localScale = Vector3.one;
             last_imageSize = imageSize;
             last_rect = GetComponent<RectTransform>().sizeDelta;
@@ -85,7 +79,6 @@ public class makeMenu : MonoBehaviour
                     image.GetComponent<RectTransform>().localScale = Vector3.one;
                     break;
                 default:
-                    gameObject.GetComponent<GridLayoutGroup>().enabled = true;
                     makeGrid();
                     break;
             }
@@ -97,32 +90,33 @@ public class makeMenu : MonoBehaviour
     {
         if (1 == realH && 1 == realW)
         {
-            GetComponent<GridLayoutGroup>().cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x1).rect.size;
+            cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x1).rect.size;
         }
         else if (1 == realH)
         {
-            GetComponent<GridLayoutGroup>().cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_l).rect.size;
+            cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_x1_l).rect.size;
         }
         else if (1 == realW)
         {
-            GetComponent<GridLayoutGroup>().cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_u).rect.size;
+            cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x_u).rect.size;
         }
         else
         {
-            GetComponent<GridLayoutGroup>().cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftUp).rect.size;
+            cellSize = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menuLeftUp).rect.size;
         }
-        GetComponent<GridLayoutGroup>().cellSize *= imageSize;
-        cellSize = GetComponent<GridLayoutGroup>().cellSize;
+        cellSize *= imageSize;
     }
     IEnumerator makeARow(int y)
     {
         for (int x = 0; x < catW; x++)
         {
             image = new GameObject(("" != menuName ? menuName : name) + " - " + (y * catW + x));
-            image.transform.parent = transform;
-            image.transform.localScale = imageSize;
-            addChildren.Add(image);
             image.AddComponent<Image>();
+            image.transform.SetParent(transform, true);
+            image.transform.localScale = new Vector3(1, 1, 1);
+            image.GetComponent<RectTransform>().sizeDelta = cellSize;
+            image.GetComponent<RectTransform>().localPosition = new Vector3((0.5f + x) * cellSize.x + (0 - GetComponent<RectTransform>().pivot.x) * GetComponent<RectTransform>().sizeDelta.x, -(0.5f + y) * cellSize.y + (1 - GetComponent<RectTransform>().pivot.y) * GetComponent<RectTransform>().sizeDelta.y, 0);
+            addChildren.Add(image);
             if (1 == catH && 1 == catW)
             {
                 image.GetComponent<Image>().sprite = (menuTheme.mode == makeMode.easyConcatenate ? menuTheme.menu : menuTheme.menu_1x1);
@@ -201,7 +195,7 @@ public class makeMenu : MonoBehaviour
         {
             return;
         }
-        //GridLayoutGroup的网格大小以第一个构成菜单的图片大小为准
+        //图片image的网格大小以第一个构成菜单的图片大小为准
         for (int y = 0; y < catH; y++)
         {
             StartCoroutine(makeARow(y));
@@ -238,7 +232,6 @@ public class makeMenu : MonoBehaviour
                 switch (menuTheme.mode)
                 {
                     case makeMode.scale:
-                        GetComponent<GridLayoutGroup>().enabled = false;
                         image = new GameObject("" != menuName ? menuName : name);
                         image.transform.parent = transform;
                         addChildren.Add(image);
@@ -249,7 +242,6 @@ public class makeMenu : MonoBehaviour
                         image.GetComponent<RectTransform>().localScale = Vector3.one;
                         break;
                     default:
-                        GetComponent<GridLayoutGroup>().enabled = true;
                         makeGrid();
                         break;
                 }
