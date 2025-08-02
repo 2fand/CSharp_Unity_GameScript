@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.VisualScripting;
@@ -139,6 +139,8 @@ public class you : MonoBehaviour
     private static bool actionIsInit = false;
     public static bool actionIsChanged = true;
     public static List<people> yourTeam = new List<people>();
+    public bool tempSwitch;
+    private Hashtable selectFrom = new Hashtable();
     public static int ItemSelectsColumnCount
     {
         get
@@ -171,8 +173,6 @@ public class you : MonoBehaviour
             return u;
         }
     }
-    private select?[,] itemSelects = new select[0, itemSelectsColumnCount];
-    private select?[,] newItemSelects = new select?[0, itemSelectsColumnCount];
     private static bool isStop = false;
     private static AudioClip? playSound = null;
     public static AudioClip? clearSound;
@@ -214,7 +214,7 @@ public class you : MonoBehaviour
     {
         get
         {
-            if (null == yourSelects || 0 == yourSelects.GetLength(0) || 0 == yourSelects.GetLength(1))
+            if (null == yourSelects || 0 == yourSelects.GetLength(0) || 0 == yourSelects.GetLength(1) || Cursor.IndexI >= yourSelects.GetLength(0) || Cursor.IndexJ >= yourSelects.GetLength(1))
             {
                 return null;
             }
@@ -635,6 +635,8 @@ public class you : MonoBehaviour
             item.addItem(new effectItem(0, true, true));
             //debug用↓
             item.addItem(new effectItem(effect.angel));
+            item.addItem(new effectItem(effect.angel));
+            item.addItem(new effectItem(effect.angel));
             //debug用↑
             itemIsInit = true;
         }
@@ -678,6 +680,16 @@ public class you : MonoBehaviour
     {
         nowEffect = 0;
         effecthaves = new bool[effectCount + 1];
+    }
+
+    Vector2 pivotTo0_1Offset(RectTransform UIObject)
+    {
+        return new Vector2((0 - UIObject.pivot.x) * UIObject.sizeDelta.x, (1 - UIObject.pivot.y) * UIObject.sizeDelta.y);
+    }
+
+    Vector2 pivotToX_YOffset(int x, int y, RectTransform UIObject)
+    {
+        return new Vector2((x - UIObject.pivot.x) * UIObject.sizeDelta.x, (y - UIObject.pivot.y) * UIObject.sizeDelta.y);
     }
 
     IEnumerator init()
@@ -758,7 +770,8 @@ public class you : MonoBehaviour
         UIinit(ref itemMenu, "itemMenu", 0, -23f, 480, 288, new Vector2(1.5f, 1.5f));
         yield return new WaitUntil(() => makeMenu.isDone);
         UIinit(ref itemTextMenu, "itemTextMenu", itemMenu.GetComponent<RectTransform>());
-        itemTextMenu.AddComponent<Mask>();
+        itemTextMenu.AddComponent<Mask>().showMaskGraphic = false;
+        itemTextMenu.AddComponent<Image>().color = new Color(0, 0, 0, 0.01f);
         select[,] mainSelects = new select[selectNames.Length, 1];
         select[,] quitSelects = new select[2, 1];
         selectMenuClasses = new menuClass[] { menuClass.item, menuClass.action, menuClass.quit };
@@ -772,7 +785,6 @@ public class you : MonoBehaviour
         }
         menuSelectsAdd(menuClass.main, mainSelects);
         menuSelectsAdd(menuClass.quit, quitSelects);
-        menuSelectsAdd(menuClass.item, itemSelects);
         selectMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(selectMenu.GetComponent<RectTransform>().sizeDelta.x, makeMenu.CellSize.y * (get2DArrayLength(GetSelects(menuClass.main)) + 1));
         isDone = true;
     }
@@ -1323,30 +1335,36 @@ public class you : MonoBehaviour
     {
         for (int i = 0; i < itemTextMenu.transform.childCount; i++)
         {
-            Destroy(itemTextMenu.transform.GetChild(i).gameObject);
+            if ("ItemMenu" == (string)selectFrom[itemTextMenu.transform.GetChild(i).gameObject])
+            {
+                Destroy(itemTextMenu.transform.GetChild(i).gameObject);
+            }
         }
-        for (int i = 0; i < get2DArrayLength(itemSelects); i++)
+        for (int i = 0; i < get2DArrayLength(GetSelects(menuClass.item)); i++)
         {
-            itemSelects[i / itemSelectsColumnCount, i % itemSelectsColumnCount] = null;
+            GetSelects(menuClass.item)[i / itemSelectsColumnCount, i % itemSelectsColumnCount] = null;
         }
-        for (int i = 0, ia = 0; i < get2DArrayLength(itemSelects) && ia < items.Count; i++, ia++)
+        for (int i = 0, ia = 0; i < get2DArrayLength(GetSelects(menuClass.item)) && ia < items.Count; i++, ia++)
         {
             if (items[ia].isHide)
             {
                 i--;
                 continue;
             }
-            itemSelects[i / itemSelectsColumnCount, i % itemSelectsColumnCount] = new select(canvas, new Vector2(itemTextMenu.GetComponent<RectTransform>().localPosition.x + i % 2 * itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / 2, itemTextMenu.GetComponent<RectTransform>().localPosition.y - i / itemSelectsColumnCount * makeMenu.CellSize.y), new Vector2(itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / itemSelectsColumnCount, makeMenu.CellSize.y), items[ia].name, menuClass.useItem);
-            itemSelects[i / itemSelectsColumnCount, i % itemSelectsColumnCount].UsedItem = items[ia];
+            GetSelects(menuClass.item)[i / itemSelectsColumnCount, i % itemSelectsColumnCount] = new select(itemTextMenu, new Vector2(i % itemSelectsColumnCount * itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / itemSelectsColumnCount, -i / itemSelectsColumnCount * makeMenu.CellSize.y), new Vector2(itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / itemSelectsColumnCount, makeMenu.CellSize.y), items[ia].name, menuClass.useItem);
+            selectFrom.Add(GetSelects(menuClass.item)[i / itemSelectsColumnCount, i % itemSelectsColumnCount].text, "ItemMenu");
+            GetSelects(menuClass.item)[i / itemSelectsColumnCount, i % itemSelectsColumnCount].UsedItem = items[ia];
         }
-        menuSelects[menuClass.item] = itemSelects;
     }
 
     void changeActionSelects()
     {
         for (int i = 0; i < itemTextMenu.transform.childCount; i++)
         {
-            Destroy(itemTextMenu.transform.GetChild(i).gameObject);
+            if ("ActionMenu" == (string)selectFrom[itemTextMenu.transform.GetChild(i).gameObject])
+            {
+                Destroy(itemTextMenu.transform.GetChild(i).gameObject);
+            }
         }
         for (int i = 0; i < get2DArrayLength(GetSelects(menuClass.action)); i++)
         {
@@ -1359,7 +1377,8 @@ public class you : MonoBehaviour
                 i--;
                 continue;
             }
-            GetSelects(menuClass.action)[i / actionSelectsColumnCount, i % actionSelectsColumnCount] = new select(canvas, new Vector2(itemTextMenu.GetComponent<RectTransform>().localPosition.x + i % 2 * itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / 2, itemTextMenu.GetComponent<RectTransform>().localPosition.y - i / itemSelectsColumnCount * makeMenu.CellSize.y), new Vector2(itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / itemSelectsColumnCount, makeMenu.CellSize.y), actions[ia].name, menuClass.doAction);
+            GetSelects(menuClass.action)[i / actionSelectsColumnCount, i % actionSelectsColumnCount] = new select(itemTextMenu, new Vector2(i % itemSelectsColumnCount * itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / actionSelectsColumnCount, -i / itemSelectsColumnCount * makeMenu.CellSize.y), new Vector2(itemTextMenu.GetComponent<RectTransform>().sizeDelta.x / itemSelectsColumnCount, makeMenu.CellSize.y), actions[ia].name, menuClass.doAction);
+            selectFrom.Add(GetSelects(menuClass.action)[i / actionSelectsColumnCount, i % actionSelectsColumnCount].text, "ActionMenu");
             GetSelects(menuClass.action)[i / actionSelectsColumnCount, i % actionSelectsColumnCount].UsedItem = actions[ia];
         }
     }
@@ -1383,10 +1402,9 @@ public class you : MonoBehaviour
         if (isDone)
         {
             sets();
-            while (get2DArrayLength(itemSelects) <= items.Count)
+            while (get2DArrayLength(GetSelects(menuClass.item)) <= items.Count)
             {
-                newItemSelects = new select[itemSelects.GetLength(0) * 2 + 1, itemSelectsColumnCount];
-                itemSelects = newItemSelects;
+                menuSelects[menuClass.item] = new select[GetSelects(menuClass.item).GetLength(0) * 2 + 1, itemSelectsColumnCount];
             }
             while (get2DArrayLength(GetSelects(menuClass.action)) <= actions.Count)
             {
