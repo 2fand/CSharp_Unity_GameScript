@@ -36,51 +36,51 @@ public class initGameComponentUI : Editor
     
     public override void OnInspectorGUI()
     {
-        effectItem.effectCount = EditorGUILayout.IntField("效果数量", effectItem.effectCount);
+        effectItem.effectCount = EditorGUILayout.IntField("鏁堟灉鏁伴噺", effectItem.effectCount);
         updateArray(ref initGame.effects, effectItem.effectCount + 1);
         updateArray(ref initGame.effectWalkSounds, effectItem.effectCount + 1);
         updateArray(ref initGame.closeUps, 3 * (effectItem.effectCount + 1));
         Sprite aaaa = initGame.closeUps[0];
-        initGame.effects[0] = (GameObject)EditorGUILayout.ObjectField("默认形象", initGame.effects[0], typeof(GameObject), false);
-        initGame.effectWalkSounds[0] = (AudioClip)EditorGUILayout.ObjectField("默认走路音效", initGame.effectWalkSounds[0], typeof(AudioClip), false);
-        showDefaultCloseUp = EditorGUILayout.BeginFoldoutHeaderGroup(showDefaultCloseUp, "默认特写");
+        initGame.effects[0] = (GameObject)EditorGUILayout.ObjectField("榛樿褰㈣薄", initGame.effects[0], typeof(GameObject), false);
+        initGame.effectWalkSounds[0] = (AudioClip)EditorGUILayout.ObjectField("榛樿璧拌矾闊虫晥", initGame.effectWalkSounds[0], typeof(AudioClip), false);
+        showDefaultCloseUp = EditorGUILayout.BeginFoldoutHeaderGroup(showDefaultCloseUp, "榛樿鐗瑰啓");
         EditorGUI.indentLevel++;
-        initGame.closeUps[0] = (Sprite)EditorGUILayout.ObjectField("人物图像", initGame.closeUps[0], typeof(Sprite), false);
-        initGame.closeUps[1] = (Sprite)EditorGUILayout.ObjectField("边框图像", initGame.closeUps[1], typeof(Sprite), false);
-        initGame.closeUps[2] = (Sprite)EditorGUILayout.ObjectField("背景图像", initGame.closeUps[2], typeof(Sprite), false);
+        initGame.closeUps[0] = (Sprite)EditorGUILayout.ObjectField("浜虹墿鍥惧儚", initGame.closeUps[0], typeof(Sprite), false);
+        initGame.closeUps[1] = (Sprite)EditorGUILayout.ObjectField("杈规鍥惧儚", initGame.closeUps[1], typeof(Sprite), false);
+        initGame.closeUps[2] = (Sprite)EditorGUILayout.ObjectField("鑳屾櫙鍥惧儚", initGame.closeUps[2], typeof(Sprite), false);
         EditorGUI.indentLevel--;
         EditorGUILayout.EndFoldoutHeaderGroup();
 
-        initGame.effectEqiupSound = (AudioClip)EditorGUILayout.ObjectField("默认效果装备音效", initGame.effectEqiupSound, typeof(AudioClip), false);
-        initGame.effectCancelEqiupSound = (AudioClip)EditorGUILayout.ObjectField("默认效果取消装备音效", initGame.effectCancelEqiupSound, typeof(AudioClip), false);
+        initGame.effectEqiupSound = (AudioClip)EditorGUILayout.ObjectField("榛樿鏁堟灉瑁呭闊虫晥", initGame.effectEqiupSound, typeof(AudioClip), false);
+        initGame.effectCancelEqiupSound = (AudioClip)EditorGUILayout.ObjectField("榛樿鏁堟灉鍙栨秷瑁呭闊虫晥", initGame.effectCancelEqiupSound, typeof(AudioClip), false);
 
         if (effectItem.effectCount > 0)
         {
-            showEffects = EditorGUILayout.BeginFoldoutHeaderGroup(showEffects, "效果形象");
+            showEffects = EditorGUILayout.BeginFoldoutHeaderGroup(showEffects, "鏁堟灉褰㈣薄");
             EditorGUI.indentLevel++;
             for (int i = 1; showEffects && i < initGame.effects.Length; i++)
             {
-                initGame.effects[i] = (GameObject)EditorGUILayout.ObjectField("元素 " + (i - 1), initGame.effects[i], typeof(GameObject), false);
+                initGame.effects[i] = (GameObject)EditorGUILayout.ObjectField("鍏冪礌 " + (i - 1), initGame.effects[i], typeof(GameObject), false);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
             EditorGUI.indentLevel--;
-            showWalkSounds = EditorGUILayout.BeginFoldoutHeaderGroup(showWalkSounds, "效果行走音效");
+            showWalkSounds = EditorGUILayout.BeginFoldoutHeaderGroup(showWalkSounds, "鏁堟灉琛岃蛋闊虫晥");
             EditorGUI.indentLevel++;
             for (int i = 1; showWalkSounds && i < initGame.effectWalkSounds.Length; i++)
             {
-                initGame.effectWalkSounds[i] = (AudioClip)EditorGUILayout.ObjectField("元素 " + (i - 1), initGame.effectWalkSounds[i], typeof(AudioClip), false);
+                initGame.effectWalkSounds[i] = (AudioClip)EditorGUILayout.ObjectField("鍏冪礌 " + (i - 1), initGame.effectWalkSounds[i], typeof(AudioClip), false);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
             EditorGUI.indentLevel--;
-            showCloseUps = EditorGUILayout.BeginFoldoutHeaderGroup(showCloseUps, "效果人物特写");
+            showCloseUps = EditorGUILayout.BeginFoldoutHeaderGroup(showCloseUps, "鏁堟灉浜虹墿鐗瑰啓");
             EditorGUI.indentLevel++;
             for (int i = 1; showCloseUps && i < initGame.closeUps.Length / 3; i++)
             {
-                EditorGUILayout.LabelField("元素 " + (i - 1));
+                EditorGUILayout.LabelField("鍏冪礌 " + (i - 1));
                 EditorGUI.indentLevel++;
-                initGame.closeUps[i * 3] = (Sprite)EditorGUILayout.ObjectField("人物图像", initGame.closeUps[i * 3], typeof(Sprite), false);
-                initGame.closeUps[i * 3 + 1] = (Sprite)EditorGUILayout.ObjectField("边框图像", initGame.closeUps[i * 3 + 1], typeof(Sprite), false);
-                initGame.closeUps[i * 3 + 2] = (Sprite)EditorGUILayout.ObjectField("背景图像", initGame.closeUps[i * 3 + 2], typeof(Sprite), false);
+                initGame.closeUps[i * 3] = (Sprite)EditorGUILayout.ObjectField("浜虹墿鍥惧儚", initGame.closeUps[i * 3], typeof(Sprite), false);
+                initGame.closeUps[i * 3 + 1] = (Sprite)EditorGUILayout.ObjectField("杈规鍥惧儚", initGame.closeUps[i * 3 + 1], typeof(Sprite), false);
+                initGame.closeUps[i * 3 + 2] = (Sprite)EditorGUILayout.ObjectField("鑳屾櫙鍥惧儚", initGame.closeUps[i * 3 + 2], typeof(Sprite), false);
                 EditorGUI.indentLevel--;
             }
             EditorGUI.indentLevel--;
@@ -92,39 +92,39 @@ public class initGameComponentUI : Editor
             initGame.effectCloseUp[i] = new closeUp(initGame.closeUps[i * 3], initGame.closeUps[i * 3 + 1], initGame.closeUps[i * 3 + 2]);
         }
         EditorGUILayout.Space();
-        initGame.gameFont = (Font)EditorGUILayout.ObjectField("默认游戏字体", initGame.gameFont, typeof(Font), false);
-        initGame.openMenuSound = (AudioClip)EditorGUILayout.ObjectField("默认打开菜单音效", initGame.openMenuSound, typeof(AudioClip), false);
-        initGame.closeMenuSound = (AudioClip)EditorGUILayout.ObjectField("默认关闭菜单音效", initGame.closeMenuSound, typeof(AudioClip), false);
-        initGame.changeSelectSound = (AudioClip)EditorGUILayout.ObjectField("默认移动光标音效", initGame.changeSelectSound, typeof(AudioClip), false);
-        initGame.CursorHorizontalMoveMode = (Cursor.HorizontalMoveMode)EditorGUILayout.EnumPopup("默认光标水平移动方式", initGame.CursorHorizontalMoveMode);
-        initGame.CursorVerticalMoveMode = (Cursor.VerticalMoveMode)EditorGUILayout.EnumPopup("默认光标垂直移动方式", initGame.CursorVerticalMoveMode);
-        initGame.clearMenuSound = (AudioClip)EditorGUILayout.ObjectField("默认清空菜单音效", initGame.clearMenuSound, typeof(AudioClip), false);
-        initGame.wakeUpSound = (AudioClip)EditorGUILayout.ObjectField("默认醒来音效", initGame.wakeUpSound, typeof(AudioClip), false);
+        initGame.gameFont = (Font)EditorGUILayout.ObjectField("榛樿娓告垙瀛椾綋", initGame.gameFont, typeof(Font), false);
+        initGame.openMenuSound = (AudioClip)EditorGUILayout.ObjectField("榛樿鎵撳紑鑿滃崟闊虫晥", initGame.openMenuSound, typeof(AudioClip), false);
+        initGame.closeMenuSound = (AudioClip)EditorGUILayout.ObjectField("榛樿鍏抽棴鑿滃崟闊虫晥", initGame.closeMenuSound, typeof(AudioClip), false);
+        initGame.changeSelectSound = (AudioClip)EditorGUILayout.ObjectField("榛樿绉诲姩鍏夋爣闊虫晥", initGame.changeSelectSound, typeof(AudioClip), false);
+        initGame.CursorHorizontalMoveMode = (Cursor.HorizontalMoveMode)EditorGUILayout.EnumPopup("榛樿鍏夋爣姘村钩绉诲姩鏂瑰紡", initGame.CursorHorizontalMoveMode);
+        initGame.CursorVerticalMoveMode = (Cursor.VerticalMoveMode)EditorGUILayout.EnumPopup("榛樿鍏夋爣鍨傜洿绉诲姩鏂瑰紡", initGame.CursorVerticalMoveMode);
+        initGame.clearMenuSound = (AudioClip)EditorGUILayout.ObjectField("榛樿娓呯┖鑿滃崟闊虫晥", initGame.clearMenuSound, typeof(AudioClip), false);
+        initGame.wakeUpSound = (AudioClip)EditorGUILayout.ObjectField("榛樿閱掓潵闊虫晥", initGame.wakeUpSound, typeof(AudioClip), false);
         EditorGUILayout.BeginHorizontal();
-        initGame.useHealth = EditorGUILayout.Toggle("是否使用hp", initGame.useHealth);
-        if (initGame.useHealth)//
+        initGame.useHealth = EditorGUILayout.Toggle("鏄惁浣跨敤hp", initGame.useHealth);
+        if (initGame.useHealth)
         {
-            initGame.hpUnit = EditorGUILayout.TextField("默认hp单位", initGame.hpUnit);
+            initGame.hpUnit = EditorGUILayout.TextField("榛樿hp鍗曚綅", initGame.hpUnit);
         }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.BeginHorizontal();
-        initGame.useMp = EditorGUILayout.Toggle("是否使用mp", initGame.useMp);
+        initGame.useMp = EditorGUILayout.Toggle("鏄惁浣跨敤mp", initGame.useMp);
         if (initGame.useMp) {
-            initGame.mpUnit = EditorGUILayout.TextField("默认mp单位", initGame.mpUnit);
+            initGame.mpUnit = EditorGUILayout.TextField("榛樿mp鍗曚綅", initGame.mpUnit);
         }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.BeginHorizontal();
-        initGame.useTp = EditorGUILayout.Toggle("是否使用tp", initGame.useTp);
-        if (initGame.useTp)
+        initGame.useExp = EditorGUILayout.Toggle("鏄惁浣跨敤tp", initGame.useExp);
+        if (initGame.useExp)
         {
-            initGame.tpUnit = EditorGUILayout.TextField("默认tp单位", initGame.tpUnit);
+            initGame.expUnit = EditorGUILayout.TextField("榛樿tp鍗曚綅", initGame.expUnit);
         }
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.BeginHorizontal();
-        initGame.useLevel = EditorGUILayout.Toggle("是否使用等级", initGame.useLevel);
+        initGame.useLevel = EditorGUILayout.Toggle("鏄惁浣跨敤绛夌骇", initGame.useLevel);
         if (initGame.useLevel)
         {
-            initGame.levelUnit = EditorGUILayout.TextField("默认等级单位", initGame.levelUnit);
+            initGame.levelUnit = EditorGUILayout.TextField("榛樿绛夌骇鍗曚綅", initGame.levelUnit);
         }
         EditorGUILayout.EndHorizontal();
     }
