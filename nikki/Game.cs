@@ -9,8 +9,8 @@ public class Game
     public static string hpUnit = "";
     public static bool useMp = false;
     public static string mpUnit = "";
-    public static bool useTp = false;
-    public static string tpUnit = "";
+    public static bool useExp = false;
+    public static string expUnit = "";
     public static bool useLevel = false;
     public static string levelUnit = "";
 }
