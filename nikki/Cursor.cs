@@ -426,6 +426,7 @@ public class Cursor : MonoBehaviour
                 if (null != you.yourSelects && 0 != you.yourSelects.GetLength(0) && 0 != you.yourSelects.GetLength(1) && null != you.yourSelect && null != you.yourSelects[indexI, indexJ].text)
                 {
                     GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x, you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y, 0);
+                    transform.SetParent(you.yourSelect.text.transform.parent, false);
                     GetComponent<RectTransform>().sizeDelta = you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().sizeDelta;
                 }
                 transform.SetAsLastSibling();
@@ -443,6 +444,7 @@ public class Cursor : MonoBehaviour
             if (null != you.yourSelects && indexI < you.yourSelects.GetLength(0) && indexJ < you.yourSelects.GetLength(1) && null != you.yourSelect && null != you.yourSelects[indexI, indexJ].text)
             {
                 GetComponent<RectTransform>().localPosition = new Vector3(you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.x - textAdjust.getOffset(you.yourSelects[indexI, indexJ].text.GetComponent<Text>().alignment), you.yourSelects[indexI, indexJ].text.GetComponent<RectTransform>().localPosition.y, 0);
+                transform.SetParent(you.yourSelects[indexI, indexJ].text.transform.parent, false);
             }
         }
     }
