@@ -21,8 +21,8 @@ public class InitGame : MonoBehaviour
     public string hpUnit = "";
     public bool useMp = false;
     public string mpUnit = "";
-    public bool useTp = false;
-    public string tpUnit = "";
+    public bool useExp = false;
+    public string expUnit = "";
     public bool useLevel = false;
     public string levelUnit = "";
     private static bool isInit = false;
@@ -34,37 +34,39 @@ public class InitGame : MonoBehaviour
             return isInit;
         }
     }
-    //∂ÓÕ‚µƒ°˝
+    //È¢ùÂ§ñÁöÑ‚Üì
     public Material[] screens;
     void Awake()
     {
-        Game.gameFont = gameFont;
-        Game.useHealth = useHealth;
-        Game.hpUnit = hpUnit;
-        Game.useMp = useMp;
-        Game.mpUnit = mpUnit;
-        Game.useTp = useTp;
-        Game.tpUnit = tpUnit;
-        Game.useLevel = useLevel;
-        Game.levelUnit = levelUnit;
-        effectItem.effectEqiupSound = effectEqiupSound ?? effectItem.effectEqiupSound;
-        effectItem.effectCancelEqiupSound = effectCancelEqiupSound ?? effectItem.effectCancelEqiupSound;
-        effectItem.screens = screens ?? effectItem.screens;
-        effectItem.effects = effects ?? effectItem.effects;
-        effectItem.effectWalkSounds = effectWalkSounds ?? effectItem.effectWalkSounds;
-        effectItem.effectCloseup = effectCloseUp ?? effectItem.effectCloseup;
-        you.openMenuSound = openMenuSound ?? you.openMenuSound;
-        you.closeMenuSound = closeMenuSound ?? you.closeMenuSound;
-        you.changeSelectSound = changeSelectSound ?? you.changeSelectSound;
-        you.wakeUpSound = wakeUpSound ?? you.wakeUpSound;
-        you.clearSound = clearMenuSound ?? you.clearSound;
-        Cursor.horizontalMoveMode = CursorHorizontalMoveMode;
-        Cursor.verticalMoveMode = CursorVerticalMoveMode;
-        isInit = true;
+        if (!isInit)
+        {
+            isInit = true;
+            Game.gameFont = gameFont;
+            Game.useHealth = useHealth;
+            Game.hpUnit = hpUnit;
+            Game.useMp = useMp;
+            Game.mpUnit = mpUnit;
+            Game.useExp = useExp;
+            Game.expUnit = expUnit;
+            Game.useLevel = useLevel;
+            Game.levelUnit = levelUnit;
+            effectItem.effectEqiupSound = effectEqiupSound ?? effectItem.effectEqiupSound;
+            effectItem.effectCancelEqiupSound = effectCancelEqiupSound ?? effectItem.effectCancelEqiupSound;
+            effectItem.screens = screens ?? effectItem.screens;
+            effectItem.effects = effects ?? effectItem.effects;
+            effectItem.effectWalkSounds = effectWalkSounds ?? effectItem.effectWalkSounds;
+            you.openMenuSound = openMenuSound ?? you.openMenuSound;
+            you.closeMenuSound = closeMenuSound ?? you.closeMenuSound;
+            you.changeSelectSound = changeSelectSound ?? you.changeSelectSound;
+            you.wakeUpSound = wakeUpSound ?? you.wakeUpSound;
+            you.clearSound = clearMenuSound ?? you.clearSound;
+            Cursor.horizontalMoveMode = CursorHorizontalMoveMode;
+            Cursor.verticalMoveMode = CursorVerticalMoveMode;
+            effectItem.effectCloseup = effectCloseUp ?? effectItem.effectCloseup;
+        }
     }
 
     void Update()
     {
-
     }
 }
