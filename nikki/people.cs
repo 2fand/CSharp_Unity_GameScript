@@ -67,6 +67,14 @@ public class people {
             }
         }
     }
+    public void addHp(int addHp)
+    {
+        hp = Mathf.Max(addHp + hp, maxHp);
+    }
+    public void addMp(int addMp)
+    {
+        hp = Mathf.Max(addMp + mp, maxMp);
+    }
     public static void levelUpHint()
     {
 
@@ -99,34 +107,22 @@ public class people {
         peopleCloseUpFrame.AddComponent<Image>().sprite = (null != peopleCloseUp?.peopleCloseUpFrame ? peopleCloseUp.peopleCloseUpFrame : blackSprite);
         peopleCloseUpFrame.GetComponent<Image>().color *= new Color(1, 1, 1, 0);
         Vector2 textsizeDelta = new Vector2((parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3);
-        you.UIinit(ref nameTextObject, "nameText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, 0), textsizeDelta, parentBlock.transform);
+        you.UIinit(ref nameTextObject, "nameText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, 0), textsizeDelta, parentBlock.transform, 0, 1);
         you.textInit(ref nameTextObject, peopleName, TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass.normal);
-        you.UIinit(ref recommendTextObject, "recommendText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, 0), textsizeDelta, parentBlock.gameObject.transform);
+        you.UIinit(ref recommendTextObject, "recommendText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, 0), textsizeDelta, parentBlock.gameObject.transform, 0, 1);
         you.textInit(ref recommendTextObject, recommend, TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.normal);
-        you.UIinit(ref levelTextObject, "levelText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3), textsizeDelta, parentBlock.transform);
-        if (useLevel)
-        {
-            you.textInit(ref levelTextObject, "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + levelUnit + "</color>" + level, TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass.normal);
-        }
-        you.UIinit(ref hpTextObject, "hpText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3), textsizeDelta, parentBlock.transform);
-        if (useHp)
-        {
-            you.textInit(ref hpTextObject, "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + hpUnit + "</color>" + hp + "/" + maxHp, TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.normal);
-        }
-        you.UIinit(ref mpTextObject, "mpText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3 * 2), textsizeDelta, parentBlock.transform);
-        if (useMp)
-        {
-            you.textInit(ref mpTextObject, "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + mpUnit + "</color>" + mp + "/" + maxMp, TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.normal);
-        }
-        you.UIinit(ref expTextObject, "tpText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3 * 2), textsizeDelta, parentBlock.transform);
-        if (useExp)
-        {
-            you.textInit(ref expTextObject, "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + expUnit + "</color>" + exp + "/" + levelUpExp, TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass.normal);
-        }
+        you.UIinit(ref levelTextObject, "levelText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3), textsizeDelta, parentBlock.transform, 0, 1);
+        you.textInit(ref levelTextObject, useLevel ? "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + levelUnit + "</color> " + level : "", TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass.normal);
+        you.UIinit(ref hpTextObject, "hpText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3), textsizeDelta, parentBlock.transform, 0, 1);
+        you.textInit(ref hpTextObject, useHp ? "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + hpUnit + "</color> " + hp + "/" + maxHp : "", TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.normal);
+        you.UIinit(ref mpTextObject, "mpText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3 * 2), textsizeDelta, parentBlock.transform, 0, 1);
+        you.textInit(ref mpTextObject, useMp ? "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + mpUnit + "</color> " + mp + "/" + maxMp : "", TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.normal);
+        you.UIinit(ref expTextObject, "tpText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3 * 2), textsizeDelta, parentBlock.transform, 0, 1);
+        you.textInit(ref expTextObject, useExp ? "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + expUnit + "</color> " + exp + "/" + levelUpExp : "", TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass.normal);
+        parentBlock.transform.SetAsLastSibling();
     }
-    
 
-    public people(string name, string recommend, string levelUnit = "", string hpUnit = "", string mpUnit = "", string expUnit = "", bool? useHp = null, int hp = 0, int maxHp = 0, bool? useMp = null, int mp = 0, int maxMp = 0, bool? useExp = null, int exp = 0, bool? useLevel = null, int level = 0, int maxLevel = 0)
+    public people(string name, string recommend, string levelUnit = "", string hpUnit = "", string mpUnit = "", string expUnit = "", bool? useHp = null, int hp = 1, int maxHp = 1, bool? useMp = null, int mp = 0, int maxMp = 0, bool? useExp = null, int exp = 0, bool? useLevel = null, int level = 0, int maxLevel = 0)
     {
         peopleCloseUp = effectItem.effectCloseup?[0];
         peopleName = name;
@@ -153,6 +149,8 @@ public class people {
         parentBlock.transform.SetParent(you.You.YouMenuRectTransform, false);
         parentBlock.GetComponent<RectTransform>().localPosition = new Vector2(0, -90 * i);
         parentBlock.GetComponent<RectTransform>().sizeDelta = new Vector2(you.You.YouMenuRectTransform.sizeDelta.x, 90);
+        this.parentBlock.gameObject.transform.parent.AddComponent<Mask>().showMaskGraphic = false;
+        this.parentBlock.gameObject.transform.parent.AddComponent<Image>().color = Color.white;
         setOther();
         you.yourTeam.Add(this);
     }
@@ -179,6 +177,8 @@ public class people {
         this.levelUnit = levelUnit ?? Game.levelUnit;
         this.parentBlock = new GameObject("parentBlock").AddComponent<RectTransform>();
         this.parentBlock = parentBlock;
+        this.parentBlock.gameObject.AddComponent<Mask>().showMaskGraphic = false;
+        this.parentBlock.gameObject.AddComponent<Image>().color = Color.white;
         setOther();
         you.yourTeam.Add(this);
     }
@@ -203,23 +203,23 @@ public class people {
         {
             if (you.yourTeam[i].useHp)
             {
-                colorStr = Regex.Match(you.yourTeam[i].hpTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}").Value.Substring(6, 2);
+                colorStr = Regex.Match(you.yourTeam[i].hpTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}").Value;
             }
             else if (you.yourTeam[i].useMp)
             {
-                colorStr = Regex.Match(you.yourTeam[i].mpTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}").Value.Substring(6, 2);
+                colorStr = Regex.Match(you.yourTeam[i].mpTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}").Value;
             }
             else if (you.yourTeam[i].useLevel)
             {
-                colorStr = Regex.Match(you.yourTeam[i].levelTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}").Value.Substring(6, 2);
+                colorStr = Regex.Match(you.yourTeam[i].levelTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}").Value;
             }
             else if (you.yourTeam[i].useExp)
             {
-                colorStr = Regex.Match(you.yourTeam[i].expTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}").Value.Substring(6, 2);
+                colorStr = Regex.Match(you.yourTeam[i].expTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}").Value;
             }
             if (you.yourTeam[i].useHp || you.yourTeam[i].useMp || you.yourTeam[i].useExp || you.yourTeam[i].useLevel)
             {
-                color2 = you.myMenu.menuTextHighlightColor * new Color(1, 1, 1, 0) + new Color(0, 0, 0, ((int)HexToDec[colorStr[0]] * 16 + (int)HexToDec[colorStr[1]]) / 255.0f);
+                color2 = new Color(((int)HexToDec[colorStr.ToLower()[1]] * 16 + (int)HexToDec[colorStr.ToLower()[2]]) / 255.0f, ((int)HexToDec[colorStr.ToLower()[3]] * 16 + (int)HexToDec[colorStr.ToLower()[4]]) / 255.0f, ((int)HexToDec[colorStr.ToLower()[5]] * 16 + (int)HexToDec[colorStr.ToLower()[6]]) / 255.0f, ((int)HexToDec[colorStr.ToLower()[7]] * 16 + (int)HexToDec[colorStr.ToLower()[8]]) / 255.0f);
             }
             you.yourTeam[i].peopleCloseUpInGame.GetComponent<Image>().color += c;
             you.yourTeam[i].peopleCloseUpFrame.GetComponent<Image>().color += c;
@@ -228,22 +228,22 @@ public class people {
             if (null != you.yourTeam[i].hpTextObject.GetComponent<Text>())
             {
                 you.yourTeam[i].hpTextObject.GetComponent<Text>().color += c;
-                Regex.Replace(you.yourTeam[i].hpTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}", "#" + color2.ToHexString());
+                you.yourTeam[i].hpTextObject.GetComponent<Text>().text = Regex.Replace(you.yourTeam[i].hpTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}", "#" + color2.ToHexString());
             }
             if (null != you.yourTeam[i].mpTextObject.GetComponent<Text>())
             {
                 you.yourTeam[i].mpTextObject.GetComponent<Text>().color += c;
-                Regex.Replace(you.yourTeam[i].mpTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}", "#" + color2.ToHexString());
+                you.yourTeam[i].mpTextObject.GetComponent<Text>().text = Regex.Replace(you.yourTeam[i].mpTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}", "#" + color2.ToHexString());
             }
             if (null != you.yourTeam[i].expTextObject.GetComponent<Text>())
             {
                 you.yourTeam[i].expTextObject.GetComponent<Text>().color += c;
-                Regex.Replace(you.yourTeam[i].expTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}", "#" + color2.ToHexString());
+                you.yourTeam[i].expTextObject.GetComponent<Text>().text = Regex.Replace(you.yourTeam[i].expTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}", "#" + color2.ToHexString());
             }
             if (null != you.yourTeam[i].levelTextObject.GetComponent<Text>())
             {
                 you.yourTeam[i].levelTextObject.GetComponent<Text>().color += c;
-                Regex.Replace(you.yourTeam[i].levelTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}", "#" + color2.ToHexString());
+                you.yourTeam[i].levelTextObject.GetComponent<Text>().text = Regex.Replace(you.yourTeam[i].levelTextObject.GetComponent<Text>().text, "#[0-9a-fA-F]{8}", "#" + color2.ToHexString());
             }
             you.yourTeam[i].nameTextObject.GetComponent<Text>().color += c;
             you.yourTeam[i].recommendTextObject.GetComponent<Text>().color += c;
