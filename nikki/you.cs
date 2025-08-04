@@ -703,7 +703,7 @@ public class you : MonoBehaviour
         if (!teamIsInit)
         {
             peoples = new people[4];
-            peoples[0] = new people("我我我", "我我我哦我我!!!!!!!~_~__", "keys", "_", "_", "_");
+            peoples[0] = new people("as", "asa", "keys", "_", "_", "_", true, 1, 1, true, 0, 0, true, 0, true);
             yield return new WaitUntil(() => null != effectCloseup);
             peoples[0].peopleCloseUp = effectCloseup[(int)nowEffect];
             teamIsInit = true;
@@ -789,7 +789,6 @@ public class you : MonoBehaviour
         yield return new WaitUntil(() => Vector2.zero != makeMenu.CellSize);
         UIinit(ref moneyMenu, "moneyMenu", -167.9f, -155f , 144, 48, new Vector2(1.5f, 1.5f));
         UIinit(ref youMenu, "youMenu", 95f, 0, 384, 360, new Vector2(1.5f, 1.5f));
-        StartCoroutine(initTeam());
         UIinit(ref peopleMenu, "peopleMenu", youMenu.GetComponent<RectTransform>());
         peopleMenu.AddComponent<Mask>().showMaskGraphic = false;
         peopleMenu.AddComponent<Image>().color = new Color(0, 0, 0, 1);
@@ -811,6 +810,7 @@ public class you : MonoBehaviour
         //recommendText.GetComponent<Text>().text = "あ";
         UIinit(ref itemMenu, "itemMenu", 0, -23f, 480, 288, new Vector2(1.5f, 1.5f));
         yield return new WaitUntil(() => makeMenu.isDone);
+        StartCoroutine(initTeam());
         UIinit(ref itemTextMenu, "itemTextMenu", itemMenu.GetComponent<RectTransform>());
         itemTextMenu.AddComponent<Mask>().showMaskGraphic = false;
         itemTextMenu.AddComponent<Image>().color = new Color(0, 0, 0, 0.01f);
