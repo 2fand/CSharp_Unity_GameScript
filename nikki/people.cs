@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Unity.VisualScripting;
+using UnityEditor.ShaderKeywordFilter;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -59,6 +60,10 @@ public class people {
             long? _levelUpExp = getlevelUpExp(people.level);
             if (people.useLevel && null != _levelUpExp)
             {
+                if (people.level == people.maxLevel)
+                {
+                    return;
+                }
                 //升级
                 people.level++;
                 people.levelUpExp = _levelUpExp.Value;
@@ -91,108 +96,151 @@ public class people {
     }
     void setOther()
     {
-        Texture2D blackTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+        Texture2D blackTexture = new Texture2D(1, 1);
         blackTexture.SetPixel(0, 0, Color.black);
+        blackTexture.Apply();
         Sprite blackSprite = Sprite.Create(blackTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-        Texture2D emptyTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
-        emptyTexture.SetPixel(0, 0, new Color(0, 0, 0, 0));
-        Sprite emptySprite = Sprite.Create(emptyTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
-        you.UIinit(ref peopleCloseUpBackGround, "peopleCloseUpBackGround", parentBlock.GetComponent<RectTransform>().localPosition, new Vector2(parentBlock.GetComponent<RectTransform>().sizeDelta.y, parentBlock.GetComponent<RectTransform>().sizeDelta.y), parentBlock.transform, 0, 1);
+        Sprite emptySprite = Sprite.Create(Texture2D.blackTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+        you.UIinit(ref peopleCloseUpBackGround, "peopleCloseUpBackGround", Vector2.zero, new Vector2(parentBlock.GetComponent<RectTransform>().sizeDelta.y, parentBlock.GetComponent<RectTransform>().sizeDelta.y), parentBlock.transform, 0, 1);
         peopleCloseUpBackGround.AddComponent<Image>().sprite = (null != peopleCloseUp?.peopleCloseUpBackGround ? peopleCloseUp.peopleCloseUpBackGround : blackSprite);
         peopleCloseUpBackGround.GetComponent<Image>().color *= new Color(1, 1, 1, 0);
-        you.UIinit(ref peopleCloseUpInGame, "peopleCloseUpInGame", parentBlock.GetComponent<RectTransform>().localPosition, new Vector2(parentBlock.GetComponent<RectTransform>().sizeDelta.y, parentBlock.GetComponent<RectTransform>().sizeDelta.y), parentBlock.transform, 0, 1);
+        peopleCloseUpBackGround.GetComponent<Image>().type = Image.Type.Sliced;
+        you.UIinit(ref peopleCloseUpInGame, "peopleCloseUpInGame", Vector2.zero, new Vector2(parentBlock.GetComponent<RectTransform>().sizeDelta.y, parentBlock.GetComponent<RectTransform>().sizeDelta.y), parentBlock.transform, 0, 1);
         peopleCloseUpInGame.AddComponent<Image>().sprite = (null != peopleCloseUp?.peopleCloseUp ? peopleCloseUp.peopleCloseUp : emptySprite);
         peopleCloseUpInGame.GetComponent<Image>().color *= new Color(1, 1, 1, 0);
-        you.UIinit(ref peopleCloseUpFrame, "peopleCloseUpFrame", parentBlock.GetComponent<RectTransform>().localPosition, new Vector2(parentBlock.GetComponent<RectTransform>().sizeDelta.y, parentBlock.GetComponent<RectTransform>().sizeDelta.y), parentBlock.transform, 0, 1);
-        peopleCloseUpFrame.AddComponent<Image>().sprite = (null != peopleCloseUp?.peopleCloseUpFrame ? peopleCloseUp.peopleCloseUpFrame : blackSprite);
+        peopleCloseUpInGame.GetComponent<Image>().type = Image.Type.Sliced;
+        you.UIinit(ref peopleCloseUpFrame, "peopleCloseUpFrame", Vector2.zero, new Vector2(parentBlock.GetComponent<RectTransform>().sizeDelta.y, parentBlock.GetComponent<RectTransform>().sizeDelta.y), parentBlock.transform, 0, 1);
+        peopleCloseUpFrame.AddComponent<Image>().sprite = (null != peopleCloseUp?.peopleCloseUpFrame ? peopleCloseUp.peopleCloseUpFrame : emptySprite);
         peopleCloseUpFrame.GetComponent<Image>().color *= new Color(1, 1, 1, 0);
+        peopleCloseUpFrame.GetComponent<Image>().type = Image.Type.Sliced;
         Vector2 textsizeDelta = new Vector2((parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3);
-        you.UIinit(ref nameTextObject, "nameText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, 0), textsizeDelta, parentBlock.transform, 0, 1);
+        you.UIinit(ref nameTextObject, "nameText", new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, 0), textsizeDelta, parentBlock.transform, 0, 1);
         you.textInit(ref nameTextObject, peopleName, TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass.normal);
-        you.UIinit(ref recommendTextObject, "recommendText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, 0), textsizeDelta, parentBlock.gameObject.transform, 0, 1);
+        you.UIinit(ref recommendTextObject, "recommendText", new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, 0), textsizeDelta, parentBlock.gameObject.transform, 0, 1);
         you.textInit(ref recommendTextObject, recommend, TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.normal);
-        you.UIinit(ref levelTextObject, "levelText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3), textsizeDelta, parentBlock.transform, 0, 1);
+        you.UIinit(ref levelTextObject, "levelText", new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3), textsizeDelta, parentBlock.transform, 0, 1);
         you.textInit(ref levelTextObject, useLevel ? "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + levelUnit + "</color> " + level : "", TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass.normal);
-        you.UIinit(ref hpTextObject, "hpText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3), textsizeDelta, parentBlock.transform, 0, 1);
+        you.UIinit(ref hpTextObject, "hpText", new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3), textsizeDelta, parentBlock.transform, 0, 1);
         you.textInit(ref hpTextObject, useHp ? "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + hpUnit + "</color> " + hp + "/" + maxHp : "", TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.normal);
-        you.UIinit(ref mpTextObject, "mpText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3 * 2), textsizeDelta, parentBlock.transform, 0, 1);
+        you.UIinit(ref mpTextObject, "mpText", new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y + (parentBlock.GetComponent<RectTransform>().sizeDelta.x - parentBlock.GetComponent<RectTransform>().sizeDelta.y) / 2, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3 * 2), textsizeDelta, parentBlock.transform, 0, 1);
         you.textInit(ref mpTextObject, useMp ? "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + mpUnit + "</color> " + mp + "/" + maxMp : "", TextAnchor.MiddleRight, MenuTheme.menuTextColorClass.normal);
-        you.UIinit(ref expTextObject, "tpText", parentBlock.GetComponent<RectTransform>().localPosition + new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3 * 2), textsizeDelta, parentBlock.transform, 0, 1);
+        you.UIinit(ref expTextObject, "tpText", new Vector3(parentBlock.GetComponent<RectTransform>().sizeDelta.y, -parentBlock.GetComponent<RectTransform>().sizeDelta.y / 3 * 2), textsizeDelta, parentBlock.transform, 0, 1);
         you.textInit(ref expTextObject, useExp ? "<color=#" + you.myMenu.menuTextHighlightColor.ToHexString().Substring(0, 6) + "00>" + expUnit + "</color> " + exp + "/" + levelUpExp : "", TextAnchor.MiddleLeft, MenuTheme.menuTextColorClass.normal);
         parentBlock.transform.SetAsLastSibling();
     }
-
-    public people(string name, string recommend, string levelUnit = "", string hpUnit = "", string mpUnit = "", string expUnit = "", bool? useHp = null, int hp = 1, int maxHp = 1, bool? useMp = null, int mp = 0, int maxMp = 0, bool? useExp = null, int exp = 0, bool? useLevel = null, int level = 0, int maxLevel = 0)
+    public people(string name, string recommend, closeUp peopleCloseUp,
+#nullable enable
+        string? levelUnit = null, string? hpUnit = null, string? mpUnit = null, string? expUnit = null, bool? useHp = null, int? hp = null, int? maxHp = null, bool? useMp = null, int? mp = null, int? maxMp = null, bool? useExp = null, int? exp = null, bool? useLevel = null, int? level = null, int? maxLevel = null)
+#nullable disable
     {
-        peopleCloseUp = effectItem.effectCloseup?[0];
+        this.peopleCloseUp = peopleCloseUp;
         peopleName = name;
         this.recommend = recommend;
         this.useHp = useHp ?? Game.useHealth;
-        this.hp = hp;
-        this.maxHp = maxHp;
+        this.hp = hp ?? Game.defaultHp;
+        this.maxHp = maxHp ?? Game.defaultMaxHp;
         this.useMp = useMp ?? Game.useMp;
-        this.mp = mp;
-        this.maxMp = maxMp;
+        this.mp = mp ?? Game.defaultMp;
+        this.maxMp = maxMp ?? Game.defaultMaxMp;
         this.useExp = useExp ?? Game.useExp;
-        this.exp = exp;
+        this.exp = exp ?? Game.defaultExp;
         this.levelUpExp = getlevelUpExp(0).Value;
         this.useLevel = useLevel ?? Game.useLevel;
-        this.level = level;
-        this.maxLevel = maxLevel;
+        this.level = level ?? Game.defaultLevel;
+        this.maxLevel = maxLevel ?? Game.defaultLevel;
         this.hpUnit = hpUnit ?? Game.hpUnit;
         this.mpUnit = mpUnit ?? Game.mpUnit;
         this.expUnit = expUnit ?? Game.expUnit;
         this.levelUnit = levelUnit ?? Game.levelUnit;
         int i = you.yourTeam.Count;
-        parentBlock = new GameObject("parentBlock").AddComponent<RectTransform>();
+        parentBlock = new GameObject("parentBlock" + name).AddComponent<RectTransform>();
         parentBlock.pivot = new Vector2(0, 1);
         parentBlock.transform.SetParent(you.You.YouMenuRectTransform, false);
         parentBlock.GetComponent<RectTransform>().localPosition = new Vector2(0, -90 * i);
         parentBlock.GetComponent<RectTransform>().sizeDelta = new Vector2(you.You.YouMenuRectTransform.sizeDelta.x, 90);
-        this.parentBlock.gameObject.transform.parent.AddComponent<Mask>().showMaskGraphic = false;
-        this.parentBlock.gameObject.transform.parent.AddComponent<Image>().color = Color.white;
+        if (null == parentBlock.gameObject.transform.parent.GetComponent<Mask>())
+        {
+            this.parentBlock.gameObject.transform.parent.AddComponent<Mask>().showMaskGraphic = false;
+        }
+        if (null == parentBlock.gameObject.transform.parent.GetComponent<Image>())
+        {
+            this.parentBlock.gameObject.transform.parent.AddComponent<Image>().color = Color.white;
+        }
         setOther();
         you.yourTeam.Add(this);
     }
-    public people(string name, string recommend, RectTransform parentBlock, string levelUnit = "", string hpUnit = "", string mpUnit = "", string tpUnit = "", bool? useHp = null, int hp = 0, int maxHp = 0, bool? useMp = null, int mp = 0, int maxMp = 0, bool? useExp = null, int exp = 0, bool? useLevel = null, int level = 0, int maxLevel = 0)
+    public people(string name, string recommend, closeUp peopleCloseUp, 
+        #nullable enable 
+        RectTransform parentBlock, string? levelUnit = null, string? hpUnit = null, string? mpUnit = null, string? expUnit = null, bool? useHp = null, int? hp = null, int? maxHp = null, bool? useMp = null, int? mp = null, int? maxMp = null, bool? useExp = null, int? exp = null, bool? useLevel = null, int? level = null, int? maxLevel = null)
+#nullable disable
     {
-        peopleCloseUp = effectItem.effectCloseup?[0];
+        this.peopleCloseUp = peopleCloseUp;
         this.peopleName = name;
         this.recommend = recommend;
         this.useHp = useHp ?? Game.useHealth;
-        this.hp = hp;
-        this.maxHp = maxHp;
+        this.hp = hp ?? Game.defaultHp;
+        this.maxHp = maxHp ?? Game.defaultMaxHp;
         this.useMp = useMp ?? Game.useMp;
-        this.mp = mp;
-        this.maxMp = maxMp;
+        this.mp = mp ?? Game.defaultMp;
+        this.maxMp = maxMp ?? Game.defaultMaxMp;
         this.useExp = useExp ?? Game.useExp;
-        this.exp = exp;
+        this.exp = exp ?? Game.defaultExp;
         this.levelUpExp = getlevelUpExp(0).Value;
         this.useLevel = useLevel ?? Game.useLevel;
-        this.level = level;
-        this.maxLevel = maxLevel;
+        this.level = level ?? Game.defaultLevel;
+        this.maxLevel = maxLevel ?? Game.defaultMaxLevel;
         this.hpUnit = hpUnit ?? Game.hpUnit;
         this.mpUnit = mpUnit ?? Game.mpUnit;
         this.expUnit = expUnit ?? Game.expUnit;
         this.levelUnit = levelUnit ?? Game.levelUnit;
         this.parentBlock = new GameObject("parentBlock").AddComponent<RectTransform>();
         this.parentBlock = parentBlock;
-        this.parentBlock.gameObject.AddComponent<Mask>().showMaskGraphic = false;
-        this.parentBlock.gameObject.AddComponent<Image>().color = Color.white;
+        if (null == parentBlock.gameObject.transform.parent.GetComponent<Mask>())
+        {
+            this.parentBlock.gameObject.AddComponent<Mask>().showMaskGraphic = false;
+        }
+        if (null == parentBlock.gameObject.transform.parent.GetComponent<Image>())
+        {
+            this.parentBlock.gameObject.AddComponent<Image>().color = Color.white;
+        }
         setOther();
         you.yourTeam.Add(this);
     }
     
     public static void swapPeople(int indexI, int indexIa)
     {
-        people temp = you.yourTeam[indexI];
-        you.yourTeam[indexI] = you.yourTeam[indexIa];
-        you.yourTeam[indexIa] = temp;
-        RectTransform tempRect = you.yourTeam[indexIa].parentBlock;
-        you.yourTeam[indexIa].parentBlock = you.yourTeam[indexI].parentBlock;
-        you.yourTeam[indexI].parentBlock = tempRect;
+        if (indexI >= 0 && indexIa >= 0 && indexI < you.yourTeam.Count && indexIa < you.yourTeam.Count)
+        {
+            people temp = you.yourTeam[indexI];
+            you.yourTeam[indexI] = you.yourTeam[indexIa];
+            you.yourTeam[indexIa] = temp;
+            Vector2 pos = you.yourTeam[indexI].parentBlock.localPosition;
+            you.yourTeam[indexI].parentBlock.localPosition = you.yourTeam[indexIa].parentBlock.localPosition;
+            you.yourTeam[indexIa].parentBlock.localPosition = pos;
+        }
     }
-    
+
+    public static void delPeople()
+    {
+        if (0 < you.yourTeam.Count)
+        {
+            you.yourTeam.RemoveAt(you.yourTeam.Count - 1);
+        }
+    }
+
+    public static void delPeople(int index)
+    {
+        Debug.Log(index + "/" + you.yourTeam.Count);
+        if (index < you.yourTeam.Count)
+        {
+            you.yourTeam.RemoveAt(index);
+            while (index < you.yourTeam.Count)
+            {
+                you.yourTeam[index].parentBlock.localPosition += new Vector3(0, 90);
+                index++;
+            }
+        }
+    }
     public static void addPeoplesColor(Color c)
     {
         string colorStr = "";
