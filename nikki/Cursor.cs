@@ -273,9 +273,10 @@ public class Cursor : MonoBehaviour
                 x++;
                 break;
             case dodgeMode.animation:
-                GetComponent<Image>().sprite = you.myMenu.cursorAnimation[(int)x];
-                x++;
-                x = (int)x % you.myMenu.cursorAnimation.Length;
+                if (null == GetComponent<pictureAnimation>())
+                {
+                    gameObject.AddComponent<pictureAnimation>().pictures = you.myMenu.cursorAnimation;
+                }
                 yield return new WaitForSeconds(0.1f);
                 break;
             case dodgeMode.fade:
