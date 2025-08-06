@@ -7,7 +7,7 @@ public class edit : MonoBehaviour
 {
     public enum playMode
     {
-        edit, 
+        edit,
         play
     }
     public map m;
@@ -31,6 +31,8 @@ public class edit : MonoBehaviour
     public int extendUp = 0;
     public int extendDown = 0;
     public playMode defaultPlayMode = playMode.edit;
+    Vector2? lastPoint = null;
+    GameObject editMapView;
     int getMapX(float ox)
     {
         return (int)((ox - m.minX) * m.x / m.heightX - 0.5f);
@@ -51,6 +53,47 @@ public class edit : MonoBehaviour
         return m.maxY - (my + 0.5f) * m.widthY / m.y;
     }
 
+    void deleteTile(int x, int y)
+    {
+        Destroy(editMap[x, y]);
+        editMap[x, y] = null;
+    }
+
+    private void editTile(int x, int y, ref Vector3[] clones)
+    {
+        result.Add(x.ToString() + map.xyDelimiter + y.ToString());
+        draw = 1;
+        if (isMakeWall)
+        {
+            for (int i = 0; i < wall.transform.childCount; i++)
+            {
+                Destroy(wall.transform.GetChild(i).gameObject);
+            }
+            wall.AddComponent<wall>();
+            wall.GetComponent<wall>().x = x;
+            wall.GetComponent<wall>().y = y;
+            wall.GetComponent<wall>().extendLeft = extendLeft;
+            wall.GetComponent<wall>().extendRight = extendRight;
+            wall.GetComponent<wall>().extendUp = extendUp;
+            wall.GetComponent<wall>().extendDown = extendDown;
+            wall.GetComponent<wall>().m = m;
+            wall.GetComponent<wall>().wallPrefab = wallPrefab;
+        }
+        editMap[x, y] = wall;
+        editMap[x, y].transform.localPosition = new Vector3(getGameX(x), 0, getGameY(y));
+        wall = Instantiate(wallPrefab);
+        foreach (Vector3 v in clones)
+        {
+            if (!m.horizontalIsCycle && v.x != 0 || !m.verticalIsCycle && v.z != 0)
+            {
+                continue;
+            }
+            wallPrefab.transform.localPosition = v + wall.transform.position;
+            wallPrefab.transform.rotation = wall.transform.rotation;
+            Instantiate(wallPrefab, wall.transform, true);
+        }
+    }
+
     IEnumerator editMode()
     {
         isEnd = false;
@@ -61,10 +104,10 @@ public class edit : MonoBehaviour
             isEdit = true;
             u.GameCamera.GetComponent<Camera>().enabled = false;
             editCamera.GetComponent<Camera>().enabled = true;
-            GameObject canEditMap = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            canEditMap.GetComponent<MeshRenderer>().material = editMaterial;
-            canEditMap.transform.position = new Vector3((m.minX + m.maxX) / 2, m.transform.position.y + 20, (m.minY + m.maxY) / 2);
-            canEditMap.transform.localScale = new Vector3(m.heightX, 0.01f, m.widthY);
+            editMapView = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            editMapView.GetComponent<MeshRenderer>().material = editMaterial;
+            editMapView.transform.position = new Vector3((m.minX + m.maxX) / 2, m.transform.position.y + 20, (m.minY + m.maxY) / 2);
+            editMapView.transform.localScale = new Vector3(m.heightX, 0.01f, m.widthY);
             wall = Instantiate(wallPrefab);
             foreach (Vector3 v in clones)
             {
@@ -96,6 +139,28 @@ public class edit : MonoBehaviour
                     wait = true;
                     if (-1 != draw && null == editMap[getMapX(wall.transform.position.x), getMapY(wall.transform.position.z)])
                     {
+                        if (null != lastPoint)
+                        {
+                            float x = lastPoint.Value.x;
+                            float y = lastPoint.Value.y;
+                            int wallPosXInMap = getMapX(wall.transform.position.x);
+                            int wallPosYInMap = getMapY(wall.transform.position.z);
+                            float xOffset = (wallPosXInMap - x) / (0 == Mathf.Max(Mathf.Abs(wallPosXInMap - x), Mathf.Abs(wallPosYInMap - y)) ? 0 : Mathf.Max(Mathf.Abs(wallPosXInMap - x), Mathf.Abs(wallPosYInMap - y)));
+                            float yOffset = (wallPosYInMap - y) / (0 == Mathf.Max(Mathf.Abs(wallPosXInMap - x), Mathf.Abs(wallPosYInMap - y)) ? 0 : Mathf.Max(Mathf.Abs(wallPosXInMap - x), Mathf.Abs(wallPosYInMap - y)));
+                            int i = 0;
+                            while (i < 100 && new Vector2(Mathf.RoundToInt(x), Mathf.RoundToInt(y)) != new Vector2(wallPosXInMap, wallPosYInMap))
+                            {
+                                if (null == editMap[Mathf.RoundToInt(x), Mathf.RoundToInt(y)])
+                                {
+                                    editTile(Mathf.RoundToInt(x), Mathf.RoundToInt(y), ref clones);
+                                }
+                                x += xOffset;
+                                y += yOffset;
+                                i++;
+                            }
+                            wall.transform.position = new Vector3(getGameX(Mathf.RoundToInt(x)), 0, getGameY(Mathf.RoundToInt(y)));
+                        }
+                        lastPoint = new Vector2(getMapX(wall.transform.position.x), getMapY(wall.transform.position.z));
                         result.Add(getMapX(wall.transform.position.x).ToString() + map.xyDelimiter + getMapY(wall.transform.position.z).ToString());
                         draw = 1;
                         if (isMakeWall)
@@ -114,6 +179,7 @@ public class edit : MonoBehaviour
                             wall.GetComponent<wall>().m = m;
                             wall.GetComponent<wall>().wallPrefab = wallPrefab;
                         }
+                        Debug.Log(getMapX(wall.transform.position.x)+","+ getMapY(wall.transform.position.z));
                         editMap[getMapX(wall.transform.position.x), getMapY(wall.transform.position.z)] = wall;
                         wall = Instantiate(wallPrefab);
                         foreach (Vector3 v in clones)
@@ -127,9 +193,29 @@ public class edit : MonoBehaviour
                             Instantiate(wallPrefab, wall.transform, true);
                         }
                     }
-                    else if(1 != draw)
+                    else if (1 != draw)
                     {
                         draw = -1;
+                        if (null != lastPoint)
+                        {
+                            float x = lastPoint.Value.x;
+                            float y = lastPoint.Value.y;
+                            int wallPosXInMap = getMapX(wall.transform.position.x);
+                            int wallPosYInMap = getMapY(wall.transform.position.z);
+                            float xOffset = (wallPosXInMap - x) / (0 == Mathf.Max(Mathf.Abs(wallPosXInMap - x), Mathf.Abs(wallPosYInMap - y)) ? 0 : Mathf.Max(Mathf.Abs(wallPosXInMap - x), Mathf.Abs(wallPosYInMap - y)));
+                            float yOffset = (wallPosYInMap - y) / (0 == Mathf.Max(Mathf.Abs(wallPosXInMap - x), Mathf.Abs(wallPosYInMap - y)) ? 0 : Mathf.Max(Mathf.Abs(wallPosXInMap - x), Mathf.Abs(wallPosYInMap - y)));
+                            while (new Vector2(Mathf.RoundToInt(x), Mathf.RoundToInt(y)) != new Vector2(wallPosXInMap, wallPosYInMap))
+                            {
+                                if (null != editMap[Mathf.RoundToInt(x), Mathf.RoundToInt(y)])
+                                {
+                                    deleteTile(Mathf.RoundToInt(x), Mathf.RoundToInt(y));
+                                }
+                                x += xOffset;
+                                y += yOffset;
+                            }
+                            wall.transform.position = new Vector3(getGameX(Mathf.RoundToInt(x)), 0, getGameY(Mathf.RoundToInt(y)));
+                        }
+                        lastPoint = new Vector2(getMapX(wall.transform.position.x), getMapY(wall.transform.position.z));
                         result.Remove(getMapX(wall.transform.position.x).ToString() + "," + getMapY(wall.transform.position.z).ToString());
                         wall.GetComponent<MeshRenderer>().materials = delMaterials;
                         wall.transform.position = new Vector3(wall.transform.position.x, wallHigh + wall.transform.localScale.y, wall.transform.position.z);
@@ -144,6 +230,7 @@ public class edit : MonoBehaviour
                 }
                 else
                 {
+                    lastPoint = null;
                     draw = 0;
                     wall.transform.position = new Vector3(wall.transform.position.x, wallHigh, wall.transform.position.z);
                     wall.GetComponent<MeshRenderer>().materials = defaultMaterials;
@@ -161,7 +248,7 @@ public class edit : MonoBehaviour
                     wall.GetComponentsInChildren<MeshRenderer>()[i].enabled = false;
                 }
             }
-            if (Input.GetKeyDown("i"))//∑¥◊™
+            if (Input.GetKeyDown("i"))//ÂèçËΩ¨
             {
                 result.Clear();
                 for (int i = 0; i < m.x; i++)
@@ -207,7 +294,7 @@ public class edit : MonoBehaviour
                     }
                 }
             }
-            if (Input.GetKeyDown("c"))//«Âø’
+            if (Input.GetKeyDown("c"))//Ê∏ÖÁ©∫
             {
                 result.Clear();
                 for (int i = 0; i < m.x; i++)
@@ -222,27 +309,42 @@ public class edit : MonoBehaviour
                     }
                 }
             }
-            if (Input.GetKeyDown("r"))// ‰≥ˆ◊¯±Í
+            if (Input.GetKeyDown("r"))//ËæìÂá∫ÂùêÊ†á
             {
                 foreach (string s in result)
                 {
                     debugOut += s + map.itemDelimiter;
                 }
                 GUIUtility.systemCopyBuffer = debugOut;
-                Debug.Log("“—ÕÍ≥…ÕºøÈ◊¯±Í∏¥÷∆");
+                Debug.Log("Â∑≤ÂÆåÊàêÂõæÂùóÂùêÊ†áÂ§çÂà∂");
             }
-            if (Input.GetKeyDown("n"))//npc“∆∂Ø
+            if (Input.GetKeyDown("n"))//npcÁßªÂä®
             {
                 npcMove.npcCanMove = !npcMove.npcCanMove;
             }
-            if (Input.GetKeyDown("y"))//ÕÊº““∆∂Ø
+            if (Input.GetKeyDown("y"))//Áé©ÂÆ∂ÁßªÂä®
             {
                 you.notOver = !you.notOver;
                 Debug.Log("you.notOver = " + you.notOver.ToString());
             }
-            if (Input.GetKeyDown("q")) {// «∑Ò‘Ï«Ω
+            if (Input.GetKeyDown("q"))
+            {//ÊòØÂê¶ÈÄ†Â¢ô
                 isMakeWall = !isMakeWall;
                 Debug.Log("isMakeWall = " + isMakeWall.ToString());
+            }
+            if (Input.GetKeyDown("y"))
+            {
+                u.GameCamera.GetComponent<Camera>().enabled = !u.GameCamera.GetComponent<Camera>().enabled;
+                editCamera.GetComponent<Camera>().enabled = !editCamera.GetComponent<Camera>().enabled;
+                editMapView.GetComponent<MeshRenderer>().enabled = !editMapView.GetComponent<MeshRenderer>().enabled;
+                if (u.GameCamera.GetComponent<Camera>().enabled)
+                {
+                    Debug.Log("ÂàáÊç¢‰∏∫ÂÆûÈôÖÊ∏∏Áé©Ê®°Âºè");
+                }
+                else
+                {
+                    Debug.Log("ÂàáÊç¢‰∏∫ÁºñËæëÂú∞ÂõæÊ®°Âºè");
+                }
             }
         }
         isEnd = true;
@@ -268,7 +370,8 @@ public class edit : MonoBehaviour
                 delMaterialIndex = i;
             }
         }
-        for (int i = 0; -1 != delMaterialIndex && i < delMaterials.Length; i++) {
+        for (int i = 0; -1 != delMaterialIndex && i < delMaterials.Length; i++)
+        {
             delMaterials[i] ??= delMaterials[delMaterialIndex];
         }
         editCamera = new GameObject("editCamera");
