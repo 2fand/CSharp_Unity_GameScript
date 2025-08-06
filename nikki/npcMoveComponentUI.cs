@@ -14,23 +14,23 @@ public class npcMoveComponentUI : Editor
     }
     public override void OnInspectorGUI()
     {
-        npcMove.waitTime = EditorGUILayout.FloatField("npcÒÆ¶¯ºóÀäÈ´", npcMove.waitTime);
-        npcMove.speed = EditorGUILayout.FloatField("npcÒÆ¶¯ËÙ¶È", npcMove.speed);
-        npcMove.isTurn = EditorGUILayout.Toggle("npcÊÇ·ñ×ªÍä", npcMove.isTurn);
-        npcMove.moveMode = (npcMove.move)EditorGUILayout.EnumPopup("npcÒÆ¶¯·½Ê½", npcMove.moveMode);
+        npcMove.waitTime = EditorGUILayout.FloatField("npcç§»åŠ¨åå†·å´", npcMove.waitTime);
+        npcMove.speed = EditorGUILayout.FloatField("npcç§»åŠ¨é€Ÿåº¦", npcMove.speed);
+        npcMove.canTurn = EditorGUILayout.Toggle("npcç§»åŠ¨åæ˜¯å¦æ”¹å˜æ–¹å‘", npcMove.canTurn);
+        npcMove.moveMode = (npcMove.move)EditorGUILayout.EnumPopup("npcç§»åŠ¨æ–¹å¼", npcMove.moveMode);
         if (npcMove.move.Catch == npcMove.moveMode) {
-            npcMove.canOver = EditorGUILayout.Toggle("ÊÇ·ñÄÜ±»´«ËÍ", npcMove.canOver);
-            npcMove.hurtSound = (AudioClip)EditorGUILayout.ObjectField("±»×¥Ç°ÒôĞ§", npcMove.hurtSound, typeof(AudioClip), false);
-            npcMove.catchSound = (AudioClip)EditorGUILayout.ObjectField("±»×¥ºóÒôĞ§", npcMove.catchSound, typeof(AudioClip), false);
-            npcMove.enterMode = (change.enterMode)EditorGUILayout.EnumPopup("±»×¥Ç°×ª³¡", npcMove.enterMode);
-            npcMove.exitMode = (change.exitMode)EditorGUILayout.EnumPopup("±»×¥ºó×ª³¡", npcMove.exitMode);
-            npcMove.teleWorldName = EditorGUILayout.TextField("±»×¥ºó´«ËÍµ½µÄÊÀ½çÃû");
+            npcMove.canOver = EditorGUILayout.Toggle("æ˜¯å¦èƒ½è¢«ä¼ é€", npcMove.canOver);
+            npcMove.hurtSound = (AudioClip)EditorGUILayout.ObjectField("è¢«æŠ“å‰éŸ³æ•ˆ", npcMove.hurtSound, typeof(AudioClip), false);
+            npcMove.catchSound = (AudioClip)EditorGUILayout.ObjectField("è¢«æŠ“åéŸ³æ•ˆ", npcMove.catchSound, typeof(AudioClip), false);
+            npcMove.enterMode = (change.enterMode)EditorGUILayout.EnumPopup("è¢«æŠ“å‰è½¬åœº", npcMove.enterMode);
+            npcMove.exitMode = (change.exitMode)EditorGUILayout.EnumPopup("è¢«æŠ“åè½¬åœº", npcMove.exitMode);
+            npcMove.teleWorldName = EditorGUILayout.TextField("è¢«æŠ“åä¼ é€åˆ°çš„ä¸–ç•Œå");
             pos = new Vector2Int(npcMove.teleWorldX, npcMove.teleWorldY);
-            pos = EditorGUILayout.Vector2IntField("±»×¥ºó´«ËÍµ½µÄ×ø±ê", pos);
+            pos = EditorGUILayout.Vector2IntField("è¢«æŠ“åä¼ é€åˆ°çš„åæ ‡", pos);
             npcMove.teleWorldX = pos.x;
             npcMove.teleWorldY = pos.y;
-            npcMove.teleWorldHigh = EditorGUILayout.FloatField("±»×¥ºó´«ËÍ¸ß¶È", npcMove.teleWorldHigh);
-            npcMove.teleYouFront = (npcMove.wasd)EditorGUILayout.EnumPopup("±»×¥ºóÎÒµÄ·½Ïò", npcMove.teleYouFront); 
+            npcMove.teleWorldHigh = EditorGUILayout.FloatField("è¢«æŠ“åä¼ é€é«˜åº¦", npcMove.teleWorldHigh);
+            npcMove.teleYouFront = (npcMove.wasd)EditorGUILayout.EnumPopup("è¢«æŠ“åæˆ‘çš„æ–¹å‘", npcMove.teleYouFront); 
         }
     }
 }
