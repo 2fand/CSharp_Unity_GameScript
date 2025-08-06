@@ -28,7 +28,6 @@ public class npcMove : MonoBehaviour
     public float waitTime = 0.2f;
     public float speed = 2;
     public wall npc;
-    public bool isTurn = true;
     public move moveMode;
     public bool canOver = false;
     public AudioClip catchSound;
@@ -42,6 +41,7 @@ public class npcMove : MonoBehaviour
     public int teleWorldY = 15;
     public float teleWorldHigh = 0;
     public wasd teleYouFront = wasd.s;
+    public bool canTurn = true;
     int maxNum(int a, int b)
     {
         return a > b ? a : b;
@@ -223,15 +223,15 @@ public class npcMove : MonoBehaviour
 
     IEnumerator pyou()
     {
-        //初始
+        //鍒濆
         isEnd = false;
         wasd i = getwasd();
         for (int j = 0; j < 10; j++)
         {
-            switch (i)//移动
+            switch (i)//绉诲姩
             {
                 case wasd.w:
-                    if (isTurn)
+                    if (canTurn)
                     {
                         npc.front = you.wasd.w;
                     }
@@ -240,7 +240,7 @@ public class npcMove : MonoBehaviour
                     yield return new WaitUntil(() => 0 == you.Menus.Count);
                     break;
                 case wasd.a:
-                    if (isTurn)
+                    if (canTurn)
                     {
                         npc.front = you.wasd.a;
                     }
@@ -249,7 +249,7 @@ public class npcMove : MonoBehaviour
                     yield return new WaitUntil(() => 0 == you.Menus.Count);
                     break;
                 case wasd.s:
-                    if (isTurn)
+                    if (canTurn)
                     {
                         npc.front = you.wasd.s;
                     }
@@ -258,19 +258,19 @@ public class npcMove : MonoBehaviour
                     yield return new WaitUntil(() => 0 == you.Menus.Count);
                     break;
                 case wasd.d:
-                    if (isTurn)
+                    if (canTurn)
                     {
                         npc.front = you.wasd.d;
                     }
                     transform.position += new Vector3(m.heightX / m.x / 10.0f, 0, 0);
-                    yield return new WaitForSeconds(0.1f / speed / 10.0f);//移动间隔时间
+                    yield return new WaitForSeconds(0.1f / speed / 10.0f);//绉诲姩闂撮殧鏃堕棿
                     yield return new WaitUntil(() => 0 == you.Menus.Count);
                     break;
-                default://wasd.n时无
+                default://wasd.n鏃舵棤
                     goto nowait;
             }
         }
-        yield return new WaitForSeconds(waitTime);//移动等待时间
+        yield return new WaitForSeconds(waitTime);//绉诲姩绛夊緟鏃堕棿
     nowait:
         isEnd = true;
         yield return null;
@@ -294,20 +294,23 @@ public class npcMove : MonoBehaviour
 
     void Update()
     {
-        switch (npc.front)
+        if (canTurn)
         {
-            case you.wasd.w:
-                transform.rotation = Quaternion.Euler(-90, 0, 180);
-                break;
-            case you.wasd.a:
-                transform.rotation = Quaternion.Euler(-90, 0, 90);
-                break;
-            case you.wasd.s:
-                transform.rotation = Quaternion.Euler(-90, 0, 0);
-                break;
-            default:
-                transform.rotation = Quaternion.Euler(-90, 0, -90);
-                break;
+            switch (npc.front)
+            {
+                case you.wasd.w:
+                    transform.rotation = Quaternion.Euler(-90, 0, 180);
+                    break;
+                case you.wasd.a:
+                    transform.rotation = Quaternion.Euler(-90, 0, 90);
+                    break;
+                case you.wasd.s:
+                    transform.rotation = Quaternion.Euler(-90, 0, 0);
+                    break;
+                default:
+                    transform.rotation = Quaternion.Euler(-90, 0, -90);
+                    break;
+            }
         }
         if ((m.horizontalIsCycle ? (you.You.x + 1) % m.x : you.You.x + 1) == GetComponent<wall>().x && you.You.y == GetComponent<wall>().y && you.front == you.wasd.d && Input.GetKeyDown("z"))
         {
