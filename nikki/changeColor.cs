@@ -15,5 +15,13 @@ public class changeColor : MonoBehaviour
         c = Mathf.Sin(Time.time / 10) * 0.5f + 0.5f;
         GetComponent<MeshRenderer>().material.color = new Color(c, c, c);
         GetComponent<MeshRenderer>().material.SetColor("_EmissionColor", new Color(c, c, c));
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            if (null != transform.GetChild(i).GetComponent<MeshRenderer>())
+            {
+                transform.GetChild(i).GetComponent<MeshRenderer>().material.SetColor("_EmissionColor", new Color(c, c, c));
+            }
+        }
     }
 }
+
