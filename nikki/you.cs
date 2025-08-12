@@ -761,7 +761,7 @@ public class you : MonoBehaviour
             for (int ib = 0; ib < 5 * 5; ib++)
             {
                 backGroundMask = new GameObject("backGroundMask");
-                backGroundMask.transform.localPosition = new Vector3(m.minX + (ib / 5 - 5 / 2) * m.heightX , m.transform.localPosition.y - 5, m.minY + (ib % 5 - 5 / 2) * m.widthY );
+                backGroundMask.transform.localPosition = new Vector3(m.minX + (ib / 5 - 5 / 2) * m.heightX, m.transform.localPosition.y - 5, m.minY + (ib % 5 - 5 / 2) * m.widthY);
                 backGroundMask.transform.rotation = Quaternion.Euler(90, 0, 0);
                 backGroundMask.transform.localScale = new Vector3(100, 100, 1);
                 backGroundMask.AddComponent<SpriteMask>().sprite = Sprite.Create(whiteTexture, new Rect(0, 0, Mathf.CeilToInt(m.heightX), Mathf.CeilToInt(m.widthY)), Vector2.zero);
@@ -774,10 +774,17 @@ public class you : MonoBehaviour
                         backGround = new GameObject("background");
                         backGround.transform.localScale = new Vector3(100 / backGroundMask.transform.localScale.x, 100 / backGroundMask.transform.localScale.y, 1);
                         backGround.transform.localPosition = new Vector3(i * m.backGround.rect.size.x / backGroundMask.transform.localScale.x, ia * m.backGround.rect.size.y / backGroundMask.transform.localScale.y);
-                        backGround.AddComponent<SpriteRenderer>().sprite = m.backGround;
-                        backGround.transform.SetParent(backGroundMask.transform, false);
+                        if (m.backGround.rect.size.x <= backGround.transform.localScale.x && m.backGround.rect.size.y <= backGround.transform.localScale.z)
+                        {
+                            backGround.AddComponent<SpriteRenderer>().sprite = Sprite.Create(m.backGround.texture, m.backGround.rect, Vector2.zero);
+                        }
+                        else
+                        {
+                            backGround.AddComponent<SpriteRenderer>().sprite = Sprite.Create(m.backGround.texture, new Rect(0, 0, m.heightX, m.widthY), Vector2.zero);
+                        }
+                        //backGround.GetComponent<SpriteRenderer>().sprite.;
                         backGround.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
-                        backGround.GetComponent<SpriteRenderer>().sortingOrder = ib / 5;
+                        backGround.transform.SetParent(backGroundMask.transform, false);
                         backGrounds.Add(backGround);
                     }
                 }
