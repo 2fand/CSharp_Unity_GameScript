@@ -1145,7 +1145,7 @@ public class you : MonoBehaviour
             canOpenMenu = false;
             npcMove.npcCanMove = false;
             npcMove.stopAnimation = true;
-            Debug.Log(enterMode + "," + exitMode);
+            //Debug.Log(enterMode + "," + exitMode);
             you.enterMode = enterMode;
             you.teleSound = teleSound ?? you.teleSound;
             yield return new WaitForSeconds(waitTeleSound && null != teleSound ? teleSound.length : 0);
