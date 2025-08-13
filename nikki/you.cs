@@ -782,7 +782,6 @@ public class you : MonoBehaviour
                         {
                             backGround.AddComponent<SpriteRenderer>().sprite = Sprite.Create(m.backGround.texture, new Rect(0, 0, m.heightX, m.widthY), Vector2.zero);
                         }
-                        //backGround.GetComponent<SpriteRenderer>().sprite.;
                         backGround.GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
                         backGround.transform.SetParent(backGroundMask.transform, false);
                         backGrounds.Add(backGround);
@@ -1291,7 +1290,7 @@ public class you : MonoBehaviour
         Destroy(tempCursor1);
         if (0 != menus.Count)
         {
-            StartCoroutine(trigger.runCommands(commands, null, this));
+            StartCoroutine(new trigger().runCommands(commands, null, this));
         }
         canOpenMenu = true;
         commandIsEnd = true;
@@ -1368,7 +1367,7 @@ public class you : MonoBehaviour
                 hideOrShowMenu(last_menu);
                 yield return new WaitForSeconds(0.05f);
             }
-            StartCoroutine(trigger.runCommands(commands, null, this));
+            StartCoroutine(new trigger().runCommands(commands, null, this));
             canOpenMenu = true;
             Cursor.cursorCanMove = true;
             if (0 == trigger.funcs.Count)
@@ -1642,7 +1641,7 @@ public class you : MonoBehaviour
                 }
                 else if (menuClass.doAction == yourSelect.MenuClass)
                 { 
-                    StartCoroutine(trigger.runCommands(((actionItem)yourSelect.UsedItem).commands, ((actionItem)yourSelect.UsedItem).sounds, this));
+                    StartCoroutine(new trigger().runCommands(((actionItem)yourSelect.UsedItem).commands, ((actionItem)yourSelect.UsedItem).sounds, this));
                 }
                 else
                 {
