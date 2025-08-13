@@ -9,6 +9,20 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
+public class runCommands
+{
+    bool isEnd = true;
+    public IEnumerator runCommand(string[] commands, AudioClip[] sounds = null, you u = null)
+    {
+        if (isEnd)
+        {
+            isEnd = false;
+            yield return null;
+            isEnd = true;
+        }
+    }
+}
+
 public class trigger : MonoBehaviour
 {
     public enum commandFronts
@@ -36,8 +50,7 @@ public class trigger : MonoBehaviour
     }
     public int x = 0;
     public int y = 0;
-    public readonly static Hashtable commandHelpStrings = new Hashtable { { "tele", "teleÃüÁî£ºÈÃÍæ¼Ò´«ËÍÖÁÖ¸¶¨µØµã(ÃüÁî¸ñÊ½£ºtele ÍË³ö×ª³¡ ÍË³ö×ª³¡Ê±¼ä ½øÈë×ª³¡ ½øÈë×ª³¡Ê±¼ä [ÊÀ½çÃû = \"nexus\"] [´«ËÍx×ø±ê = 0] [´«ËÍy×ø±ê = 0] [³¯Ïò = ÄãµÄ³¯Ïò] [´«ËÍÊ±ÒôĞ§ÔÚsoundsµÄË÷Òı = 0(¿ÉÎªnull)] [´«ËÍºóÒôĞ§ÔÚsoundsµÄË÷Òı = 0(¿ÉÎªnull)] [ÊÇ·ñ×Ô¶¯Çå¿Õµ±Ç°´ò¿ªµÄ²Ëµ¥ = true])" }, { "help", "helpÃüÁî£ºÁË½âÃüÁîµÄÖ÷Òª×÷ÓÃ(ÃüÁî¸ñÊ½£ºhelp ÃüÁîÃû³Æ)" }, { "#", "#ÃüÁî£ºÓÃÀ´×¢ÊÍÃüÁî(ÃüÁî¸ñÊ½£º# ...)" }, { "move", "moveÃüÁî£ºÇ¿ÖÆÈÃÍæ¼ÒÒÆ¶¯(ÃüÁî¸ñÊ½£ºmove [ËÙ¶È]³¯Ïò [²½Êı = 1] [ÊÇ·ñ×Ô¶¯Çå¿Õµ±Ç°´ò¿ªµÄ²Ëµ¥ = true])" }, { "show", "showÃüÁî£ºÏÔÊ¾Íæ¼Ò(ÃüÁî¸ñÊ½£ºshow  [ÊÇ·ñ×Ô¶¯Çå¿Õµ±Ç°´ò¿ªµÄ²Ëµ¥ = true])" }, { "hide", "hideÃüÁî£ºÒş²ØÍæ¼Ò(ÃüÁî¸ñÊ½£ºhide  [ÊÇ·ñ×Ô¶¯Çå¿Õµ±Ç°´ò¿ªµÄ²Ëµ¥ = true])" }, { "play", "playÃüÁî£º²¥·ÅÒ»¶ÎÉùÒô(ÃüÁî¸ñÊ½£ºplay [ÉùÒôÔÚsoundsµÄË÷Òı = 0] [ÊÇ·ñµÈ´ıÉùÒô½áÊø = false]  [ÊÇ·ñ×Ô¶¯Çå¿Õµ±Ç°´ò¿ªµÄ²Ëµ¥ = false])" }, { "turn", "turnÃüÁî£º¸Ä±äÍæ¼ÒµÄ³¯Ïò(ÃüÁî¸ñÊ½£ºturn [³¯Ïò = s]|[Íæ¼Ò×ªµÄ·½Ê½ = (l(eft)|b(ack)|r(ight))]  [ÊÇ·ñ×Ô¶¯Çå¿Õµ±Ç°´ò¿ªµÄ²Ëµ¥ = true]))" }, { "stop", "stopÃüÁî£ºÍ£Ö¹·¢³öÉùÒô(ÃüÁî¸ñÊ½£ºstop)" }, { "wait", "waitÃüÁî£ºµÈ´ıÒ»¶ÎÊ±¼ä(ÃüÁî¸ñÊ½£ºwait [µÈ´ıÊ±¼ä = 1])" }, { "use", "useÃüÁî£ºÊ¹ÓÃÎïÆ·À¸ÀïµÚÒ»¸öµÀ¾ßÃûÏàÍ¬µÄµÀ¾ß(ÃüÁî¸ñÊ½£ºuse [µÀ¾ßÃû = \"default\"]  [ÊÇ·ñ×Ô¶¯Çå¿Õµ±Ç°´ò¿ªµÄ²Ëµ¥ = true])" }, { "debug", "debugÃüÁî£ºÊä³öÒ»Ğ©ĞÅÏ¢(ÃüÁî¸ñÊ½£ºdebug (ĞÅÏ¢))" }, { "value", "valueÃüÁî£º²é¿´¹ØÓÚÄ³Ğ©ÌØÊâÀàĞÍ±äÁ¿µÄÏêÏ¸½éÉÜ(ÃüÁî¸ñÊ½£ºvalue)" }, { "goto", "gotoÃüÁî£ºÌø×ªµ½Ä³Ò»ĞĞ(ÃüÁî¸ñÊ½£ºgoto (±êÇ©(±êÇ©¸ñÊ½£º¡°(±êÇ©Ãû):¡±)))" }, { "exit", "exitÃüÁî£ºÍË³öÓÎÏ·(ÃüÁî¸ñÊ½£ºexit  [ÊÇ·ñ×Ô¶¯Çå¿Õµ±Ç°´ò¿ªµÄ²Ëµ¥ = false])" }, { "close", "closeÃüÁî£ºÌø³öµ±Ç°²Ëµ¥(ÃüÁî¸ñÊ½£ºclose)" }, { "clear", "clearÃüÁî£ºÇå¿Õµ±Ç°µÄ²Ëµ¥(ÃüÁî¸ñÊ½£ºclear)" } };
-    public readonly static Hashtable valueHelpStrings = new Hashtable { { "none", "(½øÈë×ª³¡|Àë¿ª×ª³¡)£ºÎŞ" }, { "show", "½øÈë×ª³¡£ºÖğ½¥ÏÔÊ¾" }, { "hide", "Àë¿ª×ª³¡£ºÖğ½¥Òş²Ø" }, { "fadein", "½øÈë×ª³¡£ºµ­Èë" }, { "fadeout", "Àë¿ª×ª³¡£ºµ­³ö" }, { "w", "³¯Ïò£ºÉÏ" }, { "a", "³¯Ïò£º×ó" }, { "s", "³¯Ïò£ºÏÂ" }, { "d", "³¯Ïò£ºÓÒ" }, { "u", "³¯Ïò£ºÄãµÄ³¯Ïò" }, { "l", "Ğı×ª·½Ê½£ºÏò×óĞı×ª90¶È" }, { "b", "Ğı×ª·½Ê½£ºÍùºóĞı×ª" }, { "r", "Ğı×ª·½Ê½£ºÏòÓÒĞı×ª90¶È" }, { "left", "Í¬¡°l¡±" }, { "back", "Í¬¡°b¡±" }, { "right", "Í¬¡°r¡±" } };
+    public readonly static Hashtable commandHelpStrings = new Hashtable { { "tele", "teleå‘½ä»¤ï¼šè®©ç©å®¶ä¼ é€è‡³æŒ‡å®šåœ°ç‚¹(å‘½ä»¤æ ¼å¼ï¼štele é€€å‡ºè½¬åœº é€€å‡ºè½¬åœºæ—¶é—´ è¿›å…¥è½¬åœº è¿›å…¥è½¬åœºæ—¶é—´ [ä¸–ç•Œå = \"nexus\"] [ä¼ é€xåæ ‡ = 0] [ä¼ é€yåæ ‡ = 0] [æœå‘ = ä½ çš„æœå‘] [ä¼ é€æ—¶éŸ³æ•ˆåœ¨soundsçš„ç´¢å¼• = 0(å¯ä¸ºnull)] [ä¼ é€åéŸ³æ•ˆåœ¨soundsçš„ç´¢å¼• = 0(å¯ä¸ºnull)] [æ˜¯å¦è‡ªåŠ¨æ¸…ç©ºå½“å‰æ‰“å¼€çš„èœå• = true])" }, { "help", "helpå‘½ä»¤ï¼šäº†è§£å‘½ä»¤çš„ä¸»è¦ä½œç”¨(å‘½ä»¤æ ¼å¼ï¼šhelp å‘½ä»¤åç§°)" }, { "#", "#å‘½ä»¤ï¼šç”¨æ¥æ³¨é‡Šå‘½ä»¤(å‘½ä»¤æ ¼å¼ï¼š# ...)" }, { "move", "moveå‘½ä»¤ï¼šå¼ºåˆ¶è®©ç©å®¶ç§»åŠ¨(å‘½ä»¤æ ¼å¼ï¼šmove [é€Ÿåº¦]æœå‘ [æ­¥æ•° = 1] [æ˜¯å¦è‡ªåŠ¨æ¸…ç©ºå½“å‰æ‰“å¼€çš„èœå• = true])" }, { "show", "showå‘½ä»¤ï¼šæ˜¾ç¤ºç©å®¶(å‘½ä»¤æ ¼å¼ï¼šshow  [æ˜¯å¦è‡ªåŠ¨æ¸…ç©ºå½“å‰æ‰“å¼€çš„èœå• = true])" }, { "hide", "hideå‘½ä»¤ï¼šéšè—ç©å®¶(å‘½ä»¤æ ¼å¼ï¼šhide  [æ˜¯å¦è‡ªåŠ¨æ¸…ç©ºå½“å‰æ‰“å¼€çš„èœå• = true])" }, { "play", "playå‘½ä»¤ï¼šæ’­æ”¾ä¸€æ®µå£°éŸ³(å‘½ä»¤æ ¼å¼ï¼šplay [å£°éŸ³åœ¨soundsçš„ç´¢å¼• = 0] [æ˜¯å¦ç­‰å¾…å£°éŸ³ç»“æŸ = false]  [æ˜¯å¦è‡ªåŠ¨æ¸…ç©ºå½“å‰æ‰“å¼€çš„èœå• = false])" }, { "turn", "turnå‘½ä»¤ï¼šæ”¹å˜ç©å®¶çš„æœå‘(å‘½ä»¤æ ¼å¼ï¼šturn [æœå‘ = s]|[ç©å®¶è½¬çš„æ–¹å¼ = (l(eft)|b(ack)|r(ight))]  [æ˜¯å¦è‡ªåŠ¨æ¸…ç©ºå½“å‰æ‰“å¼€çš„èœå• = true]))" }, { "stop", "stopå‘½ä»¤ï¼šåœæ­¢å‘å‡ºå£°éŸ³(å‘½ä»¤æ ¼å¼ï¼šstop)" }, { "wait", "waitå‘½ä»¤ï¼šç­‰å¾…ä¸€æ®µæ—¶é—´(å‘½ä»¤æ ¼å¼ï¼šwait [ç­‰å¾…æ—¶é—´ = 1])" }, { "use", "useå‘½ä»¤ï¼šä½¿ç”¨ç‰©å“æ é‡Œç¬¬ä¸€ä¸ªé“å…·åç›¸åŒçš„é“å…·(å‘½ä»¤æ ¼å¼ï¼šuse [é“å…·å = \"default\"]  [æ˜¯å¦è‡ªåŠ¨æ¸…ç©ºå½“å‰æ‰“å¼€çš„èœå• = true])" }, { "debug", "debugå‘½ä»¤ï¼šè¾“å‡ºä¸€äº›ä¿¡æ¯(å‘½ä»¤æ ¼å¼ï¼šdebug (ä¿¡æ¯))" }, { "value", "valueå‘½ä»¤ï¼šæŸ¥çœ‹å…³äºæŸäº›ç‰¹æ®Šç±»å‹å˜é‡çš„è¯¦ç»†ä»‹ç»(å‘½ä»¤æ ¼å¼ï¼švalue)" }, { "goto", "gotoå‘½ä»¤ï¼šè·³è½¬åˆ°æŸä¸€è¡Œ(å‘½ä»¤æ ¼å¼ï¼šgoto (æ ‡ç­¾(æ ‡ç­¾æ ¼å¼ï¼šâ€œ(æ ‡ç­¾å):â€)))" }, { "exit", "exitå‘½ä»¤ï¼šé€€å‡ºæ¸¸æˆ(å‘½ä»¤æ ¼å¼ï¼šexit  [æ˜¯å¦è‡ªåŠ¨æ¸…ç©ºå½“å‰æ‰“å¼€çš„èœå• = false])" }, { "close", "closeå‘½ä»¤ï¼šè·³å‡ºå½“å‰èœå•(å‘½ä»¤æ ¼å¼ï¼šclose)" }, { "clear", "clearå‘½ä»¤ï¼šæ¸…ç©ºå½“å‰çš„èœå•(å‘½ä»¤æ ¼å¼ï¼šclear)" } };
     public bool ChangeTransform = true;
     public GameObject triggerPrefab;
     public map m
@@ -51,12 +64,14 @@ public class trigger : MonoBehaviour
     public int triggerExtendRight = 0;
     public int triggerExtendUp = 0;
     public int triggerExtendDown = 0;
-    public string[] commands;//¿ÉÓÃÃüÁîÇë¼ûÌáÊ¾¿ò
+    public string[] commands;//å¯ç”¨å‘½ä»¤è¯·è§æç¤ºæ¡†
     public int commandsCount;
     public AudioClip[] sounds;
     public Sprite[] sprites;
     public int soundsCount;
     public int spritesCount;
+    public int commandI = 0;
+    public Hashtable labels = new Hashtable();
     public you u
     {
         get
@@ -75,33 +90,20 @@ public class trigger : MonoBehaviour
     }
     public bool tempSwitch = false;
     public static List<IEnumerator> funcs = new List<IEnumerator>();
-    static IEnumerator debugStr(string str)
+    public static IEnumerator debugStr(string str)
     {
         you.commandIsEnd = false;
         Debug.Log(str);
         you.commandIsEnd = true;
         yield return null;
     }
-    static string easyNum(string stringNum) {
-        string symbol = Regex.Match(stringNum, "^[+-]*").Value;
-        string absNum = Regex.Match(stringNum, "[^+-]*$").Value;
-        absNum = ("" == absNum ? "1" : absNum);
-        bool isNegative = false;
-        foreach (char ch in symbol)
-        {
-            if (ch == '-')
-            {
-                isNegative = !isNegative;
-            }
-        }
-        return (isNegative ? "-" : "") + absNum;
-    }
+    
     void Start()
     {
         funcs = new List<IEnumerator>();
         if (ChangeTransform)
         {
-            //¸ù¾İµØÍ¼xyzÖá½øĞĞtransform¼ÆËã
+            //æ ¹æ®åœ°å›¾xyzè½´è¿›è¡Œtransformè®¡ç®—
             transform.position = new Vector3(m.minX + m.heightX / m.x * (0.5f + x), transform.position.y, m.maxY - m.widthY / m.y * (0.5f + y));
         }
         if (null == triggerPrefab)
@@ -122,7 +124,7 @@ public class trigger : MonoBehaviour
         }
     }
 
-    public static IEnumerator runCommands(string[] commands, AudioClip[] sounds = null, you u = null)
+    public IEnumerator runCommands(string[] commands, AudioClip[] sounds = null, you u = null)
     {
         commands ??= new string[0];
         isEnd = false;
@@ -131,39 +133,12 @@ public class trigger : MonoBehaviour
         string value = "";
         string commandName = "";
         bool isCount = true;
-        int ia = 0;
-        float tempTime = 0;
-        Hashtable labels = new Hashtable();
-        Hashtable stringModes = new Hashtable { { "show", change.enterMode.show }, { "fadein", change.enterMode.fadein }, { "hide", change.exitMode.hide }, { "fadeout", change.exitMode.fadeout }, { "W", wasd.w }, { "w", wasd.w }, { "A", wasd.a }, { "a", wasd.a }, { "S", wasd.s }, { "s", wasd.s }, { "D", wasd.d }, { "d", wasd.d }, { "true", true }, { "false", false }, { "t", true }, { "f", false }, { "null", null } };
-        Hashtable turnModes = new Hashtable { { "l", 3 }, { "left", 3 }, { "b", 2 }, { "back", 2 }, { "r", 1 }, { "right", 1 } };
-        wasd[] turnArray = { wasd.w, wasd.d, wasd.s, wasd.a };
-        int[] rturnArray = { 0, 3, 2, 1 };
-        for (int commandI = 0; null != commands && commandI < commands.Length; commandI++)
+        command _command = null;
+        for (commandI = 0; null != commands && commandI < commands.Length; commandI++)
         {
-#nullable enable
-            change.enterMode? enterMode = null;
-            change.exitMode? exitMode = null;
-            string? worldName = null;
-            int? teleX = null;
-            int? teleY = null;
-            float? teleHigh = null;
-            wasd? face = null;
-            int? closeSoundIndex = null;
-            int? teleSoundIndex = null;
-            int? soundIndex = null;
-            int? step = null;
-            float? tempSpeed = null;
-            bool? isWaitSoundEnd = null;
-            float? waitTime = null;
-            float? enterTime = null;
-            float? exitTime = null;
-            string? itemName = null;
-            string? str = null;
-            bool? autoClearMenu = null;
-#nullable disable
             delimiterIndexs.Clear();
             delimiterIndexs.Add(-1);
-            //²ÎÊı
+            //å‚æ•°
             for (int i = 0; i < commands[commandI].Length; i++)
             {
                 if (isCount && ' ' == commands[commandI][i])
@@ -177,7 +152,7 @@ public class trigger : MonoBehaviour
             }
             if (!isCount)
             {
-                Debug.LogError("Ë«ÒıºÅ¸ñÊ½´íÎó");
+                Debug.LogError("åŒå¼•å·æ ¼å¼é”™è¯¯");
                 goto errorEnd;
             }
             delimiterIndexs.Add(commands[commandI].Length);
@@ -194,7 +169,7 @@ public class trigger : MonoBehaviour
             runCounts[commandI]++;
             if (runCounts[commandI] >= 100000)
             {
-                Debug.LogError("ÔËĞĞ´íÎó£ºµÚ" + commandI + "Ìõ´úÂëÖØ¸´Ö´ĞĞ´ÎÊı¹ı¶à£¬ÒÑÇ¿ÖÆ½áÊø½Å±¾Ö´ĞĞ");
+                Debug.LogError("è¿è¡Œé”™è¯¯ï¼šç¬¬" + commandI + "æ¡ä»£ç é‡å¤æ‰§è¡Œæ¬¡æ•°è¿‡å¤šï¼Œå·²å¼ºåˆ¶ç»“æŸè„šæœ¬æ‰§è¡Œ");
                 commandI = commands.Length;
                 goto errorEnd;
             }
@@ -210,322 +185,20 @@ public class trigger : MonoBehaviour
                     commandName = value.ToLower();
                     if (!Regex.Match(commandName, "^[^:]+:$").Success && !commandHelpStrings.ContainsKey(commandName))
                     {
-                        Debug.LogError("ÃüÁî" + commandName + "²»´æÔÚ");
+                        Debug.LogError("å‘½ä»¤" + commandName + "ä¸å­˜åœ¨");
                         goto errorEnd;
                     }
+                    _command = command.stringToCommands(commandName);
                 }
-                else if (0 != i)
+                if (0 != i && !_command.setValue(value, i - 1, this))
                 {
-                    switch (commandName)
-                    {
-                        case "tele":
-                            switch (i)
-                            {
-                                case 1:
-                                    exitMode = stringModes.ContainsKey(value.ToLower()) ? (change.exitMode)stringModes[value] : change.exitMode.none;
-                                    break;
-                                case 2:
-                                    exitTime = float.TryParse(value, out tempTime) ? tempTime : null;
-                                    break;
-                                case 3:
-                                    enterMode = stringModes.ContainsKey(value.ToLower()) ? (change.enterMode)stringModes[value] : change.enterMode.none;
-                                    break;
-                                case 4:
-                                    enterTime = float.TryParse(value, out tempTime) ? tempTime : null;
-                                    break;
-                                case 5:
-                                    worldName = value;
-                                    break;
-                                case 6:
-                                    teleX = int.Parse(value);
-                                    break;
-                                case 7:
-                                    teleY = int.Parse(value);
-                                    break;
-                                case 8:
-                                    teleHigh = float.Parse(value);
-                                    break;
-                                case 9:
-                                    if ("u" == value.ToLower())
-                                    {
-                                        face = you.face;
-                                        break;
-                                    }
-                                    face = stringModes.ContainsKey(value) ? (wasd)stringModes[value] : (wasd)int.Parse(value);
-                                    break;
-                                case 10:
-                                    if ("null" != value.ToLower())
-                                    {
-                                        closeSoundIndex = int.Parse(value);
-                                    }
-                                    break;
-                                case 11:
-                                    if ("null" != value.ToLower())
-                                    {
-                                        teleSoundIndex = int.Parse(value);
-                                    }
-                                    break;
-                                case 12:
-                                    if (stringModes.ContainsKey(value))
-                                    {
-                                        autoClearMenu = (bool)stringModes[value];
-                                    }
-                                    break;
-                                default:
-                                    goto normalEnd;
-                            }
-                            break;
-                        case "help":
-                            if (1 == i && commandHelpStrings.ContainsKey(value))
-                            {
-                                str = (string)commandHelpStrings[value];
-                            }
-                            goto normalEnd;
-                        case "show":
-                        case "hide":
-                            if (stringModes.ContainsKey(value))
-                            {
-                                autoClearMenu = (bool)stringModes[value];
-                            }
-                            break;
-                        case "move":
-                            if (1 == i)
-                            {
-                                int delimiterIndex = -1;
-                                for (int j = 0; j < value.Length; j++)
-                                {
-                                    if (char.IsLetter(value[j]))
-                                    {
-                                        delimiterIndex = j;
-                                        break;
-                                    }
-                                }
-                                if (-1 == delimiterIndex)
-                                {
-                                    delimiterIndex = value.Length;
-                                }
-                                if (0 != delimiterIndex)
-                                {
-                                    tempSpeed = float.Parse(easyNum(value.Substring(0, delimiterIndex)));
-                                }
-                                if (stringModes.ContainsKey(value.Substring(delimiterIndex))){
-                                    face = ("u" == value.Substring(delimiterIndex) || "U" == value.Substring(delimiterIndex) ? you.face : (wasd)stringModes[value.Substring(delimiterIndex)]);
-                                }
-                            }
-                            else if (2 == i)
-                            {
-                                step = int.Parse(value);
-                            }
-                            else
-                            {
-                                if (stringModes.ContainsKey(value))
-                                {
-                                    autoClearMenu = (bool)stringModes[value];
-                                }
-                                goto normalEnd;
-                            }
-                            break;
-                        case "play":
-                            switch (i) {
-                                case 1:
-                                    soundIndex = int.Parse(value);
-                                    break;
-                                case 2:
-                                    if (stringModes.ContainsKey(value.ToLower()))
-                                    {
-                                        isWaitSoundEnd = (bool)stringModes[value];
-                                    }
-                                    else if (int.TryParse(value, out ia))
-                                    {
-                                        isWaitSoundEnd = 0 != ia;
-                                    }
-                                    break;
-                                case 3:
-                                    if (stringModes.ContainsKey(value))
-                                    {
-                                        autoClearMenu = (bool)stringModes[value];
-                                    }
-                                    break;
-                                default:
-                                    goto normalEnd;
-                            }
-                            break;
-                        case "turn":
-                            switch (i)
-                            {
-                                case 1:
-                                    if ("u" == value || "U" == value)
-                                    {
-                                        face = you.face;
-                                    }
-                                    else if (stringModes.ContainsKey(value.ToLower()))
-                                    {
-                                        face = (wasd)stringModes[value];
-                                    }
-                                    else if (turnModes.ContainsKey(value.ToLower()))
-                                    {
-                                        face = turnArray[(rturnArray[(int)you.face] + (int)turnModes[value.ToLower()]) % 4];
-                                    }
-                                    break;
-                                default:
-                                    if (stringModes.ContainsKey(value))
-                                    {
-                                        autoClearMenu = (bool)stringModes[value];
-                                    }
-                                    break;
-                            }
-                            goto normalEnd;
-                        case "wait":
-                            waitTime = float.Parse(value);
-                            goto normalEnd;
-                        case "use":
-                            if (1 == i)
-                            {
-                                itemName = value;
-                            }
-                            else
-                            {
-                                if (stringModes.ContainsKey(value))
-                                {
-                                    autoClearMenu = (bool)stringModes[value];
-                                }
-                                goto normalEnd;
-                            }
-                            break;
-                        case "debug":
-                            str = value;
-                            goto normalEnd;
-                        case "value":
-                            if (valueHelpStrings.ContainsKey(value.ToLower()))
-                            {
-                                str = (string)valueHelpStrings[value.ToLower()];
-                            }
-                            goto normalEnd;
-                        case "goto":
-                            if (!labels.ContainsKey(value))
-                            {
-                                Debug.Log("±êÇ©´íÎó£º±êÇ©²»´æÔÚ");
-                                goto errorEnd;
-                            }
-                            commandI = (int)labels[value];
-                            goto normalEnd;
-                        case "exit":
-                            if (stringModes.ContainsKey(value))
-                            {
-                                autoClearMenu = (bool)stringModes[value];
-                            }
-                            break;
-                        default:
-                            goto normalEnd;
-                    }
+                    goto normalEnd;
                 }
             }
         normalEnd:;
-            switch (commandName)
+            if (!_command.execute())
             {
-                case "tele":
-                    if (autoClearMenu ?? true)
-                    {
-                        funcs.Add(you.You.clearMenu());
-                    }
-                    funcs.Add(you.tele(exitMode ?? change.exitMode.hide, exitTime ?? Game.exitTime, enterMode ?? change.enterMode.show, enterTime ?? Game.enterTime, worldName ?? "nexus", teleX ?? 0, teleY ?? 0, teleHigh ?? 0, face ?? wasd.s, null == sounds ? null : sounds[closeSoundIndex ?? 0] ?? sounds[0], null == sounds ? null : sounds[teleSoundIndex ?? 0] ?? sounds[0]));
-                    break;
-                case "move"://¡°u¡±¶ÔÏó¿ÉÄÜÎªnpc
-                    if (autoClearMenu ?? true)
-                    {
-                        funcs.Add(you.You.clearMenu());
-                    }
-                    if (null == u)
-                    {
-                        break;
-                    }
-                    step ??= 1;
-                    if (0 > tempSpeed)
-                    {
-                        tempSpeed *= -1;
-                        step *= -1;
-                    }
-                    funcs.Add(u.move(face ?? you.face, step ?? 1, tempSpeed ?? 1));
-                    break;
-                case "show":
-                    if (autoClearMenu ?? true)
-                    {
-                        funcs.Add(you.You.clearMenu());
-                    }
-                    if (null == u)
-                    {
-                        break;
-                    }
-                    funcs.Add(u.show());
-                    break;
-                case "hide":
-                    if (autoClearMenu ?? true)
-                    {
-                        funcs.Add(you.You.clearMenu());
-                    }
-                    if (null == u)
-                    {
-                        break;
-                    }
-                    funcs.Add(u.hide());
-                    break;
-                case "play":
-                    if (autoClearMenu ?? false)
-                    {
-                        funcs.Add(you.You.clearMenu());
-                    }
-                    if (null != sounds)
-                    {
-                        funcs.Add(you.play(sounds[soundIndex ?? 0] ?? sounds[0], isWaitSoundEnd ?? false));
-                    }
-                    break;
-                case "turn":
-                    if (autoClearMenu ?? true)
-                    {
-                        funcs.Add(you.You.clearMenu());
-                    }
-                    funcs.Add(you.turn(face ?? wasd.s));
-                    break;
-                case "stop":
-                    funcs.Add(you.stop());
-                    break;
-                case "wait":
-                    funcs.Add(you.wait(waitTime ?? 1));
-                    break;
-                case "use":
-                    if (autoClearMenu ?? true)
-                    {
-                        funcs.Add(you.You.clearMenu());
-                    }
-                    for (int j = 0; j < you.items.Count; j++)
-                    {
-                        if ((itemName ?? "default") == you.items[j].name)
-                        {
-                            you.items[j].use();
-                            break;
-                        }
-                    }
-                    break;
-                case "help":
-                case "debug":
-                case "value":
-                    funcs.Add(debugStr(str ?? ""));
-                    break;
-                case "exit":
-                    if (0 != you.Menus.Count && (autoClearMenu ?? false))
-                    {
-                        funcs.Add(you.You.clearMenu());
-                    }
-                    funcs.Add(you.exit());
-                    break;
-                case "close":
-                    funcs.Add(you.You.closeMenu());
-                    break;
-                case "clear":
-                    funcs.Add(you.You.clearMenu());
-                    break;
-                default:
-                    break;
+                break;
             }
             errorEnd:;
         }
@@ -533,7 +206,6 @@ public class trigger : MonoBehaviour
         isDone = true;
         yield return null;
     }
-
     
     void Update()
     {
