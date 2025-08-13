@@ -19,19 +19,19 @@ public class triggerComponentUI : Editor
     }
     public override void OnInspectorGUI()
     {   
-        trigger.x = EditorGUILayout.IntField("´¥·¢ÇøÓòx×ø±ê", Mathf.Max(0, trigger.x));
-        trigger.y = EditorGUILayout.IntField("´¥·¢ÇøÓòy×ø±ê", Mathf.Max(0, trigger.y));
-        trigger.ChangeTransform = EditorGUILayout.Toggle("ÊÇ·ñ¸Ä±äÎ»ÖÃ", trigger.ChangeTransform);
-        trigger.triggerPrefab = (GameObject)EditorGUILayout.ObjectField("´¥·¢Æ÷¸´ÖÆÌå", trigger.triggerPrefab, typeof(GameObject), false);
-        trigger.triggerExtendUp = EditorGUILayout.IntField("´¥·¢ÇøÓòÉÏÑÓÉì¸ñÊı", trigger.triggerExtendUp);
-        trigger.triggerExtendLeft = EditorGUILayout.IntField("´¥·¢ÇøÓò×óÑÓÉì¸ñÊı", trigger.triggerExtendLeft);
-        trigger.triggerExtendRight = EditorGUILayout.IntField("´¥·¢ÇøÓòÓÒÑÓÉì¸ñÊı", trigger.triggerExtendRight);
-        trigger.triggerExtendDown = EditorGUILayout.IntField("´¥·¢ÇøÓòÏÂÑÓÉì¸ñÊı", trigger.triggerExtendDown);
-        openCommandHelps = EditorGUILayout.BeginFoldoutHeaderGroup(openCommandHelps, "¿ÉÓÃÃüÁî");
+        trigger.x = EditorGUILayout.IntField("è§¦å‘åŒºåŸŸxåæ ‡", Mathf.Max(0, trigger.x));
+        trigger.y = EditorGUILayout.IntField("è§¦å‘åŒºåŸŸyåæ ‡", Mathf.Max(0, trigger.y));
+        trigger.ChangeTransform = EditorGUILayout.Toggle("æ˜¯å¦æ”¹å˜ä½ç½®", trigger.ChangeTransform);
+        trigger.triggerPrefab = (GameObject)EditorGUILayout.ObjectField("è§¦å‘å™¨å¤åˆ¶ä½“", trigger.triggerPrefab, typeof(GameObject), false);
+        trigger.triggerExtendUp = EditorGUILayout.IntField("è§¦å‘åŒºåŸŸä¸Šå»¶ä¼¸æ ¼æ•°", trigger.triggerExtendUp);
+        trigger.triggerExtendLeft = EditorGUILayout.IntField("è§¦å‘åŒºåŸŸå·¦å»¶ä¼¸æ ¼æ•°", trigger.triggerExtendLeft);
+        trigger.triggerExtendRight = EditorGUILayout.IntField("è§¦å‘åŒºåŸŸå³å»¶ä¼¸æ ¼æ•°", trigger.triggerExtendRight);
+        trigger.triggerExtendDown = EditorGUILayout.IntField("è§¦å‘åŒºåŸŸä¸‹å»¶ä¼¸æ ¼æ•°", trigger.triggerExtendDown);
+        openCommandHelps = EditorGUILayout.BeginFoldoutHeaderGroup(openCommandHelps, "å¯ç”¨å‘½ä»¤");
         if (openCommandHelps)
         {
             EditorGUI.indentLevel++;
-            string commandsHelpStr = "¿ÉÓÃÃüÁî:\n";
+            string commandsHelpStr = "å¯ç”¨å‘½ä»¤:\n";
             foreach (DictionaryEntry command in trigger.commandHelpStrings)
             {
                 commandsHelpStr += "\t" + command.Key + ":\n\t\t" + command.Value + "\n";
@@ -40,12 +40,12 @@ public class triggerComponentUI : Editor
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
-        openValueHelps = EditorGUILayout.BeginFoldoutHeaderGroup(openValueHelps, "¿ÉÓÃÖµ");
+        openValueHelps = EditorGUILayout.BeginFoldoutHeaderGroup(openValueHelps, "å¯ç”¨å€¼");
         if (openValueHelps)
         {
             EditorGUI.indentLevel++;
-            string valuesHelpStr = "¿ÉÓÃÖµ:\n";
-            foreach (DictionaryEntry value in trigger.valueHelpStrings)
+            string valuesHelpStr = "å¯ç”¨å€¼:\n";
+            foreach (DictionaryEntry value in command.valueHelps)
             {
                 valuesHelpStr += "\t" + value.Key + " | " + value.Value + "\n";
             }
@@ -54,7 +54,7 @@ public class triggerComponentUI : Editor
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.BeginHorizontal();
-        openCommands = EditorGUILayout.BeginFoldoutHeaderGroup(openCommands, "ÃüÁî");
+        openCommands = EditorGUILayout.BeginFoldoutHeaderGroup(openCommands, "å‘½ä»¤");
         trigger.commandsCount = EditorGUILayout.IntField(Mathf.Max(0, trigger.commandsCount));
         updateArray(ref trigger.commands, trigger.commandsCount);
         EditorGUILayout.EndHorizontal();
@@ -66,26 +66,26 @@ public class triggerComponentUI : Editor
         EditorGUI.indentLevel--;
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.BeginHorizontal();
-        openSounds = EditorGUILayout.BeginFoldoutHeaderGroup(openSounds, "ÒôÆµ");
+        openSounds = EditorGUILayout.BeginFoldoutHeaderGroup(openSounds, "éŸ³é¢‘");
         trigger.soundsCount = EditorGUILayout.IntField(Mathf.Max(0, trigger.soundsCount));
         updateArray(ref trigger.sounds, trigger.soundsCount);
         EditorGUILayout.EndHorizontal();
         EditorGUI.indentLevel++;
         for (int i = 0; openSounds && i < trigger.soundsCount; i++)
         {
-            trigger.sounds[i] = (AudioClip)EditorGUILayout.ObjectField("ÔªËØ " + i, trigger.sounds[i], typeof(AudioClip), false);
+            trigger.sounds[i] = (AudioClip)EditorGUILayout.ObjectField("å…ƒç´  " + i, trigger.sounds[i], typeof(AudioClip), false);
         }
         EditorGUI.indentLevel--;
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.BeginHorizontal();
-        openSprites = EditorGUILayout.BeginFoldoutHeaderGroup(openSprites, "Í¼Æ¬");
+        openSprites = EditorGUILayout.BeginFoldoutHeaderGroup(openSprites, "å›¾ç‰‡");
         trigger.spritesCount = EditorGUILayout.IntField(Mathf.Max(0, trigger.spritesCount));
         updateArray(ref trigger.sprites, trigger.spritesCount);
         EditorGUILayout.EndHorizontal();
         EditorGUI.indentLevel++;
         for (int i = 0; openSprites && i < trigger.spritesCount; i++)
         {
-            trigger.sprites[i] = (Sprite)EditorGUILayout.ObjectField("ÔªËØ " + i, trigger.sprites[i], typeof(Sprite), false);
+            trigger.sprites[i] = (Sprite)EditorGUILayout.ObjectField("å…ƒç´  " + i, trigger.sprites[i], typeof(Sprite), false);
         }
         EditorGUI.indentLevel--;
         EditorGUILayout.EndFoldoutHeaderGroup();
