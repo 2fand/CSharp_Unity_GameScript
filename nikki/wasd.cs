@@ -19,7 +19,7 @@ public class face
     {
         if (wasd.u == wasd)
         {
-            //获取我的方向
+            wasd = you.face;
         }
         return (Vector2)wasdToVector2[wasd];
     }
@@ -39,7 +39,7 @@ public class face
         }
         if (wasd.u == wasd)
         {
-            //获取我的方向
+            wasd = you.face;
         }
         wasd = (wasd)((int)(wasd + 2) % 4);
         return wasd;
