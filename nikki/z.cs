@@ -36,9 +36,9 @@ public class z : MonoBehaviour
     public int teleX = 0;
     public int teleY = 0;
     public float teleHigh = 0;
-    public change.enterMode enterMode = change.enterMode.show;
+    public change.transitionMode enterMode = change.transitionMode.show;
     public float enterModeTime = Game.enterTime;
-    public change.exitMode exitMode = change.exitMode.hide;
+    public change.transitionMode exitMode = change.transitionMode.hide;
     public float exitModeTime = Game.exitTime;
     public effect getEffect;
     public Canvas canvas
@@ -87,11 +87,11 @@ public class z : MonoBehaviour
         if (wait)
         {
             wait = false;
-            // æ¿˝
+            //Á§∫‰æã
             npcMove.npcCanMove = false;
             you.canMove = false;
             you.canOpenMenu = false;
-            //play screen(∂ÓÕ‚)
+            //play screen(È¢ùÂ§ñ)
             /*
                 screen.GetComponent<Image>().enabled = true;
                 GetComponent<AudioSource>().PlayOneShot(screenSound);
