@@ -30,9 +30,9 @@ public class npcMove : MonoBehaviour
     public bool canOver = false;
     public AudioClip catchSound;
     public AudioClip hurtSound;
-    public change.enterMode enterMode = change.enterMode.show;
+    public change.transitionMode enterMode = change.transitionMode.show;
     public float enterTime = Game.enterTime;
-    public change.exitMode exitMode = change.exitMode.hide;
+    public change.transitionMode exitMode = change.transitionMode.hide;
     public float exitTime = Game.exitTime;
     public you u;
     public static bool npcCanMove = true;
@@ -212,12 +212,12 @@ public class npcMove : MonoBehaviour
 
     IEnumerator pyou()
     {
-        //初始
+        //鍒濆
         isEnd = false;
         wasd i = getwasd();
         for (int j = 0; j < 10; j++)
         {
-            switch (i)//移动
+            switch (i)//绉诲姩
             {
                 case wasd.w:
                     if (canTurn)
@@ -252,14 +252,14 @@ public class npcMove : MonoBehaviour
                         npc.face = wasd.d;
                     }
                     transform.position += new Vector3(m.heightX / m.x / 10.0f, 0, 0);
-                    yield return new WaitForSeconds(0.1f / speed / 10.0f);//移动间隔时间
+                    yield return new WaitForSeconds(0.1f / speed / 10.0f);//绉诲姩闂撮殧鏃堕棿
                     yield return new WaitUntil(() => 0 == you.Menus.Count);
                     break;
-                default://wasd.n时无
+                default://wasd.n鏃舵棤
                     goto nowait;
             }
         }
-        yield return new WaitForSeconds(waitTime);//移动等待时间
+        yield return new WaitForSeconds(waitTime);//绉诲姩绛夊緟鏃堕棿
     nowait:
         isEnd = true;
         yield return null;
