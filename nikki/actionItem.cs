@@ -8,7 +8,7 @@ public class actionItem : item
     public AudioClip[] sounds;
     public override void use()
     {
-        new trigger().runCommands(commands, sounds, you.You);
+        trigger.runCommands(commands, sounds, you.You);
     }
     public actionItem(string[] commands, AudioClip[] sounds = null, string name = "default", string recommendText = "", bool canUse = true, bool isHide = false)
     {
