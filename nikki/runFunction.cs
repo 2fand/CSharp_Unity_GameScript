@@ -25,7 +25,7 @@ public class runFunction : MonoBehaviour
 
     void Start()
     {
-
+        
     }
 
     void Update()
