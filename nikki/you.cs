@@ -46,7 +46,7 @@ public class you : MonoBehaviour
     public static AudioClip teleSound;
     public static bool[] effecthaves = new bool[18];
     public static int effectNum = 0;
-    public static enterMode enterMode = enterMode.show;
+    public static transitionMode transitionMode = transitionMode.show;
     public static bool notOver = false;
     private GameObject gameCamera;
     public static int myMenuID = 0;
@@ -774,7 +774,7 @@ public class you : MonoBehaviour
                         backGround = new GameObject("background");
                         backGround.transform.localScale = new Vector3(100 / backGroundMask.transform.localScale.x, 100 / backGroundMask.transform.localScale.y, 1);
                         backGround.transform.localPosition = new Vector3(i * m.backGround.rect.size.x / backGroundMask.transform.localScale.x, ia * m.backGround.rect.size.y / backGroundMask.transform.localScale.y);
-                        if (m.backGround.rect.size.x <= backGround.transform.localScale.x && m.backGround.rect.size.y <= backGround.transform.localScale.z)
+                        if (m.backGround.rect.size.x <= m.heightX && m.backGround.rect.size.y <= m.widthY)
                         {
                             backGround.AddComponent<SpriteRenderer>().sprite = Sprite.Create(m.backGround.texture, m.backGround.rect, Vector2.zero);
                         }
@@ -1134,7 +1134,7 @@ public class you : MonoBehaviour
     }
 
 #nullable enable
-    public static IEnumerator tele(exitMode exitMode, float exitModeTime, enterMode enterMode, float enterModeTime, string worldName, int teleX, int teleY, float teleHigh, wasd face = wasd.s, AudioClip? closeSound = null, AudioClip? teleSound = null, bool waitTeleSound = false)
+    public static IEnumerator tele(transitionMode exitMode, float exitModeTime, transitionMode enterMode, float enterModeTime, string worldName, int teleX, int teleY, float teleHigh, wasd face = wasd.s, AudioClip? closeSound = null, AudioClip? teleSound = null, bool waitTeleSound = false)
 #nullable disable
     {
         if (teleIsEnd)
@@ -1145,7 +1145,7 @@ public class you : MonoBehaviour
             npcMove.npcCanMove = false;
             npcMove.stopAnimation = true;
             //Debug.Log(enterMode + "," + exitMode);
-            you.enterMode = enterMode;
+            you.transitionMode = enterMode;
             you.teleSound = teleSound ?? you.teleSound;
             yield return new WaitForSeconds(waitTeleSound && null != teleSound ? teleSound.length : 0);
             You.CoroutineStart((IEnumerator)transition.transitions[exitMode]);
@@ -1290,7 +1290,7 @@ public class you : MonoBehaviour
         Destroy(tempCursor1);
         if (0 != menus.Count)
         {
-            StartCoroutine(new trigger().runCommands(commands, null, this));
+            trigger.runCommands(commands, null, this);
         }
         canOpenMenu = true;
         commandIsEnd = true;
@@ -1367,7 +1367,7 @@ public class you : MonoBehaviour
                 hideOrShowMenu(last_menu);
                 yield return new WaitForSeconds(0.05f);
             }
-            StartCoroutine(new trigger().runCommands(commands, null, this));
+            trigger.runCommands(commands, null, this);
             canOpenMenu = true;
             Cursor.cursorCanMove = true;
             if (0 == trigger.funcs.Count)
@@ -1641,7 +1641,7 @@ public class you : MonoBehaviour
                 }
                 else if (menuClass.doAction == yourSelect.MenuClass)
                 { 
-                    StartCoroutine(new trigger().runCommands(((actionItem)yourSelect.UsedItem).commands, ((actionItem)yourSelect.UsedItem).sounds, this));
+                    trigger.runCommands(((actionItem)yourSelect.UsedItem).commands, ((actionItem)yourSelect.UsedItem).sounds, this);
                 }
                 else
                 {
