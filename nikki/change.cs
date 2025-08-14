@@ -6,23 +6,12 @@ using UnityEngine.UI;
 
 public class change : MonoBehaviour
 {
-    public enum modeClass
+    public enum transitionMode
     {
-        enter, 
-        exit,
-        none
-    }
-
-    public enum enterMode
-    {
-        none,
+        enterNone,
         show,
-        fadein
-    }
-    
-    public enum exitMode
-    {
-        none,
+        fadein,
+        exitNone,
         hide,
         fadeout
     }
@@ -51,6 +40,6 @@ public class change : MonoBehaviour
     {
         yield return new WaitUntil(() => !you.isTele);
         you.isChangeEffect = true;
-        you.You.CoroutineStart((IEnumerator)transition.transitions[you.enterMode]);
+        you.You.CoroutineStart((IEnumerator)transition.transitions[you.transitionMode]);
     }
 }
