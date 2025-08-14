@@ -7,9 +7,7 @@ using static change;
 
 public class show : transition
 {
-    public override bool isExitTransition { get { return false; } }
-    public override enterMode transitionEnterMode { get { return enterMode.show; } }
-    public override exitMode transitionExitMode { get { return exitMode.none; } }
+    public override transitionMode _transitionMode { get { return transitionMode.show; } }
     public override IEnumerator changeScene(float time = 0.1f)
     {
         transitionIsEnd = false;
@@ -23,9 +21,7 @@ public class show : transition
 }
 public class hide : transition
 {
-    public override bool isExitTransition { get { return true; } }
-    public override enterMode transitionEnterMode { get { return enterMode.show; } }
-    public override exitMode transitionExitMode { get { return exitMode.hide; } }
+    public override transitionMode _transitionMode { get { return transitionMode.hide; } }
     public override IEnumerator changeScene(float time = 0.1f)
     {
         transitionIsEnd = false;
@@ -39,9 +35,7 @@ public class hide : transition
 }
 public class enterNone : transition
 {
-    public override bool isExitTransition { get { return false; } }
-    public override enterMode transitionEnterMode { get { return enterMode.none; } }
-    public override exitMode transitionExitMode { get { return exitMode.none; } }
+    public override transitionMode _transitionMode { get { return transitionMode.enterNone; } }
     public override IEnumerator changeScene(float time = 0)
     {
         transitionIsEnd = false;
@@ -53,9 +47,7 @@ public class enterNone : transition
 }
 public class exitNone : transition
 {
-    public override bool isExitTransition { get { return true; } }
-    public override enterMode transitionEnterMode { get { return enterMode.show; } }
-    public override exitMode transitionExitMode { get { return exitMode.none; } }
+    public override transitionMode _transitionMode { get { return transitionMode.exitNone; } }
     public override IEnumerator changeScene(float time = 0)
     {
         transitionIsEnd = false;
@@ -67,9 +59,7 @@ public class exitNone : transition
 }
 public class fadein : transition
 {
-    public override bool isExitTransition { get { return false; } }
-    public override enterMode transitionEnterMode { get { return enterMode.fadein; } }
-    public override exitMode transitionExitMode { get { return exitMode.none; } }
+    public override transitionMode _transitionMode { get { return transitionMode.fadein; } }
     public override IEnumerator changeScene(float time = 0.1f)
     {
         transitionIsEnd = false;
@@ -81,9 +71,7 @@ public class fadein : transition
 
 public class fadeout : transition
 {
-    public override bool isExitTransition { get { return true; } }
-    public override enterMode transitionEnterMode { get { return enterMode.show; } }
-    public override exitMode transitionExitMode { get { return exitMode.fadeout; } }
+    public override transitionMode _transitionMode { get { return transitionMode.exitNone; } }
     public override IEnumerator changeScene(float time = 0.1f)
     {
         transitionIsEnd = false;
