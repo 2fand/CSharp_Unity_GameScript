@@ -32,7 +32,7 @@ public class triggerComponentUI : Editor
         {
             EditorGUI.indentLevel++;
             string commandsHelpStr = "可用命令:\n";
-            foreach (DictionaryEntry command in trigger.commandHelpStrings)
+            foreach (DictionaryEntry command in command.CommandRecommends)
             {
                 commandsHelpStr += "\t" + command.Key + ":\n\t\t" + command.Value + "\n";
             }
