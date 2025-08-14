@@ -16,41 +16,41 @@ public class zComponentUI : Editor
     }
     public override void OnInspectorGUI()
     {
-        z.haveFront = !EditorGUILayout.Toggle("ÊÇ·ñÎÞÊÓ·½Ïò", !z.haveFront);
-        z.mod = (z.mode)EditorGUILayout.EnumPopup("½»»¥Ä£Ê½", z.mod);
+        z.haveFront = !EditorGUILayout.Toggle("æ˜¯å¦æ— è§†æ–¹å‘", !z.haveFront);
+        z.mod = (z.mode)EditorGUILayout.EnumPopup("äº¤äº’æ¨¡å¼", z.mod);
         switch (z.mod) {
             case z.mode.tele:
-                z.teleWaitTime = EditorGUILayout.FloatField("´«ËÍÊ±µÈ´ýÊ±¼ä", z.teleWaitTime);
-                z.enterMode = (change.enterMode)EditorGUILayout.EnumPopup("×ª³¡½øÈëÄ£Ê½", z.enterMode);
-                z.enterModeTime = EditorGUILayout.FloatField("×ª³¡½øÈëÊ±¼ä", z.enterModeTime);
-                z.exitMode = (change.exitMode)EditorGUILayout.EnumPopup("×ª³¡ÍË³öÄ£Ê½", z.exitMode);
-                z.exitModeTime = EditorGUILayout.FloatField("×ª³¡ÍË³öÊ±¼ä", z.exitModeTime);
-                z.worldName = EditorGUILayout.TextField("´«ËÍÊÀ½çÃû×Ö", z.worldName);
-                z.openSound = (AudioClip)EditorGUILayout.ObjectField("´«ËÍ¿ªÊ¼Ç°ÒôÐ§", z.openSound, typeof(AudioClip), false);
-                z.closeSound = (AudioClip)EditorGUILayout.ObjectField("´«ËÍ½áÊøºóÒôÐ§", z.closeSound, typeof(AudioClip), false);
+                z.teleWaitTime = EditorGUILayout.FloatField("ä¼ é€æ—¶ç­‰å¾…æ—¶é—´", z.teleWaitTime);
+                z.exitMode = (change.transitionMode)EditorGUILayout.EnumPopup("è½¬åœºé€€å‡ºæ¨¡å¼", z.exitMode);
+                z.exitModeTime = EditorGUILayout.FloatField("è½¬åœºé€€å‡ºæ—¶é—´", z.exitModeTime);
+                z.enterMode = (change.transitionMode)EditorGUILayout.EnumPopup("è½¬åœºè¿›å…¥æ¨¡å¼", z.enterMode);
+                z.enterModeTime = EditorGUILayout.FloatField("è½¬åœºè¿›å…¥æ—¶é—´", z.enterModeTime);
+                z.worldName = EditorGUILayout.TextField("ä¼ é€ä¸–ç•Œåå­—", z.worldName);
+                z.openSound = (AudioClip)EditorGUILayout.ObjectField("ä¼ é€å¼€å§‹å‰éŸ³æ•ˆ", z.openSound, typeof(AudioClip), false);
+                z.closeSound = (AudioClip)EditorGUILayout.ObjectField("ä¼ é€ç»“æŸåŽéŸ³æ•ˆ", z.closeSound, typeof(AudioClip), false);
                 pos = new Vector2Int(z.teleX, z.teleY);
-                pos = EditorGUILayout.Vector2IntField("´«ËÍ×ø±ê", pos);
+                pos = EditorGUILayout.Vector2IntField("ä¼ é€åæ ‡", pos);
                 z.teleX = pos.x;
                 z.teleY = pos.y;
-                z.teleHigh = EditorGUILayout.FloatField("´«ËÍ¸ß¶È", z.teleHigh);
+                z.teleHigh = EditorGUILayout.FloatField("ä¼ é€é«˜åº¦", z.teleHigh);
                 break;
             case z.mode.effect:
-                z.getEffect = (effect)EditorGUILayout.EnumPopup("»ñÈ¡Ð§¹û", z.getEffect);
-                z.getHintPrefab = (GameObject)EditorGUILayout.ObjectField("»ñÈ¡Ð§¹ûÊ±µÄÌáÊ¾Îï", z.getHintPrefab, typeof(GameObject), false);
-                z.keySound = (AudioClip)EditorGUILayout.ObjectField("»ñÈ¡Ð§¹ûÇ°µÄÒôÐ§", z.keySound, typeof(AudioClip), false);
-                z.getSound = (AudioClip)EditorGUILayout.ObjectField("»ñÈ¡Ð§¹ûÊ±µÄÒôÐ§", z.getSound, typeof(AudioClip), false);
+                z.getEffect = (effect)EditorGUILayout.EnumPopup("èŽ·å–æ•ˆæžœ", z.getEffect);
+                z.getHintPrefab = (GameObject)EditorGUILayout.ObjectField("èŽ·å–æ•ˆæžœæ—¶çš„æç¤ºç‰©", z.getHintPrefab, typeof(GameObject), false);
+                z.keySound = (AudioClip)EditorGUILayout.ObjectField("èŽ·å–æ•ˆæžœå‰çš„éŸ³æ•ˆ", z.keySound, typeof(AudioClip), false);
+                z.getSound = (AudioClip)EditorGUILayout.ObjectField("èŽ·å–æ•ˆæžœæ—¶çš„éŸ³æ•ˆ", z.getSound, typeof(AudioClip), false);
                 break;
             case z.mode.talk:
-                textsize = EditorGUILayout.IntField("¶Ô»°Êý", textsize >= 0 ? textsize : 0);
+                textsize = EditorGUILayout.IntField("å¯¹è¯æ•°", textsize >= 0 ? textsize : 0);
                 z.talkTexts = new string[textsize];
                 z.TalkPoses = new z.talkPos[textsize];
                 EditorGUI.indentLevel++;
                 for (int i = 0; i < textsize; i++)
                 {
-                    EditorGUILayout.LabelField("ÔªËØ " + i);
+                    EditorGUILayout.LabelField("å…ƒç´  " + i);
                     EditorGUI.indentLevel++;
-                    z.talkTexts[i] = EditorGUILayout.TextArea("¶Ô»°ÄÚÈÝ...");
-                    z.TalkPoses[i] = (z.talkPos)EditorGUILayout.EnumPopup("¶Ô»°¿ò·½Î»", z.TalkPoses[i]);
+                    z.talkTexts[i] = EditorGUILayout.TextArea("å¯¹è¯å†…å®¹...");
+                    z.TalkPoses[i] = (z.talkPos)EditorGUILayout.EnumPopup("å¯¹è¯æ¡†æ–¹ä½", z.TalkPoses[i]);
                     EditorGUI.indentLevel--;
                 }
                 EditorGUI.indentLevel--;
