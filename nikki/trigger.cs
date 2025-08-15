@@ -35,11 +35,12 @@ public class _runCommands
                 {
                     delimiterIndexs.Add(i);
                 }
-                else if ('\"' == commands[commandI][i])
+                else if ('\"' == commands[commandI][i] && !(0 != i && '\\' == commands[commandI][i - 1]))
                 {
                     isCount = !isCount;
                 }
             }
+            Regex.Replace(commands[commandI], "\\\"", "\"");
             if (!isCount)
             {
                 Debug.LogError("双引号格式错误");
@@ -66,10 +67,6 @@ public class _runCommands
             for (int i = 0; i < delimiterIndexs.Count - 1; i++)
             {
                 value = commands[commandI].Substring(delimiterIndexs[i] + 1, delimiterIndexs[i + 1] - delimiterIndexs[i] - 1);
-                if ('\"' == value[0])
-                {
-                    value = value.Substring(1, value.Length - 2);
-                }
                 if (0 == i)
                 {
                     commandName = value.ToLower();
