@@ -11,8 +11,8 @@ public class triggerComponentUI : Editor
     bool openCommands = true;
     bool openSounds = true;
     bool openSprites = true;
-    bool openCommandHelps = true;
-    bool openValueHelps = true;
+    bool openCommandHelps = false;
+    bool openValueHelps = false;
     private void OnEnable()
     {
         trigger = (trigger)target;
