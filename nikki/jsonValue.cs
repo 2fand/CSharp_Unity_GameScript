@@ -230,13 +230,13 @@ public class jsonValue
             }
             if (0 != stack.Count && valueClass.@object == classStack.Peek())
             {
-                Match match = Regex.Match(json.Substring(i), "^\\s*\".+?\"\\s*:\\s*");
+                Match match = Regex.Match(json.Substring(i), "^\\s*\"(\\\"|[^\\\"])*?\"\\s*:\\s*");
                 if (!match.Success)
                 {
                     return false;
                 }
                 i += match.Length;
-                indexStack[indexStack.Count - 1] = Regex.Match(match.Value, "\".+?\"").Value.Substring(1, Regex.Match(match.Value, "\".+?\"").Length - 2);
+                indexStack[indexStack.Count - 1] = Regex.Match(match.Value, "\"([^\\\"]|\\\")*?\"").Value.Substring(1, Regex.Match(match.Value, "\"([^\"]|\\\")*?\"").Length - 2);
             }
             if (Regex.Match(json.Substring(i), "^\\s*[+-]?[0-9]+\\s*").Success)
             {
@@ -284,10 +284,10 @@ public class jsonValue
                     return false;
                 }
             }
-            else if (Regex.Match(json.Substring(i), "^\\s*\".+?\"\\s*").Success)
+            else if (Regex.Match(json.Substring(i), "^\\s*\"(\\\"|[^\\\"])*?\"\\s*").Success)
             {
-                addValue(noTwoSides(Regex.Match(Regex.Match(json.Substring(i), "^\\s*\".+?\"\\s*").Value, "\".+?\"").Value));
-                i += Regex.Match(json.Substring(i), "^\\s*\".+?\"\\s*").Length;
+                addValue(noTwoSides(Regex.Match(Regex.Match(json.Substring(i), "^\\s*\"(\\\"|[^\\\"])*?\"\\s*").Value, "\".+?\"").Value));
+                i += Regex.Match(json.Substring(i), "^\\s*\"(\\\"|[^\\\"])*?\"\\s*").Length;
                 if (0 == stack.Count && i < json.Length)
                 {
                     return false;
