@@ -16,6 +16,16 @@ public class typeValue
     }
 }
 
+public class hashType
+{
+    public Hashtable value = new Hashtable();
+    public jsonValue.valueClass valueClass;
+    public hashType(jsonValue.valueClass valueClass)
+    {
+        this.valueClass = valueClass;
+    }
+}
+
 public class jsonValue
 {
     public enum valueClass
@@ -26,11 +36,11 @@ public class jsonValue
     }
     private valueClass thisClass = valueClass.value;
     public valueClass ThisClass => thisClass;
-    public Hashtable value = new Hashtable();
-    Stack<Hashtable> stack = new Stack<Hashtable>();
+    public Hashtable rootValue = new Hashtable();
+    Stack<hashType> stack = new Stack<hashType>();
     Stack<valueClass> classStack = new Stack<valueClass>();
     List<string> indexStack = new List<string>();
-    List<bool> hasValue = new List<bool>();
+    List<int> hasValue = new List<int>();
     public jsonValue()
     {
         setValue(null);
@@ -54,48 +64,48 @@ public class jsonValue
     public object setValue(object v)
     {
         thisClass = valueClass.value;
-        if (!value.ContainsKey(null))
+        if (!rootValue.ContainsKey(0))
         {
-            value.Add(null, null);
+            rootValue.Add(0, null);
         }
-        value[null] = v;
+        rootValue[0] = v;
         return v;
     }
     public typeValue getValue()
     {
-        return new typeValue(value[null]);
+        return new typeValue(rootValue[0]);
     }
     
     public typeValue indexToValue(int index)
     {
-        return new typeValue(value[index.ToString()]);
+        return new typeValue(rootValue[index.ToString()]);
     }
     
     public void setArray(uint size, object defaultObject = null)
     {
         thisClass = valueClass.array;
-        value.Clear();
+        rootValue.Clear();
         for (int i = 0; i < size; i++)
         {
-            value.Add(i.ToString(), defaultObject);
+            rootValue.Add(i.ToString(), defaultObject);
         }
     }
     
     public void setObject(string[] attributeNames, object[] objects)
     {
         thisClass = valueClass.@object;
-        value.Clear();
+        rootValue.Clear();
         for (int i = 0; i < Mathf.Min(attributeNames.Length, objects.Length); i++) 
         {
-            value.Add(attributeNames[i], objects[i]);
+            rootValue.Add(attributeNames[i], objects[i]);
         }
     }
 
     public void setObjectAttribute(string attributeName, object @object)
     {
         thisClass = valueClass.@object;
-        value.Clear();
-        value.Add(attributeName, @object);
+        rootValue.Clear();
+        rootValue.Add(attributeName, @object);
     }
 
     public string getType()
@@ -113,223 +123,182 @@ public class jsonValue
 
     public typeValue attributeNameToValue(string attributeName)
     {
-        return new typeValue(value[attributeName]);
+        return new typeValue(rootValue[attributeName]);
     }
     public typeValue pathToValue(string path)
     {
         throw new NotImplementedException();
     }
     
-    void EndGroup()
-    {
-        classStack.Pop();
-        indexStack.RemoveAt(indexStack.Count - 1);
-        Hashtable tempTable = stack.Pop();
-        hasValue.RemoveAt(hasValue.Count - 1);
-        if (null != indexStack[indexStack.Count - 1])
-        {
-            stack.Peek().Add(indexStack[indexStack.Count - 1], tempTable);
-        }
-    }
     public bool setValue(string json)
     {
-        stack = new Stack<Hashtable>();
+        stack = new Stack<hashType>();
         classStack = new Stack<valueClass>();
         indexStack = new List<string>();
-        hasValue = new List<bool>();
-        Action addOther = () => {
-            stack.Push(new Hashtable());
-            indexStack.Add(null);
-            hasValue.Add(false);
-        };
-        Func<string, string, Match> matchHaveSpace = (string input, string pattern) =>
+        hasValue = new List<int>();
+        Action<object> addValue = (object o) =>
         {
-            return Regex.Match(input, "^\\s*" + pattern + "\\s*$");
-        };
-        for (int i = 0; i < json.Length; )                              
-        {                                                               
-            if (Regex.Match(json.Substring(i), "^\\s*\\[\\s*").Success)
+            if (0 == stack.Count)
             {
-                hasValue[hasValue.Count - 1] = true;
-                if (valueClass.array == classStack.Peek())
-                {
-                    indexStack[indexStack.Count - 1] = null == indexStack[indexStack.Count - 1] ? "0" : (int.Parse(indexStack[indexStack.Count - 1]) + 1).ToString();
-                }
-                if (value.ContainsKey(null))
-                {
-                    return false;
-                }
-                classStack.Push(valueClass.array);
-                addOther();
-                i += Regex.Match(json.Substring(i), "^\\s*\\[\\s*").Length;
-            }
-            else if (Regex.Match(json.Substring(i), "^\\s*\\{\\s*").Success)
-            {
-                hasValue[hasValue.Count - 1] = true;
-                if (valueClass.array == classStack.Peek())
-                {
-                    indexStack[indexStack.Count - 1] = null == indexStack[indexStack.Count - 1] ? "0" : (int.Parse(indexStack[indexStack.Count - 1]) + 1).ToString();
-                }
-                if (value.ContainsKey(null))
-                {
-                    return false;
-                }
-                classStack.Push(valueClass.@object);
-                addOther();
-                i += Regex.Match(json.Substring(i), "^\\s*{\\s*").Length;
-            }
-            else if (matchHaveSpace(json.Substring(i), "\\]").Success)
-            {
-                if (0 == stack.Count || valueClass.array != classStack.Peek())
-                {
-                    return false;
-                }
-                EndGroup();
-                i += Regex.Match(json.Substring(i), "^\\s*\\]\\s*").Length;
-            }
-            else if (matchHaveSpace(json.Substring(i), "}").Success)
-            {
-                if (0 == stack.Count || valueClass.@object != classStack.Peek())
-                {
-                    return false;
-                }
-                EndGroup();
-                i += Regex.Match(json.Substring(i), "^\\s*}\\s*").Length;
-            }
-            else if(0 != classStack.Count && matchHaveSpace(json.Substring(i), ",").Success)
-            {
-                if (!hasValue[hasValue.Count - 1])
-                {
-                    return false;
-                }
-                i += matchHaveSpace(json.Substring(i), ",").Length;
-                hasValue[hasValue.Count - 1] = false;
+                setValue(o);
             }
             else
             {
                 if (valueClass.array == classStack.Peek())
                 {
-                    indexStack[indexStack.Count - 1] = null == indexStack[indexStack.Count - 1] ? "0" : (int.Parse(indexStack[indexStack.Count - 1]) + 1).ToString();
+                    indexStack[indexStack.Count - 1] = "" == indexStack[indexStack.Count - 1] ? "0" : (int.Parse(indexStack[indexStack.Count - 1]) + 1).ToString();
                 }
-                string matchString = Regex.Match(json.Substring(i), "^\\s*[^\\s]*").Value;
-                if (valueClass.@object == classStack.Peek())
+                stack.Peek().value.Add(indexStack[indexStack.Count - 1], o);
+                hasValue[hasValue.Count - 1] = 1;
+            }
+        };
+        Action EndOther = () =>
+        {
+            Hashtable tempTable = stack.Pop().value;
+            hasValue.RemoveAt(hasValue.Count - 1);
+            indexStack.RemoveAt(indexStack.Count - 1);
+            if (0 == indexStack.Count)
+            {
+                rootValue = tempTable;
+                thisClass = classStack.Pop();
+            }
+            else
+            {
+                classStack.Pop();
+                if (valueClass.array == classStack.Peek())
                 {
-                    indexStack[indexStack.Count - 1] = matchHaveSpace(matchString, "\"\".+?\"\"").Value;
-                    i += indexStack[indexStack.Count - 1].Length;
-                    matchString = Regex.Match(json.Substring(i), "^\\s*[^\\s]*").Value;
-                    i += matchHaveSpace(matchString, ":").Length;
-                    matchString = Regex.Match(json.Substring(i), "^\\s*[^\\s]*").Value;
+                    indexStack[indexStack.Count - 1] = "" == indexStack[indexStack.Count - 1] ? "0" : (int.Parse(indexStack[indexStack.Count - 1]) + 1).ToString();
                 }
-                Match match = Regex.Match(matchString, "^\\s*[+-]?([0-9]+(\\.([+-]?[0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*$");
-                if (match.Success)
+                stack.Peek().value.Add(indexStack[indexStack.Count - 1], tempTable);
+            }
+        };
+        Action<valueClass> addOther = (valueClass valueClass) =>
+        {
+            if (0 != stack.Count) {
+                hasValue[hasValue.Count - 1] = 1;
+            }
+            stack.Push(new hashType(valueClass));
+            hasValue.Add(-1);
+            indexStack.Add("");
+            classStack.Push(valueClass);
+        };
+        Func<string, string> noTwoSides = (string str) =>
+        {
+            return str.Substring(1, str.Length - 2);
+        };
+        for (int i = 0; i < json.Length; )
+        {
+            while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*\\[\\s*").Success)
+            {
+                addOther(valueClass.array);
+                i += Regex.Match(json.Substring(i), "^\\s*\\[\\s*").Length;
+            }
+            while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*{\\s*").Success)
+            {
+                addOther(valueClass.@object);
+                i += Regex.Match(json.Substring(i), "^\\s*{\\s*").Length;
+            }
+            while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*\\]\\s*").Success)
+            {
+                if (0 == hasValue[hasValue.Count - 1] || valueClass.@object == classStack.Peek())
                 {
-                    if (0 == stack.Count)
-                    {
-                        if (value.ContainsKey(null))
-                        {
-                            return false;
-                        }
-                        setValue(float.Parse(Regex.Match(match.Value, "^[^eE]+").Value) * Mathf.Pow(10, int.Parse(Regex.Match(match.Value, "[eE].+$").Value.Substring(1))));
-                    }
-                    else
-                    {
-                        stack.Peek().Add(indexStack[indexStack.Count - 1], float.Parse(Regex.Match(match.Value, "^[^eE]+").Value) * Mathf.Pow(10, int.Parse(Regex.Match(match.Value, "[eE].+$").Value.Substring(1))));
-                    }
-                    i += match.Length;
-                    hasValue[hasValue.Count - 1] = true;
+                    return false;
                 }
-                match = matchHaveSpace(matchString, "[+-]?[0-9]+");
-                if (match.Success)
+                EndOther();
+                i += Regex.Match(json.Substring(i), "^\\s*\\]\\s*").Length;
+            }
+            while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*}\\s*").Success)
+            {
+                if (0 == hasValue[hasValue.Count - 1] || valueClass.array == classStack.Peek())
                 {
-                    if (0 == stack.Count)
-                    {
-                        if (value.ContainsKey(null))
-                        {
-                            return false;
-                        }
-                        setValue(int.Parse(Regex.Match(match.Value, "^[^eE]+").Value) * (int)Mathf.Pow(10, int.Parse(Regex.Match(match.Value, "[eE].+$").Value.Substring(1))));
-                    }
-                    else
-                    {
-                        stack.Peek().Add(indexStack[indexStack.Count - 1], int.Parse(Regex.Match(match.Value, "^[^eE]+").Value) * (int)Mathf.Pow(10, int.Parse(Regex.Match(match.Value, "[eE].+$").Value.Substring(1))));
-                    }
-                    i += match.Length;
-                    hasValue[hasValue.Count - 1] = true;
-                    continue;
+                    return false;
                 }
-                if (matchHaveSpace(matchString, "true").Success)
+                EndOther();
+                i += Regex.Match(json.Substring(i), "^\\s*}\\s*").Length;
+            }
+            if (stack.Count != 0 && -1 != hasValue[hasValue.Count - 1])
+            {
+                if (Regex.Match(json.Substring(i), "^\\s*,\\s*").Success && 1 == hasValue[hasValue.Count - 1])
                 {
-                    if (0 == stack.Count)
-                    {
-                        if (value.ContainsKey(null))
-                        {
-                            return false;
-                        }
-                        setValue(true);
-                    }
-                    else
-                    {
-                        stack.Peek().Add(indexStack[indexStack.Count - 1], true);
-                    }
-                    i += match.Length;
-                    hasValue[hasValue.Count - 1] = true;
-                    continue;
+                    i += Regex.Match(json.Substring(i), "^\\s*,\\s*").Length;
+                    hasValue[hasValue.Count - 1] = 0;
                 }
-                if (matchHaveSpace(matchString, "false").Success)
+                else
                 {
-                    if (0 == stack.Count)
-                    {
-                        if (value.ContainsKey(null))
-                        {
-                            return false;
-                        }
-                        setValue(false);
-                    }
-                    else
-                    {   
-                        stack.Peek().Add(indexStack[indexStack.Count - 1], false);
-                    }
-                    i += match.Length;
-                    hasValue[hasValue.Count - 1] = true;
-                    continue;
+                    return false;
                 }
-                if (Regex.Match(matchString, "^\\s*null\\s*$").Success)
+            }
+            if (0 != stack.Count && valueClass.@object == classStack.Peek())
+            {
+                Match match = Regex.Match(json.Substring(i), "^\\s*\".+?\"\\s*:\\s*");
+                if (!match.Success)
                 {
-                    if (0 == stack.Count)
-                    {
-                        if (value.ContainsKey(null))
-                        {
-                            return false;
-                        }
-                        setValue(null);
-                    }
-                    else
-                    {
-                        stack.Peek().Add(indexStack[indexStack.Count - 1], null);
-                    }
-                    i += match.Length;
-                    hasValue[hasValue.Count - 1] = true;
-                    continue;
+                    return false;
                 }
-                match = Regex.Match(matchString, "^\\s*\"\".+?\"\"\\s*$");
-                if (match.Success) {
-
-                    if (0 == stack.Count)
-                    {
-                        if (value.ContainsKey(null))
-                        {
-                            return false;
-                        }
-                        setValue(match.Value.Substring(0, match.Value.Length - 1).Substring(1));
-                    }
-                    else
-                    {
-                        stack.Peek().Add(indexStack[indexStack.Count - 1], match.Value.Substring(0, match.Value.Length - 1).Substring(1));
-                    }
-                    i += match.Length;
-                    hasValue[hasValue.Count - 1] = true;
-                    continue;
+                i += match.Length;
+                indexStack[indexStack.Count - 1] = Regex.Match(match.Value, "\".+?\"").Value.Substring(1, Regex.Match(match.Value, "\".+?\"").Length - 2);
+            }
+            if (Regex.Match(json.Substring(i), "^\\s*[+-]?[0-9]+\\s*").Success)
+            {
+                addValue(int.Parse(Regex.Match(json.Substring(i), "^\\s*[+-]?[0-9]+\\s*").Value));
+                i += Regex.Match(json.Substring(i), "^\\s*[+-]?[0-9]+\\s*").Length;
+                if (0 == stack.Count && i < json.Length)
+                {
+                    return false;
                 }
+            }
+            else if (Regex.Match(json.Substring(i), "^\\s*[+-]?([0-9]+(\\.([+-]?[0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*").Success)
+            {
+                string floatNum = Regex.Match(json.Substring(i), "^\\s*[+-]?([0-9]+(\\.([+-]?[0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*").Value;
+                Match eMatch = Regex.Match(floatNum, "[eE][+-]?[0-9]+");
+                addValue(float.Parse(Regex.Match(json.Substring(i), "^\\s*[+-]?([0-9]+(\\.([+-]?[0-9]+)?)?|\\.[0-9]+)").Value) * (eMatch.Success ? Mathf.Pow(10, int.Parse(eMatch.Value.Substring(1))) : 1));
+                i += floatNum.Length;
+                if (0 == stack.Count && i < json.Length)
+                {
+                    return false;
+                }
+            }
+            else if(Regex.Match(json.Substring(i), "^\\s*false\\s*").Success){
+                addValue(false);
+                i += Regex.Match(json.Substring(i), "^\\s*false\\s*").Length;
+                if (0 == stack.Count && i < json.Length)
+                {
+                    return false;
+                }
+            }
+            else if (Regex.Match(json.Substring(i), "^\\s*true\\s*").Success)
+            {
+                addValue(true);
+                i += Regex.Match(json.Substring(i), "^\\s*true\\s*").Length;
+                if (0 == stack.Count && i < json.Length)
+                {
+                    return false;
+                }
+            }
+            else if (Regex.Match(json.Substring(i), "^\\s*null\\s*").Success)
+            {
+                addValue(null);
+                i += Regex.Match(json.Substring(i), "^\\s*null\\s*").Length;
+                if (0 == stack.Count && i < json.Length)
+                {
+                    return false;
+                }
+            }
+            else if (Regex.Match(json.Substring(i), "^\\s*\".+?\"\\s*").Success)
+            {
+                addValue(noTwoSides(Regex.Match(Regex.Match(json.Substring(i), "^\\s*\".+?\"\\s*").Value, "\".+?\"").Value));
+                i += Regex.Match(json.Substring(i), "^\\s*\".+?\"\\s*").Length;
+                if (0 == stack.Count && i < json.Length)
+                {
+                    return false;
+                }
+            }
+            if (hasValue.Count != 0 && -1 == hasValue[hasValue.Count - 1])
+            {
+                hasValue[hasValue.Count - 1] = 0;
+            }
+            if (stack.Count == 0 && i < json.Length)
+            {
                 return false;
             }
         }
