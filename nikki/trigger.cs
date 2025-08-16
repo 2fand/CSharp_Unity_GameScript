@@ -15,6 +15,15 @@ public class _runCommands
     public Hashtable labels = new Hashtable();
     public static Hashtable keyWordHas = new Hashtable();
     public Hashtable vars = new Hashtable();
+    bool getValue(string command, string partten, ref int i)
+    {
+        if (Regex.Match(command.Substring(i), "^\\s*" + partten + "\\s*").Success) 
+        {
+            i += Regex.Match(command.Substring(i), "^\\s*" + partten + "\\s*").Length;
+            return true;
+        }
+        return false;
+    }
     public void runCommands(string[] commands, AudioClip[] sounds = null, you u = null)
     {
         commands ??= new string[0];
@@ -23,6 +32,7 @@ public class _runCommands
         string value = "";
         string commandName = "";
         bool isCount = true;
+        bool frontHasValue = false;
         command _command = null;
         for (commandI = 0; null != commands && commandI < commands.Length; commandI++)
         {
@@ -40,7 +50,6 @@ public class _runCommands
                     isCount = !isCount;
                 }
             }
-            Regex.Replace(commands[commandI], "\\\"", "\"");
             if (!isCount)
             {
                 Debug.LogError("双引号格式错误");
@@ -64,9 +73,129 @@ public class _runCommands
                 commandI = commands.Length;
                 goto errorEnd;
             }
-            for (int i = 0; i < delimiterIndexs.Count - 1; i++)
+            Stack<int> stack = new Stack<int>();
+            Hashtable groupLeftToGroupRight = new Hashtable();
+            Hashtable valueLeftToValueRight = new Hashtable();
+            for (int i = 0; i < commands[commandI].Length; i++)
             {
-                value = commands[commandI].Substring(delimiterIndexs[i] + 1, delimiterIndexs[i + 1] - delimiterIndexs[i] - 1);
+                if ('(' == commands[commandI][i])
+                {
+                    stack.Push(i);
+                }
+                if (')' == commands[commandI][i])
+                {
+                    if (stack.Count == 0)
+                    {
+                        Debug.LogError("括号错误：前面应有“(”");
+                        goto errorEnd;
+                    }
+                    groupLeftToGroupRight.Add(stack.Pop(), i);
+                }
+            }
+            if (stack.Count != 0)
+            {
+                Debug.LogError("括号错误：后面应有“)”");
+                goto errorEnd;
+            }
+            int left = 0;
+            int right = 0;
+            for (int i = 0; i < commands[commandI].Length; )
+            {
+                left = i;
+                frontHasValue = false;
+                //a = choose 6
+                if (getValue(commands[commandI], "[^-\\s+*/%=?:^&|!()\\[\\]\\.,<>\\\"]+", ref i)){ }//读取非运算符
+                else if (getValue(commands[commandI], "\\+=", ref i)) { }//读取运算符
+                else if (getValue(commands[commandI], "\\+\\+", ref i)) { }
+                else if (getValue(commands[commandI], "\\+", ref i)) { }
+                else if (getValue(commands[commandI], "-=", ref i)) { }
+                else if (getValue(commands[commandI], "--", ref i)) { }
+                else if (getValue(commands[commandI], "-", ref i)) { }
+                else if (getValue(commands[commandI], "\\*\\*=", ref i)) { }
+                else if (getValue(commands[commandI], "\\*\\*", ref i)) { }
+                else if (getValue(commands[commandI], "\\*=", ref i)) { }
+                else if (getValue(commands[commandI], "\\*", ref i)) { }
+                else if (getValue(commands[commandI], "//=", ref i)) { }
+                else if (getValue(commands[commandI], "/=", ref i)) { }
+                else if (getValue(commands[commandI], "//", ref i)) { }
+                else if (getValue(commands[commandI], "/", ref i)) { }
+                else if (getValue(commands[commandI], "\\?\\?", ref i)) { }
+                else if (getValue(commands[commandI], "\\?\\.", ref i)) { }
+                else if (getValue(commands[commandI], "\\?=", ref i)) { }
+                else if (getValue(commands[commandI], "\\?", ref i)) { }
+                else if (getValue(commands[commandI], ":", ref i)) { }
+                else if (getValue(commands[commandI], "==", ref i)) { }
+                else if (getValue(commands[commandI], "=", ref i)) { }
+                else if (getValue(commands[commandI], "&&=", ref i)) { }
+                else if (getValue(commands[commandI], "&&", ref i)) { }
+                else if (getValue(commands[commandI], "&=", ref i)) { }
+                else if (getValue(commands[commandI], "&", ref i)) { }
+                else if (getValue(commands[commandI], "\\|\\|=", ref i)) { }
+                else if (getValue(commands[commandI], "\\|\\|", ref i)) { }
+                else if (getValue(commands[commandI], "\\|=", ref i)) { }
+                else if (getValue(commands[commandI], "\\|", ref i)) { }
+                else if (getValue(commands[commandI], "\\^", ref i)) { }
+                else if (getValue(commands[commandI], "\\^=", ref i)) { }
+                else if (getValue(commands[commandI], ">>=", ref i)) { }
+                else if (getValue(commands[commandI], ">>", ref i)) { }
+                else if (getValue(commands[commandI], ">=", ref i)) { }
+                else if (getValue(commands[commandI], ">", ref i)) { }
+                else if (getValue(commands[commandI], "<<=", ref i)) { }
+                else if (getValue(commands[commandI], "<<", ref i)) { }
+                else if (getValue(commands[commandI], "<=", ref i)) { }
+                else if (getValue(commands[commandI], "<", ref i)) { }
+                else if (getValue(commands[commandI], ",", ref i)) { }
+                else if (getValue(commands[commandI], "\\[", ref i)) { }
+                else if (getValue(commands[commandI], "\\]", ref i)) { }
+                else if (getValue(commands[commandI], "\\(", ref i)) { }
+                else if (getValue(commands[commandI], "\\)", ref i)) { }
+                else if (getValue(commands[commandI], "!=", ref i)) { }
+                else if (getValue(commands[commandI], "!", ref i)) { }
+                else if (getValue(commands[commandI], "%=", ref i)) { }
+                else if (getValue(commands[commandI], "%", ref i)) { }
+                else if (getValue(commands[commandI], "\\.", ref i)) { }
+                else if (getValue(commands[commandI], "\\\"", ref i)) { }
+                else if (getValue(commands[commandI], "~", ref i)) { }
+                else if (getValue(commands[commandI], "is", ref i)) { }
+                else if (getValue(commands[commandI], "as", ref i)) { }
+                else if (getValue(commands[commandI], "new", ref i)) { }
+                else if (getValue(commands[commandI], "typeof", ref i)) { }
+                else if (getValue(commands[commandI], "sizeof", ref i)) { }
+                else
+                {
+                    Debug.LogError("未知符号" + Regex.Match(commands[commandI].Substring(i), "^\\s*.+\\s*"));
+                    goto errorEnd;
+                }
+                right = i - 1;
+                valueLeftToValueRight.Add(left, right);
+            }
+            int beforeLevel = -1;
+            List<string> words = new List<string>();
+            int[] addbrackets = null;
+            Stack<string> groupStack = new Stack<string>();
+            //优先级>变
+            for (int i = 0; i < commands[commandI].Length; ) {
+                words.Add(commands[commandI].Substring(i, (int)groupLeftToGroupRight[i] - i + 1));
+                if (command.CanSymbolToLevel(commands[commandI].Substring(i, (int)groupLeftToGroupRight[i] - i + 1)))
+                {
+                    switch((int)command.getSymbolArgCount(commands[commandI].Substring(i, (int)groupLeftToGroupRight[i] - i + 1)))
+                    {
+                        case 1:
+
+                            break;
+                        case 2:
+
+                            break;
+                        default:
+
+                            break;
+                    }
+                    beforeLevel = command.symbolToLevel(value).Value;
+                }
+                i += (int)groupLeftToGroupRight[i] - i + 1;
+                //value = Regex.Match(commands[commandI].Substring(i), "").Value;
+                //value = commands[commandI].Substring(delimiterIndexs[i] + 1, delimiterIndexs[i + 1] - delimiterIndexs[i] - 1);//获取由空格分隔的内容，双引号内不算
+                /*
                 if (0 == i)
                 {
                     commandName = value.ToLower();
@@ -81,6 +210,7 @@ public class _runCommands
                 {
                     goto normalEnd;
                 }
+                */
             }
         normalEnd:;
             if (!_command.execute())
