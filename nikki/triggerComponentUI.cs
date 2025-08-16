@@ -27,11 +27,11 @@ public class triggerComponentUI : Editor
         trigger.triggerExtendLeft = EditorGUILayout.IntField("触发区域左延伸格数", trigger.triggerExtendLeft);
         trigger.triggerExtendRight = EditorGUILayout.IntField("触发区域右延伸格数", trigger.triggerExtendRight);
         trigger.triggerExtendDown = EditorGUILayout.IntField("触发区域下延伸格数", trigger.triggerExtendDown);
-        openCommandHelps = EditorGUILayout.BeginFoldoutHeaderGroup(openCommandHelps, "可用命令");
+        openCommandHelps = EditorGUILayout.BeginFoldoutHeaderGroup(openCommandHelps, "可用命令帮助");
         if (openCommandHelps)
         {
             EditorGUI.indentLevel++;
-            string commandsHelpStr = "可用命令:\n";
+            string commandsHelpStr = "可用命令帮助:\n";
             foreach (DictionaryEntry command in command.CommandRecommends)
             {
                 commandsHelpStr += "\t" + command.Key + ":\n\t\t" + command.Value + "\n";
@@ -40,11 +40,11 @@ public class triggerComponentUI : Editor
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
-        openValueHelps = EditorGUILayout.BeginFoldoutHeaderGroup(openValueHelps, "可用值");
+        openValueHelps = EditorGUILayout.BeginFoldoutHeaderGroup(openValueHelps, "可用值帮助");
         if (openValueHelps)
         {
             EditorGUI.indentLevel++;
-            string valuesHelpStr = "可用值:\n";
+            string valuesHelpStr = "可用值帮助:\n";
             foreach (DictionaryEntry value in command.valueHelps)
             {
                 valuesHelpStr += "\t" + value.Key + " | " + value.Value + "\n";
