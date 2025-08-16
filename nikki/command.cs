@@ -11,11 +11,14 @@ public abstract class command
     public static List<IEnumerator> funcs => trigger.funcs;
     public abstract string commandName { get; }
     public abstract string commandRecommend { get; }
+    public jsonValue result = new jsonValue();
     public abstract bool setValue(string value, int valueNumber, _runCommands commandsValues);
     public abstract bool execute();
     public static Hashtable stringCommands = new Hashtable();
     public static Hashtable CommandRecommends = new Hashtable();
     public readonly static Hashtable valueHelps = new Hashtable { { "none", "(进入转场|离开转场)：无" }, { "show", "进入转场：逐渐显示" }, { "hide", "离开转场：逐渐隐藏" }, { "fadein", "进入转场：淡入" }, { "fadeout", "离开转场：淡出" }, { "w", "朝向：上" }, { "a", "朝向：左" }, { "s", "朝向：下" }, { "d", "朝向：右" }, { "u", "朝向：你的朝向" }, { "l", "旋转方式：向左旋转90度" }, { "b", "旋转方式：往后旋转" }, { "r", "旋转方式：向右旋转90度" }, { "left", "同“l”" }, { "back", "同“b”" }, { "right", "同“r”" } };
+    public readonly static Hashtable symbolPrior = new Hashtable { { ".", 0 }, { "(", 0 }, { ")", 0 }, { "[", 0 }, { ".*++", 0 }, { ".*--", 0 }, { "new", 0 }, { "typeof", 0 }, { "++", 1 }, { "--", 1 }, { "+", 1 }, { "-", 1 }, { "!", 1 }, { "~", 1 }, { "*", 2 }, { "(class)", 2 }, { "/", 2 }, { "%", 2 }, { "//", 2 }, { "**", 2 }, { ".*+", 3 }, { ".*-", 3 }, { "<<", 4 }, { ">>", 4 }, { "<", 5 }, { ">", 5 }, { "<=", 5 }, { ">=", 5 }, { "is", 5 }, { "as", 5 }, { "==", 6 }, { "!=", 6 }, { "&", 7 }, { "^", 8 }, { "|", 9 }, { "&&", 10 }, { "||", 11 }, { "??", 12 }, { "?", 13 }, { ":", 13 }, { "=", 14 }, { "+=", 14 }, { "-=", 14 }, { "*=", 14 }, { "/=", 14 }, { "**=", 14 }, { "%=", 14 }, { "&&=", 14 }, { "||=", 14 }, { "&=", 14 }, { "|=", 14 }, { "^=", 14 }, { "//=", 14 }, { ",", 15 } };
+    public readonly static Hashtable symbolArgCount = new Hashtable { { ".", 2 }, { "(", 1 }, { ")", -1 }, { "[", 1 }, { ".*++", -1 }, { ".*--", -1 }, { "new", 1 }, { "typeof", 1 }, { "++", 1 }, { "--", 1 }, { "+", 1 }, { "-", 1 }, { "!", 1 }, { "~", 1 }, { "*", 2 }, { "(class)", 1 }, { "/", 2 }, { "%", 2 }, { "//", 2 }, { "**", 2 }, { ".*+", 2 }, { ".*-", 2 }, { "<<", 2 }, { ">>", 2 }, { "<", 2 }, { ">", 2 }, { "<=", 2 }, { ">=", 2 }, { "is", 2 }, { "as", 2 }, { "==", 2 }, { "!=", 2 }, { "&", 2 }, { "^", 2 }, { "|", 2 }, { "&&", 2 }, { "||", 2 }, { "??", 2 }, { "?", 2 }, { ":", 2 }, { "=", 2 }, { "+=", 2 }, { "-=", 2 }, { "*=", 2 }, { "/=", 2 }, { "**=", 2 }, { "%=", 2 }, { "&&=", 2 }, { "||=", 2 }, { "&=", 2 }, { "|=", 2 }, { "^=", 2 }, { "//=", 2 }, { ",", 2 } };
     public static Hashtable stringOfTransitionModes = new Hashtable { { "show", change.transitionMode.show }, { "fadein", change.transitionMode.fadein }, { "hide", change.transitionMode.hide }, { "fadeout", change.transitionMode.fadeout }, { "enterNone", change.transitionMode.enterNone }, { "exitNone", change.transitionMode.exitNone } };
     public static Hashtable stringOfWASDs = new Hashtable { { "W", wasd.w }, { "w", wasd.w }, { "A", wasd.a }, { "a", wasd.a }, { "S", wasd.s }, { "s", wasd.s }, { "D", wasd.d }, { "d", wasd.d } };
     public static Hashtable stringOfBools = new Hashtable { { "true", true }, { "false", false } };
@@ -24,7 +27,7 @@ public abstract class command
     static command()
     {
         Type[] types = typeof(command).Assembly.GetTypes();
-        for (int i = 0; i < types.Length; i++) { 
+        for (int i = 0; i < types.Length; i++) {
             if (null != types[i].BaseType && typeof(command) == types[i].BaseType)
             {
                 stringCommands.Add(Activator.CreateInstance(types[i]).ConvertTo<command>().commandName, Activator.CreateInstance(types[i]).ConvertTo<command>());
@@ -84,6 +87,26 @@ public abstract class command
         }
         return null;
     }
+    public static int? symbolToLevel(string str)
+#nullable disable
+    {
+        str = str.ToLower();
+        if (symbolPrior.ContainsKey(str))
+        {
+            return (int)symbolPrior[str];
+        }
+        return null;
+    }
+    public static int? getSymbolArgCount(string str)
+#nullable disable
+    {
+        str = str.ToLower();
+        if (symbolArgCount.ContainsKey(str))
+        {
+            return (int)symbolArgCount[str];
+        }
+        return null;
+    }
     public static bool CanStrToTransitionModes(string str)
     {
         return null != stringToTransitionModes(str);
@@ -107,6 +130,14 @@ public abstract class command
     public static bool CanCommandNameToRecommend(string str)
     {
         return null != commandNameToRecommends(str);
+    }
+    public static bool CanSymbolToLevel(string str)
+    {
+        return null != symbolToLevel(str);
+    }
+    public static bool CanGetSymbolArgCount(string str)
+    {
+        return null != getSymbolArgCount(str);
     }
 #nullable enable
     public static command? stringToCommands(string str)
@@ -670,8 +701,12 @@ public class set : command
     public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
     {
         //"".+?"" string true false null ^([+-]?([0-9]+(\.([+-]?[0-9]+)?)?|\.[0-9]+)([Ee][+-]?[0-9]+)?)$ num
-        if (0 == valueNumber && !commandsValues.vars.ContainsKey(value))
-        {
+        if (0 == valueNumber)
+        { 
+            if (commandsValues.vars.ContainsKey(value))
+            {
+                return false;
+            }
             commandsValues.vars.Add(value, null);
             _varName = value;
         }
