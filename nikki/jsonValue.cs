@@ -118,6 +118,26 @@ public class jsonValue
         {
             return "object";
         }
+        else if (null == getValue().value)
+        {
+            return "null";
+        }
+        else if (typeof(int) == getValue().type || typeof(long) == getValue().type || typeof(short) == getValue().type || typeof(byte) == getValue().type || typeof(sbyte) == getValue().type || typeof(uint) == getValue().type || typeof(ulong) == getValue().type || typeof(ushort) == getValue().type || typeof(nint) == getValue().type || typeof(nuint) == getValue().type)
+        {
+            return "integer";
+        }
+        else if (typeof(float) == getValue().type || typeof(double) == getValue().type || typeof(decimal) == getValue().type)
+        {
+            return "float";
+        }
+        else if (typeof(string) == getValue().type)
+        {
+            return "string";
+        }
+        else if (typeof(bool) == getValue().type)
+        {
+            return "bool";
+        }
         return getValue().type.ToString();
     }
 
@@ -130,7 +150,7 @@ public class jsonValue
         throw new NotImplementedException();
     }
     
-    public bool setValue(string json)
+    public bool setValue(string json, bool applyEspase = true)
     {
         stack = new Stack<hashType>();
         classStack = new Stack<valueClass>();
@@ -230,13 +250,13 @@ public class jsonValue
             }
             if (0 != stack.Count && valueClass.@object == classStack.Peek())
             {
-                Match match = Regex.Match(json.Substring(i), "^\\s*\"(\\\"|[^\\\"])*?\"\\s*:\\s*");
+                Match match = Regex.Match(json.Substring(i), "^\\s*\"(\\\\\"|[^\\\\\"])*?\"\\s*:\\s*");
                 if (!match.Success)
                 {
                     return false;
                 }
                 i += match.Length;
-                indexStack[indexStack.Count - 1] = Regex.Match(match.Value, "\"([^\\\"]|\\\")*?\"").Value.Substring(1, Regex.Match(match.Value, "\"([^\"]|\\\")*?\"").Length - 2);
+                indexStack[indexStack.Count - 1] = Regex.Match(match.Value, "\"([^\\\\\"]|\\\\\")*?\"").Value.Substring(1, Regex.Match(match.Value, "\"([^\\\\\"]|\\\\\")*?\"").Length - 2);
             }
             if (Regex.Match(json.Substring(i), "^\\s*[+-]?[0-9]+\\s*").Success)
             {
@@ -284,10 +304,10 @@ public class jsonValue
                     return false;
                 }
             }
-            else if (Regex.Match(json.Substring(i), "^\\s*\"(\\\"|[^\\\"])*?\"\\s*").Success)
+            else if (Regex.Match(json.Substring(i), "^\\s*\"(\\\\\"|[^\\\\\"])*?\"\\s*").Success)
             {
-                addValue(noTwoSides(Regex.Match(Regex.Match(json.Substring(i), "^\\s*\"(\\\"|[^\\\"])*?\"\\s*").Value, "\".+?\"").Value));
-                i += Regex.Match(json.Substring(i), "^\\s*\"(\\\"|[^\\\"])*?\"\\s*").Length;
+                addValue(Regex.Replace(noTwoSides(Regex.Match(Regex.Match(json.Substring(i), "^\\s*\"(\\\\\"|[^\\\\\"])*?\"\\s*").Value, "\"(\\\\\"|[^\\\\\"])*?\"").Value), applyEspase ? "\\\\\"" : "", applyEspase ? "\"" : ""));
+                i += Regex.Match(json.Substring(i), "^\\s*\"(\\\\\"|[^\\\\\"])*?\"\\s*").Length;
                 if (0 == stack.Count && i < json.Length)
                 {
                     return false;
