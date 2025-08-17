@@ -324,4 +324,9 @@ public class jsonValue
         }
         return stack.Count == 0;
     }
+
+    public string valueToString()
+    {
+        return "";
+    }
 }
