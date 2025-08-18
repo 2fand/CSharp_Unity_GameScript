@@ -5,16 +5,6 @@ using System.Text.RegularExpressions;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class typeValue
-{
-    public Type type;
-    public object value;
-    public typeValue(object value)
-    {
-        this.value = value; 
-        this.type = value.GetType();
-    }
-}
 
 public class hashType
 {
@@ -41,6 +31,13 @@ public class jsonValue
     Stack<valueClass> classStack = new Stack<valueClass>();
     List<string> indexStack = new List<string>();
     List<int> hasValue = new List<int>();
+    public static string stringRegex => "\"(\\\\\"|[^\\\\\"])*?\"";
+    public static string trueRegex => "true";
+    public static string falseRegex => "false";
+    public static string nullRegex => "null";
+    public static string integerRegex => "[+-]?[0-9]+";
+    public static string floatRegex => "[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?";
+    public static string varRegex => "[a-zA-Z_]+";
     public jsonValue()
     {
         setValue(null);
@@ -71,16 +68,35 @@ public class jsonValue
         rootValue[0] = v;
         return v;
     }
-    public typeValue getValue()
+    public hashType getValue()
     {
-        return new typeValue(rootValue[0]);
+        return rootValue[0].ConvertTo<hashType>();
     }
-    
-    public typeValue indexToValue(int index)
+    public object setValue(hashType hashType, object v)
     {
-        return new typeValue(rootValue[index.ToString()]);
+        hashType.valueClass = valueClass.value;
+        if (!hashType.value.ContainsKey(0))
+        {
+            hashType.value.Add(0, null);
+        }
+        hashType.value[0] = v;
+        return v;
     }
-    
+    public hashType getValue(hashType hashType)
+    {
+        return hashType.value[0].ConvertTo<hashType>();
+    }
+
+    public hashType indexToValue(int index)
+    {
+        return rootValue[index.ToString()].ConvertTo<hashType>();
+    }
+
+    public hashType indexToValue(hashType hashType, int index)
+    {
+        return hashType.value[index.ToString()].ConvertTo<hashType>();
+    }
+
     public void setArray(uint size, object defaultObject = null)
     {
         thisClass = valueClass.array;
@@ -90,7 +106,17 @@ public class jsonValue
             rootValue.Add(i.ToString(), defaultObject);
         }
     }
-    
+
+    public void setArray(hashType hashType, uint size, object defaultObject = null)
+    {
+        hashType.valueClass = valueClass.array;
+        hashType.value.Clear();
+        for (int i = 0; i < size; i++)
+        {
+            hashType.value.Add(i.ToString(), defaultObject);
+        }
+    }
+
     public void setObject(string[] attributeNames, object[] objects)
     {
         thisClass = valueClass.@object;
@@ -101,6 +127,16 @@ public class jsonValue
         }
     }
 
+    public void setObject(hashType hashType, string[] attributeNames, object[] objects)
+    {
+        hashType.valueClass = valueClass.@object;
+        hashType.value.Clear();
+        for (int i = 0; i < Mathf.Min(attributeNames.Length, objects.Length); i++)
+        {
+            hashType.value.Add(attributeNames[i], objects[i]);
+        }
+    }
+
     public void setObjectAttribute(string attributeName, object @object)
     {
         thisClass = valueClass.@object;
@@ -108,7 +144,14 @@ public class jsonValue
         rootValue.Add(attributeName, @object);
     }
 
-    public string getType()
+    public void setObjectAttribute(hashType hashType, string attributeName, object @object)
+    {
+        hashType.valueClass = valueClass.@object;
+        hashType.value.Clear();
+        hashType.value.Add(attributeName, @object);
+    }
+
+    public string getRealType()
     {
         if (valueClass.array == thisClass)
         {
@@ -122,34 +165,78 @@ public class jsonValue
         {
             return "null";
         }
-        else if (typeof(int) == getValue().type || typeof(long) == getValue().type || typeof(short) == getValue().type || typeof(byte) == getValue().type || typeof(sbyte) == getValue().type || typeof(uint) == getValue().type || typeof(ulong) == getValue().type || typeof(ushort) == getValue().type || typeof(nint) == getValue().type || typeof(nuint) == getValue().type)
+        else if (typeof(int) == getValue().value.GetType() || typeof(long) == getValue().value.GetType() || typeof(short) == getValue().value.GetType() || typeof(byte) == getValue().value.GetType() || typeof(sbyte) == getValue().value.GetType() || typeof(uint) == getValue().value.GetType() || typeof(ulong) == getValue().value.GetType() || typeof(ushort) == getValue().value.GetType() || typeof(nint) == getValue().value.GetType() || typeof(nuint) == getValue().value.GetType())
         {
             return "integer";
         }
-        else if (typeof(float) == getValue().type || typeof(double) == getValue().type || typeof(decimal) == getValue().type)
+        else if (typeof(float) == getValue().value.GetType() || typeof(double) == getValue().value.GetType() || typeof(decimal) == getValue().value.GetType())
         {
             return "float";
         }
-        else if (typeof(string) == getValue().type)
+        else if (typeof(string) == getValue().value.GetType())
         {
             return "string";
         }
-        else if (typeof(bool) == getValue().type)
+        else if (typeof(bool) == getValue().value.GetType())
         {
             return "bool";
         }
-        return getValue().type.ToString();
+        return getValue().value.GetType().ToString();
     }
 
-    public typeValue attributeNameToValue(string attributeName)
+    public static string getRealType(hashType hashType)
     {
-        return new typeValue(rootValue[attributeName]);
+        if (valueClass.array == hashType.valueClass)
+        {
+            return "array";
+        }
+        else if (valueClass.@object == hashType.valueClass)
+        {
+            return "object";
+        }
+        else if (null == hashType.value)
+        {
+            return "null";
+        }
+        else if (typeof(int) == hashType.value[0].GetType() || typeof(long) == hashType.value[0].GetType() || typeof(short) == hashType.value[0].GetType() || typeof(byte) == hashType.value[0].GetType() || typeof(sbyte) == hashType.value[0].GetType() || typeof(uint) == hashType.value[0].GetType() || typeof(ulong) == hashType.value[0].GetType() || typeof(ushort) == hashType.value[0].GetType() || typeof(nint) == hashType.value[0].GetType() || typeof(nuint) == hashType.value[0].GetType())
+        {
+            return "integer";
+        }
+        else if (typeof(float) == hashType.value[0].GetType() || typeof(double) == hashType.value[0].GetType() || typeof(decimal) == hashType.value[0].GetType())
+        {
+            return "float";
+        }
+        else if (typeof(string) == hashType.value[0].GetType())
+        {
+            return "string";
+        }
+        else if (typeof(bool) == hashType.value[0].GetType())
+        {
+            return "bool";
+        }
+        return hashType.value[0].GetType().ToString();
     }
-    public typeValue pathToValue(string path)
+
+    public hashType attributeNameToValue(string attributeName)
+    {
+        return rootValue[attributeName].ConvertTo<hashType>();
+    }
+    public hashType attributeNameToValue(hashType hashType, string attributeName)
+    {
+        return hashType.value[attributeName].ConvertTo<hashType>();
+    }
+    public hashType pathToValue(string path)
     {
         throw new NotImplementedException();
     }
-    
+    public hashType pathToValue(hashType hashType, string path)
+    {
+        throw new NotImplementedException();
+    }
+    public float ToScienceFloat(string floatStr)
+    {
+        return float.Parse(Regex.Match(floatStr, "^\\s*" + floatRegex).Value) * (Regex.Match(floatStr, "[eE][+-]?[0-9]+").Success ? Mathf.Pow(10, int.Parse(Regex.Match(floatStr, "[eE][+-]?[0-9]+").Value.Substring(1))) : 1);
+    }
     public bool setValue(string json, bool applyEspase = true)
     {
         stack = new Stack<hashType>();
@@ -250,13 +337,13 @@ public class jsonValue
             }
             if (0 != stack.Count && valueClass.@object == classStack.Peek())
             {
-                Match match = Regex.Match(json.Substring(i), "^\\s*\"(\\\\\"|[^\\\\\"])*?\"\\s*:\\s*");
+                Match match = Regex.Match(json.Substring(i), "^\\s*"+stringRegex+"\\s*:\\s*");
                 if (!match.Success)
                 {
                     return false;
                 }
                 i += match.Length;
-                indexStack[indexStack.Count - 1] = Regex.Match(match.Value, "\"([^\\\\\"]|\\\\\")*?\"").Value.Substring(1, Regex.Match(match.Value, "\"([^\\\\\"]|\\\\\")*?\"").Length - 2);
+                indexStack[indexStack.Count - 1] = Regex.Match(match.Value, stringRegex).Value.Substring(1, Regex.Match(match.Value, stringRegex).Length - 2);
             }
             if (Regex.Match(json.Substring(i), "^\\s*[+-]?[0-9]+\\s*").Success)
             {
@@ -267,11 +354,10 @@ public class jsonValue
                     return false;
                 }
             }
-            else if (Regex.Match(json.Substring(i), "^\\s*[+-]?([0-9]+(\\.([+-]?[0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*").Success)
+            else if (Regex.Match(json.Substring(i), "^\\s*[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*").Success)
             {
-                string floatNum = Regex.Match(json.Substring(i), "^\\s*[+-]?([0-9]+(\\.([+-]?[0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*").Value;
-                Match eMatch = Regex.Match(floatNum, "[eE][+-]?[0-9]+");
-                addValue(float.Parse(Regex.Match(json.Substring(i), "^\\s*[+-]?([0-9]+(\\.([+-]?[0-9]+)?)?|\\.[0-9]+)").Value) * (eMatch.Success ? Mathf.Pow(10, int.Parse(eMatch.Value.Substring(1))) : 1));
+                string floatNum = Regex.Match(json.Substring(i), "^\\s*[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*").Value;
+                addValue(ToScienceFloat(json.Substring(i)));
                 i += floatNum.Length;
                 if (0 == stack.Count && i < json.Length)
                 {
@@ -304,10 +390,10 @@ public class jsonValue
                     return false;
                 }
             }
-            else if (Regex.Match(json.Substring(i), "^\\s*\"(\\\\\"|[^\\\\\"])*?\"\\s*").Success)
+            else if (Regex.Match(json.Substring(i), "^\\s*"+stringRegex+"\\s*").Success)
             {
-                addValue(Regex.Replace(noTwoSides(Regex.Match(Regex.Match(json.Substring(i), "^\\s*\"(\\\\\"|[^\\\\\"])*?\"\\s*").Value, "\"(\\\\\"|[^\\\\\"])*?\"").Value), applyEspase ? "\\\\\"" : "", applyEspase ? "\"" : ""));
-                i += Regex.Match(json.Substring(i), "^\\s*\"(\\\\\"|[^\\\\\"])*?\"\\s*").Length;
+                addValue(Regex.Replace(noTwoSides(Regex.Match(Regex.Match(json.Substring(i), "^\\s*" + stringRegex + "\\s*").Value, stringRegex).Value), applyEspase ? "\\\\\"" : "", applyEspase ? "\"" : ""));
+                i += Regex.Match(json.Substring(i), "^\\s*"+stringRegex+"\\s*").Length;
                 if (0 == stack.Count && i < json.Length)
                 {
                     return false;
@@ -325,8 +411,121 @@ public class jsonValue
         return stack.Count == 0;
     }
 
-    public string valueToString()
+    public string jsonValueTojsonString()
     {
-        return "";
+        string json = "";
+        if (valueClass.array == thisClass)
+        {
+            json += "[";
+            for (int i = 0; i < rootValue.Count; i++)
+            {
+                json += jsonValueTojsonString(indexToValue(i));
+                if (i != rootValue.Count - 1)
+                {
+                    json += ", ";
+                }
+            }
+            json += "]";
+            return json;
+        }
+        else if (valueClass.@object == thisClass)
+        {
+            json += "{";
+            int i = 0;
+            foreach (string label in rootValue.Keys)
+            {
+                json += label + " : " + jsonValueTojsonString(attributeNameToValue(label));
+                if (i++ != rootValue.Count - 1)
+                {
+                    json += ", ";
+                }
+            }
+            json += "}";
+            return json;
+        }
+        return getValue().value.ToString();
+    }
+
+    private string jsonValueTojsonString(hashType hashType)
+    {
+        string json = "";
+        if (valueClass.array == hashType.valueClass)
+        {
+            json += "[";
+            for (int i = 0; i < hashType.value.Count; i++)
+            {
+                json += jsonValueTojsonString(indexToValue(hashType, i));
+                if (i != hashType.value.Count - 1)
+                {
+                    json += ", ";
+                }
+            }
+            json += "]";
+            return json;
+        }
+        else if (valueClass.@object == hashType.valueClass)
+        {
+            json += "{";
+            int i = 0;
+            foreach (string label in hashType.value.Keys)
+            {
+                json += label + " : " + jsonValueTojsonString(attributeNameToValue(hashType, label));
+                if (i++ != hashType.value.Count - 1)
+                {
+                    json += ", ";
+                }
+            }
+            json += "}";
+            return json;
+        }
+        return hashType.value.ToString();
+    }
+
+    public static bool isInteger(string jsonvalue) {
+        return Regex.Match(jsonvalue, "^\\s[+-]?[0-9]+\\s$").Success;
+    }
+    public static bool isTrue(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*true\\s*$").Success;
+    }
+    public static bool isFalse(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*false\\s*$").Success;
+    }
+    public static bool isNull(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*" + nullRegex + "\\s$*").Success;
+    }
+    public static bool isString(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*" + stringRegex + "\\s*$").Success;
+    }
+    public static bool isFloat(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*$").Success;
+    }
+    public static string getInteger(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s[+-]?[0-9]+\\s*").Value;
+    }
+    public static string getTrue(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*true\\s*").Value;
+    }
+    public static string getFalse(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*false\\s*").Value;
+    }
+    public static string getNull(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*null\\s*").Value;
+    }
+    public static string getString(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*" + stringRegex + "\\s*").Value;
+    }
+    public static string getFloat(string jsonvalue)
+    {
+        return Regex.Match(jsonvalue, "^\\s*[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*").Value;
     }
 }
