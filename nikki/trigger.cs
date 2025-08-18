@@ -47,7 +47,13 @@ public class _runCommands
         for (int i = 0; i < command.Length;)
         {
             left = i;
-            if (getValue(command, "[^-\\s+*/%=?:^&|!()\\[\\]\\.,<>\\\"]+", ref i)) { }//读取非运算符
+            if (getValue(command, "[a-zA-Z_]+", ref i)) { }//读取非运算符
+            else if (getValue(command, "true", ref i)) { }
+            else if (getValue(command, "false", ref i)) { }
+            else if (getValue(command, "null", ref i)) { }
+            else if (getValue(command, jsonValue.stringRegex, ref i)) { }
+            else if (getValue(command, "[+-]?[0-9]+", ref i)) { }
+            else if (getValue(command, "[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?", ref i)) { }
             else if (getValue(command, "\\+=", ref i)) { }//读取运算符
             else if (getValue(command, "\\+\\+", ref i)) { }
             else if (getValue(command, "\\+", ref i)) { }
@@ -97,7 +103,6 @@ public class _runCommands
             else if (getValue(command, "%=", ref i)) { }
             else if (getValue(command, "%", ref i)) { }
             else if (getValue(command, "\\.", ref i)) { }
-            else if (getValue(command, "\\\"", ref i)) { }
             else if (getValue(command, "~", ref i)) { }
             else if (getValue(command, "is", ref i)) { }
             else if (getValue(command, "as", ref i)) { }
@@ -113,10 +118,12 @@ public class _runCommands
             values.Add(command.Substring(left, right - left + 1));
             valueIndexs.Add(left);
         }
-        return null;
+        return values;
     }
     public void runCommands(string[] commands, AudioClip[] sounds = null, you u = null)
     {
+        new set();
+        new setSymbol();
         commands ??= new string[0];
         int[] runCounts = new int[commands.Length];
         List<int> delimiterIndexs = new List<int> { -1 };
@@ -126,18 +133,9 @@ public class _runCommands
         //command _command = null;
         for (commandI = 0; null != commands && commandI < commands.Length; commandI++)
         {
-            /*
-            delimiterIndexs.Clear();
-            delimiterIndexs.Add(-1);
-            //参数
-            */
             for (int i = 0; i < commands[commandI].Length; i++)
             {
-                /*if (isCount && ' ' == commands[commandI][i])
-                {
-                    delimiterIndexs.Add(i);
-                }
-         else */if ('\"' == commands[commandI][i] && !(0 != i && '\\' == commands[commandI][i - 1]))
+                if ('\"' == commands[commandI][i] && !(0 != i && '\\' == commands[commandI][i - 1]))
                 {
                     isCount = !isCount;
                 }
@@ -147,8 +145,6 @@ public class _runCommands
                 Debug.LogError("双引号格式错误");
                 goto errorEnd;
             }
-            //delimiterIndexs.Add(commands[commandI].Length);
-            //commandName = "";
             //获取值域，分配括号，添加括号，移动运算符，过滤非括号，计算(还剩函数要完成)
             //获取值域
 #nullable enable
@@ -175,7 +171,7 @@ public class _runCommands
                 {
                     if ((string)groupLeftStringToGroupRightString[groupStack.Peek()] != values[i])
                     {
-                        Debug.LogError("括号错误：前文中的“" + groupStack.Peek() + "”不可匹配于“" + values[i] + "”");
+                        Debug.LogError("括号错误：前文中第" + commandI + "行第" + valueIndexs[groupStack.Peek()] + "列的“" + values[groupStack.Peek()] + "”不可匹配于第" + commandI + "行第" + valueIndexs[i] + "列的“" + values[i] + "”");
                         goto errorEnd;
                     }
                     groupLeftIndexToGroupRightIndex.Add(groupStack.Peek(), i);
@@ -187,9 +183,14 @@ public class _runCommands
             List<int> beforeRights = new List<int>{-1};
             Stack<string> groupStrings = new Stack<string>();
             Stack<int> groupIndexs = new Stack<int>();
-            int[] addBrackets = new int[values.Count];
+            List<int> addBrackets = new List<int>();
+            for (int i = 0; i < values.Count; i++)
+            {
+                addBrackets.Add(0);
+            }
             bool frontHasValue = false;
             List<int> symbolPos = new List<int>();
+            List<int> rbracketPoses = new List<int>();
             //优先级<=左变
             for (int i = 0; i < values.Count; i++) {
                 value = values[i];
@@ -239,7 +240,7 @@ public class _runCommands
                 {
                     if (0 == beforeLefts.Count)
                     {
-                        Debug.LogError("括号错误：应去掉" + valueIndexs[i] + "处的右括号");
+                        Debug.LogError("括号错误：应去掉第" + commandI + "行第" + valueIndexs[i] + "列的右括号");
                         goto errorEnd;
                     }
                     beforeLefts.RemoveAt(beforeLefts.Count - 1);
@@ -247,7 +248,7 @@ public class _runCommands
                     beforeLevels.RemoveAt(beforeLevels.Count - 1);
                     if ((string)groupLeftStringToGroupRightString[groupStrings.Peek()] != values[i].Trim())
                     {
-                        Debug.LogError("括号错误：" + valueIndexs[i] + "处匹配的括号不对");
+                        Debug.LogError("括号错误：第" + commandI + "行第" + valueIndexs[i] + "列匹配的括号不对");
                         goto errorEnd;
                     }
                     values.RemoveAt(groupIndexs.Peek());
@@ -276,17 +277,17 @@ public class _runCommands
                     switch((int)getSymbolArgCount(value))
                     {
                         case 1:
-                            if ("(" == values[i].Trim() || "[" == values[i].Trim() || "?[" == values[i].Trim())
+                            if ("(" == value.Trim() || "[" == value.Trim() || "?[" == value.Trim())
                             {
                                 beforeLefts.Add(-1);
                                 beforeRights.Add(-1);
                                 beforeLevels.Add(-1);
-                                groupStrings.Push(values[i].Trim());
+                                groupStrings.Push(value.Trim());
                                 groupIndexs.Push(i);
                             }
                             if (i == values.Count - 1 || !CanSymbolToLevel(values[i + 1]))
                             {
-                                Debug.LogError("运算符错误：索引在" + valueIndexs[i] + "处的运算符右边参数格式不对");
+                                Debug.LogError("运算符错误：第" + commandI + "行第" + valueIndexs[i] + "列的运算符右边参数格式不对");
                                 goto errorEnd;
                             }
                             addBrackets[i]++;
@@ -310,7 +311,7 @@ public class _runCommands
                         case 2:
                             if (0 == i || i == values.Count - 1 || !CanSymbolToLevel(values[i - 1]) || !CanSymbolToLevel(values[i + 1]))
                             {
-                                Debug.LogError("运算符错误：索引在" + valueIndexs[i] + "处的运算符两边至少有一处参数格式不对");
+                                Debug.LogError("运算符错误：第" + commandI + "行第" + valueIndexs[i] + "列的运算符两边至少有一处参数格式不对");
                                 goto errorEnd;
                             }
                             addBrackets[i - 1]++;
@@ -334,24 +335,29 @@ public class _runCommands
                             beforeRights[beforeRights.Count-1] = i + 1;
                             break;
                         case -1:
-                            if (")" == values[i].Trim() || "]" == values[i].Trim())
+                            if (")" == value.Trim() || "]" == value.Trim())
                             {
                                 beforeLefts.RemoveAt(beforeLefts.Count - 1);
                                 beforeRights.RemoveAt(beforeRights.Count - 1);
                                 beforeLevels.RemoveAt(beforeLevels.Count - 1);
-                                if ((string)groupLeftStringToGroupRightString[groupStrings.Peek()] != values[i].Trim())
+                                if ((string)groupLeftStringToGroupRightString[groupStrings.Peek()] != value.Trim())
                                 {
-                                    Debug.LogError("括号错误：" + valueIndexs[i]  + "处匹配的括号不对");
+                                    Debug.LogError("括号错误：第" + commandI + "行第" + valueIndexs[i]  + "列匹配的括号不对");
                                     goto errorEnd;
                                 }
                                 values.RemoveAt(groupIndexs.Peek());
                                 values.Insert(i, groupStrings.Peek());
                                 groupStrings.Pop();
                                 groupIndexs.Pop();
+                                if (0 != rbracketPoses.Count)
+                                {
+                                    rbracketPoses[rbracketPoses.Count - 1]--;
+                                    rbracketPoses.RemoveAt(rbracketPoses.Count - 1);
+                                }
                             }
                             if (0 == i || CanSymbolToLevel(values[i - 1]))
                             {
-                                Debug.LogError("运算符错误：索引在" + valueIndexs[i] + "处的运算符左边参数格式不对");
+                                Debug.LogError("运算符错误：第" + commandI + "行第" + valueIndexs[i] + "列的运算符左边参数格式不对");
                                 goto errorEnd;
                             }
                             addBrackets["(" == values[i - 1].Trim() ? (int)groupRightIndexToGroupLeftIndex[i] : i - 1]++;
@@ -378,14 +384,29 @@ public class _runCommands
                     frontHasValue = false;
                     beforeLevels[beforeLevels.Count - 1] = symbolToLevel(value).Value;
                 }
+                else if (command.CanCommandNameToRecommend(value))
+                {
+                    values.Insert(i++, "\x02");
+                    addBrackets.Insert(i, 1);
+                    rbracketPoses.Add(i);
+                }
                 else
                 {
                     frontHasValue = true;
                 }
+                if (0 != rbracketPoses.Count)
+                {
+                    rbracketPoses[rbracketPoses.Count - 1]++;
+                }
             }
             if (0 != groupStrings.Count)
             {
-                Debug.LogError("括号错误：应去除索引为" + groupIndexs.ToArray()[groupIndexs.ToArray().Length - 1] + "处的括号");
+                Debug.LogError("括号错误：应去除第" + commandI + "行第" + groupIndexs.ToArray()[groupIndexs.ToArray().Length - 1] + "列的括号");
+                goto errorEnd;
+            }
+            if (0 != rbracketPoses.Count)
+            {
+                addBrackets[values.Count - 1] -= rbracketPoses.Count;
             }
             //添加括号
             List<string> suffixCode = new List<string>();
@@ -394,7 +415,7 @@ public class _runCommands
                 suffixCode.Add(values[i]);
             }
             List<string> tempCode = new List<string>();
-            for (int i = 0; i < addBrackets.Length; i++)
+            for (int i = 0; i < addBrackets.Count; i++)
             {
                 if (0 < addBrackets[i])
                 {
@@ -412,22 +433,25 @@ public class _runCommands
                         tempCode.Add(")");
                     }
                 }
+                if (0 == addBrackets[i]) { 
+                    tempCode.Add(suffixCode[i]);
+                }
             }
-            suffixCode = tempCode;
+            suffixCode = new List<string>(tempCode);
             //移动运算符
             for (int i = 0; i < suffixCode.Count; i++)
             {
                 int groupCount = 0;
                 int j = 0;
-                if (CanSymbolToLevel(suffixCode[i]))
+                if (CanSymbolToLevel(suffixCode[i]) || command.CanCommandNameToRecommend(suffixCode[i]))
                 {
                     for (j = i; j < suffixCode.Count - 1; j++)
                     {
-                        if ("(" != suffixCode[j + 1].Trim())
+                        if ("(" == suffixCode[j + 1].Trim())
                         {
                             groupCount++;
                         }
-                        if (")" != suffixCode[j + 1].Trim())
+                        if (")" == suffixCode[j + 1].Trim())
                         {
                             groupCount--;
                         }
@@ -442,6 +466,7 @@ public class _runCommands
                 }
             }
             //过滤非括号
+            tempCode.Clear();
             for (int i = 0; i < suffixCode.Count; i++)
             {
                 if (!Regex.Match(suffixCode[i], "^\\s*[()]\\s*$").Success) 
@@ -449,9 +474,13 @@ public class _runCommands
                     tempCode.Add(suffixCode[i]);
                 }
             }
-            suffixCode = tempCode;
+            suffixCode = new List<string>(tempCode);
             //计算
             Stack<string> calcStack = new Stack<string>();
+            Stack<int> symbolIndexStack = new Stack<int>();
+            Stack<List<string>> argsStack = new Stack<List<string>>();
+            Stack<command> commandStack = new Stack<command>();
+            bool canExecute = true;
             for (int i = 0; i < suffixCode.Count; i++)
             {
                 if (CanSymbolToLevel(suffixCode[i]))
@@ -460,31 +489,91 @@ public class _runCommands
                     {
                         string sa = calcStack.Pop();
                         string s = calcStack.Pop();
-                        getSymbolFunc(suffixCode[i])(s, sa, this);
+                        symbolIndexStack.Pop();
+                        symbolIndexStack.Pop();
+                        if (argsStack.Count > 0)
+                        {
+                            argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
+                            argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
+                        }
+                        calcStack.Push(getSymbolFunc(suffixCode[i])(s, sa, this).jsonValueTojsonString());
+                        if (argsStack.Count > 0)
+                        {
+                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
+                        }
                     }
                     else if(1 == symbolToLevel(suffixCode[i]))
                     {
                         string s = calcStack.Pop();
-                        getSymbolFunc(suffixCode[i])("", s, this);
+                        symbolIndexStack.Pop();
+                        if (argsStack.Count > 0)
+                        {
+                            argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
+                        }
+                        calcStack.Push(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
+                        if (argsStack.Count > 0)
+                        {
+                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
+                        }
                     }
                     else if(-1 == symbolToLevel(suffixCode[i]))
                     {
                         string s = calcStack.Pop();
-                        calcStack.Push(getSymbolFunc(suffixCode[i])(s, "", this).ToString());
+                        symbolIndexStack.Pop();
+                        if (argsStack.Count > 0)
+                        {
+                            argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
+                        }
+                        calcStack.Push(getSymbolFunc(suffixCode[i])(s, "", this).jsonValueTojsonString());
+                        if (argsStack.Count > 0)
+                        {
+                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
+                        }
                     }
+                }
+                else if (command.CanCommandNameToRecommend(suffixCode[i]))
+                {
+                    command runCommand = command.stringToCommands(suffixCode[i]);
+                    for (int j = 0; argsStack.Peek().Count > j; j++)
+                    {
+                        if (!runCommand.setValue(argsStack.Peek()[j].Trim(), j, this))
+                        {
+                            break;
+                        }
+                    }
+                    if (!runCommand.execute())
+                    {
+                        canExecute = false;
+                        break;
+                    }
+                    for (; "\x02" != calcStack.Pop();) { }
+                    if (null != runCommand.result)
+                    {
+                        calcStack.Push(runCommand.result.jsonValueTojsonString());
+                    }
+                }
+                else if ("\x02" == suffixCode[i])
+                {
+                    argsStack.Push(new List<string>());
+                    calcStack.Push(suffixCode[i]);
                 }
                 else
                 {
+                    if (argsStack.Count > 0) {
+                        argsStack.Peek().Add(suffixCode[i]);
+                    }
                     calcStack.Push(suffixCode[i]);
+                    symbolIndexStack.Push(i);
                 }
             }
-            /*
-        normalEnd:;
-            if (!_command.execute())
+            if (!canExecute)
             {
                 break;
             }
-            */
+            if (calcStack.Count > 1) {
+                Debug.LogError("计算错误：第" + commands[commandI] + "行第" + valueIndexs[symbolIndexStack.Peek()] + "列的运算符应去除");
+                goto errorEnd;
+            }
         errorEnd:;
         }
         trigger.isDone = true;
