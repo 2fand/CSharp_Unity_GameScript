@@ -6,8 +6,8 @@ using UnityEngine;
 
 public abstract class symbol
 {
-    public readonly static Hashtable symbolPriors = new Hashtable { { ".", 0 }, { "()", 0 }, { "[]", 0 }, { "?[]", 0 }, { "?.", 0 }, { ".*++", 0 }, { ".*--", 0 }, { "new", 0 }, { "typeof", 0 }, { "++", 1 }, { "--", 1 }, { "+", 1 }, { "-", 1 }, { "!", 1 }, { "~", 1 }, { "*", 2 }, { "(class)", 2 }, { "/", 2 }, { "%", 2 }, { "//", 2 }, { "**", 2 }, { ".*+", 3 }, { ".*-", 3 }, { "<<", 4 }, { ">>", 4 }, { "<", 5 }, { ">", 5 }, { "<=", 5 }, { ">=", 5 }, { "is", 5 }, { "as", 5 }, { "==", 6 }, { "!=", 6 }, { "&", 7 }, { "^", 8 }, { "|", 9 }, { "&&", 10 }, { "||", 11 }, { "!", 12 }, { "??", 13 }, { "?", 14 }, { ":", 14 }, { "=", 15 }, { "+=", 15 }, { "-=", 15 }, { "*=", 15 }, { "/=", 15 }, { "**=", 15 }, { "%=", 15 }, { "&&=", 15 }, { "||=", 15 }, { "&=", 15 }, { "|=", 15 }, { "^=", 15 }, { "//=", 15 }, { ",", 16 } };
-    public readonly static Hashtable symbolArgCounts = new Hashtable { { ".", 2 }, { "()", 0 }, { "[]", 0 }, { "?[]", 2 }, { "?.", 2 }, { ".*++", -1 }, { ".*--", -1 }, { "!", -1 }, { "new", 1 }, { "typeof", 1 }, { "++", 1 }, { "--", 1 }, { "+", 1 }, { "-", 1 }, { "!", 1 }, { "~", 1 }, { "*", 2 }, { "(class)", 1 }, { "/", 2 }, { "%", 2 }, { "//", 2 }, { "**", 2 }, { ".*+", 2 }, { ".*-", 2 }, { "<<", 2 }, { ">>", 2 }, { "<", 2 }, { ">", 2 }, { "<=", 2 }, { ">=", 2 }, { "is", 2 }, { "as", 2 }, { "==", 2 }, { "!=", 2 }, { "&", 2 }, { "^", 2 }, { "|", 2 }, { "&&", 2 }, { "||", 2 }, { "??", 2 }, { "?", 2 }, { ":", 1 }, { "=", 2 }, { "+=", 2 }, { "-=", 2 }, { "*=", 2 }, { "/=", 2 }, { "**=", 2 }, { "%=", 2 }, { "&&=", 2 }, { "||=", 2 }, { "&=", 2 }, { "|=", 2 }, { "^=", 2 }, { "//=", 2 }, { ",", 2 }, { ".*!", -1 }, };
+    public readonly static Hashtable symbolPriors = new Hashtable { { ".", 0 }, { "()", 0 }, { "[]", 0 }, { "?[]", 0 }, { "?.", 0 }, { ".*++", 0 }, { ".*--", 0 }, { "new", 0 }, { "typeof", 0 }, { "++", 1 }, { "--", 1 }, { "+", 1 }, { "-", 1 }, { "~", 1 }, { "*", 2 }, { "(class)", 2 }, { "/", 2 }, { "%", 2 }, { "//", 2 }, { "**", 2 }, { ".*+", 3 }, { ".*-", 3 }, { "<<", 4 }, { ">>", 4 }, { "<", 5 }, { ">", 5 }, { "<=", 5 }, { ">=", 5 }, { "is", 5 }, { "as", 5 }, { "==", 6 }, { "!=", 6 }, { "&", 7 }, { "^", 8 }, { "|", 9 }, { "&&", 10 }, { "||", 11 }, { "!", 12 }, { "??", 13 }, { "?", 14 }, { ":", 14 }, { "=", 15 }, { "+=", 15 }, { "-=", 15 }, { "*=", 15 }, { "/=", 15 }, { "**=", 15 }, { "%=", 15 }, { "&&=", 15 }, { "||=", 15 }, { "&=", 15 }, { "|=", 15 }, { "^=", 15 }, { "//=", 15 }, { ",", 16 } };
+    public readonly static Hashtable symbolArgCounts = new Hashtable { { ".", 2 }, { "()", 0 }, { "[]", 0 }, { "?[]", 2 }, { "?.", 2 }, { ".*++", -1 }, { ".*--", -1 }, { "new", 1 }, { "typeof", 1 }, { "++", 1 }, { "--", 1 }, { "+", 1 }, { "-", 1 }, { "!", 1 }, { "~", 1 }, { "*", 2 }, { "(class)", 1 }, { "/", 2 }, { "%", 2 }, { "//", 2 }, { "**", 2 }, { ".*+", 2 }, { ".*-", 2 }, { "<<", 2 }, { ">>", 2 }, { "<", 2 }, { ">", 2 }, { "<=", 2 }, { ">=", 2 }, { "is", 2 }, { "as", 2 }, { "==", 2 }, { "!=", 2 }, { "&", 2 }, { "^", 2 }, { "|", 2 }, { "&&", 2 }, { "||", 2 }, { "??", 2 }, { "?", 2 }, { ":", 1 }, { "=", 2 }, { "+=", 2 }, { "-=", 2 }, { "*=", 2 }, { "/=", 2 }, { "**=", 2 }, { "%=", 2 }, { "&&=", 2 }, { "||=", 2 }, { "&=", 2 }, { "|=", 2 }, { "^=", 2 }, { "//=", 2 }, { ",", 2 }, { ".*!", -1 }, };
     public readonly static Hashtable symbolFuncs;
     public abstract string symbolName { get; }
     public abstract int symbolPrior { get; }
@@ -16,7 +16,9 @@ public abstract class symbol
     public jsonValue result;
     static symbol()
     {
-        symbolFuncs = symbolArgCounts = symbolPriors = new Hashtable();
+        symbolFuncs = new Hashtable();
+        symbolArgCounts = new Hashtable();
+        symbolPriors = new Hashtable();
         Type[] types = typeof(symbol).Assembly.GetTypes();
         for (int i = 0; i < types.Length; i++) {
             if (null != types[i].BaseType && typeof(symbol) == types[i].BaseType)
@@ -82,13 +84,23 @@ public class setSymbol : symbol
     };
 }
 
+public class notSymbol : symbol
+{
+    public override string symbolName => "!";
+    public override int symbolArgCount => 1;
+    public override int symbolPrior => 12;
+    public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
+        return new jsonValue();
+    };
+}
+
 public class addSymbol : symbol
 {
     public override string symbolName => ".*+";
     public override int symbolArgCount => 2;
     public override int symbolPrior => 3;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return new jsonValue(int.Parse(s) + int.Parse(sa));
     };
 }
 
@@ -98,7 +110,7 @@ public class subSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 3;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return new jsonValue(int.Parse(s) - int.Parse(sa));
     };
 }
 
