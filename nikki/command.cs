@@ -12,7 +12,9 @@ public abstract class command
     public static List<IEnumerator> funcs => trigger.funcs;
     public abstract string commandName { get; }
     public abstract string commandRecommend { get; }
-    public jsonValue result = new jsonValue();
+#nullable enable
+    public jsonValue? result = null;
+#nullable disable
     public abstract bool setValue(string value, int valueNumber, _runCommands commandsValues);
     public abstract bool execute();
     public static Hashtable stringCommands = new Hashtable();
@@ -25,7 +27,9 @@ public abstract class command
     public AudioClip[] sounds;
     static command()
     {
-        CommandRecommends = _runCommands.keyWordHas = stringCommands = new Hashtable();
+        CommandRecommends = new Hashtable();
+        _runCommands.keyWordHas = new Hashtable();
+        stringCommands = new Hashtable();
         Type[] types = typeof(command).Assembly.GetTypes();
         for (int i = 0; i < types.Length; i++) {
             if (null != types[i].BaseType && typeof(command) == types[i].BaseType)
@@ -114,7 +118,7 @@ public abstract class command
 #nullable enable
     public static command? stringToCommands(string str)
     {
-        str = str.ToLower();
+        str = str.ToLower().Trim();
         if (stringCommands.ContainsKey(str))
         {
             return (command)stringCommands[str];
@@ -123,7 +127,7 @@ public abstract class command
     }
     public static string? commandNameToRecommends(string str)
     {
-        str = str.ToLower();
+        str = str.ToLower().Trim();
         if (CommandRecommends.ContainsKey(str))
         {
             return (string)CommandRecommends[str];
