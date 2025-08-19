@@ -8,7 +8,7 @@ using static change;
 public class show : transition
 {
     public override transitionMode _transitionMode { get { return transitionMode.show; } }
-    public override IEnumerator changeScene(float time = 0.1f)
+    public override IEnumerator changeScene(float time = 0.25f)
     {
         transitionIsEnd = false;
         for (int i = 0; i < 10; i++)
@@ -22,7 +22,7 @@ public class show : transition
 public class hide : transition
 {
     public override transitionMode _transitionMode { get { return transitionMode.hide; } }
-    public override IEnumerator changeScene(float time = 0.1f)
+    public override IEnumerator changeScene(float time = 0.25f)
     {
         transitionIsEnd = false;
         for (int i = 0; i < 10; i++)
@@ -60,7 +60,7 @@ public class exitNone : transition
 public class fadein : transition
 {
     public override transitionMode _transitionMode { get { return transitionMode.fadein; } }
-    public override IEnumerator changeScene(float time = 0.1f)
+    public override IEnumerator changeScene(float time = 0.25f)
     {
         transitionIsEnd = false;
         
@@ -72,7 +72,7 @@ public class fadein : transition
 public class fadeout : transition
 {
     public override transitionMode _transitionMode { get { return transitionMode.exitNone; } }
-    public override IEnumerator changeScene(float time = 0.1f)
+    public override IEnumerator changeScene(float time = 0.25f)
     {
         transitionIsEnd = false;
         
