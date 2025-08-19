@@ -64,22 +64,10 @@ public class z : MonoBehaviour
             wait = false;
             you.canMove = false;
             you.canOpenMenu = false;
-            if (null != openSound && null == GetComponent<AudioSource>())
-            {
-                gameObject.AddComponent<AudioSource>();
-            }
-            if (null != openSound)
-            {
-                GetComponent<AudioSource>().PlayOneShot(openSound);
-            }
-            if (GetComponent<Animation>() != null)
-            {
-                GetComponent<Animation>().Play();
-            }
-            yield return new WaitForSeconds(teleWaitTime);
-            StartCoroutine(you.tele(exitMode, exitModeTime, enterMode, enterModeTime, worldName, teleX, teleY, teleHigh, GetComponent<wall>().face, closeSound, null));
+            StartCoroutine(you.tele(exitMode, exitModeTime, enterMode, enterModeTime, worldName, teleX, teleY, teleHigh, GetComponent<wall>().face, closeSound, openSound));
             wait = true;
         }
+        yield return null;
     }
 
     private IEnumerator get(effect e)
