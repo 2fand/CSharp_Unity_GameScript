@@ -52,14 +52,14 @@ public class _runCommands
             else if (getValue(command, "false", ref i)) { }
             else if (getValue(command, "null", ref i)) { }
             else if (getValue(command, jsonValue.stringRegex, ref i)) { }
+            else if (getValue(command, "\\+", ref i)) { }
+            else if (getValue(command, "-", ref i)) { }
             else if (getValue(command, "[+-]?[0-9]+", ref i)) { }
             else if (getValue(command, "[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?", ref i)) { }
             else if (getValue(command, "\\+=", ref i)) { }//读取运算符
             else if (getValue(command, "\\+\\+", ref i)) { }
-            else if (getValue(command, "\\+", ref i)) { }
             else if (getValue(command, "-=", ref i)) { }
             else if (getValue(command, "--", ref i)) { }
-            else if (getValue(command, "-", ref i)) { }
             else if (getValue(command, "\\*\\*=", ref i)) { }
             else if (getValue(command, "\\*\\*", ref i)) { }
             else if (getValue(command, "\\*=", ref i)) { }
@@ -111,8 +111,7 @@ public class _runCommands
             else if (getValue(command, "sizeof", ref i)) { }
             else
             {
-                Debug.LogError("未知符号" + Regex.Match(command.Substring(i), "^\\s*.+\\s*"));
-                return null;
+                getValue(command, "[^\\s]*", ref i);
             }
             right = i - 1;
             values.Add(command.Substring(left, right - left + 1));
@@ -189,7 +188,6 @@ public class _runCommands
                 addBrackets.Add(0);
             }
             bool frontHasValue = false;
-            List<int> symbolPos = new List<int>();
             List<int> rbracketPoses = new List<int>();
             //优先级<=左变
             for (int i = 0; i < values.Count; i++) {
@@ -197,19 +195,19 @@ public class _runCommands
                 //\002
                 if (frontHasValue && "++" == value)
                 {
-                    value = ".*++";
+                    values[i] = value = ".*++";
                 }
                 if (frontHasValue && "--" == value)
                 {
-                    value = ".*--";
+                    values[i] = value = ".*--";
                 }
                 if (frontHasValue && "+" == value)
                 {
-                    value = ".*+";
+                    values[i] = value = ".*+";
                 }
                 if (frontHasValue && "-" == value)
                 {
-                    value = ".*-";
+                    values[i] = value = ".*-";
                 }
                 if ("(" == value || "[" == value || "?[" == value) 
                 {
@@ -273,7 +271,6 @@ public class _runCommands
                 }
                 if (CanSymbolToLevel(value))
                 {
-                    symbolPos.Add(i);
                     switch((int)getSymbolArgCount(value))
                     {
                         case 1:
@@ -285,7 +282,7 @@ public class _runCommands
                                 groupStrings.Push(value.Trim());
                                 groupIndexs.Push(i);
                             }
-                            if (i == values.Count - 1 || !CanSymbolToLevel(values[i + 1]))
+                            if (i == values.Count - 1 || CanSymbolToLevel(values[i + 1]))
                             {
                                 Debug.LogError("运算符错误：第" + commandI + "行第" + valueIndexs[i] + "列的运算符右边参数格式不对");
                                 goto errorEnd;
@@ -309,7 +306,7 @@ public class _runCommands
                             beforeRights[beforeRights.Count - 1] = ")" == values[i + 1].Trim() ? (int)groupLeftIndexToGroupRightIndex[i] : i + 1;
                             break;
                         case 2:
-                            if (0 == i || i == values.Count - 1 || !CanSymbolToLevel(values[i - 1]) || !CanSymbolToLevel(values[i + 1]))
+                            if (0 == i || i == values.Count - 1 || CanSymbolToLevel(values[i - 1]) || CanSymbolToLevel(values[i + 1]))
                             {
                                 Debug.LogError("运算符错误：第" + commandI + "行第" + valueIndexs[i] + "列的运算符两边至少有一处参数格式不对");
                                 goto errorEnd;
@@ -382,9 +379,9 @@ public class _runCommands
                             break;
                     }
                     frontHasValue = false;
-                    beforeLevels[beforeLevels.Count - 1] = symbolToLevel(value).Value;
+                    beforeLevels[beforeLevels.Count - 1] = symbolToLevel(value);
                 }
-                else if (command.CanCommandNameToRecommend(value))
+                else if (command.CanCommandNameToRecommends(value))
                 {
                     values.Insert(i++, "\x02");
                     addBrackets.Insert(i, 1);
@@ -412,38 +409,29 @@ public class _runCommands
             List<string> suffixCode = new List<string>();
             for (int i = 0; i < values.Count; i++)
             {
-                suffixCode.Add(values[i]);
-            }
-            List<string> tempCode = new List<string>();
-            for (int i = 0; i < addBrackets.Count; i++)
-            {
                 if (0 < addBrackets[i])
                 {
                     for (int j = 0; j < addBrackets[i]; j++)
                     {
-                        tempCode.Add("(");
+                        suffixCode.Add("(");
                     }
-                    tempCode.Add(suffixCode[i]);
                 }
+                suffixCode.Add(values[i]);
                 if (0 > addBrackets[i])
                 {
-                    tempCode.Add(suffixCode[i]);
                     for (int j = 0; j > addBrackets[i]; j--)
                     {
-                        tempCode.Add(")");
+                        suffixCode.Add(")");
                     }
                 }
-                if (0 == addBrackets[i]) { 
-                    tempCode.Add(suffixCode[i]);
-                }
             }
-            suffixCode = new List<string>(tempCode);
+            List<string> tempCode = new List<string>();
             //移动运算符
             for (int i = 0; i < suffixCode.Count; i++)
             {
                 int groupCount = 0;
                 int j = 0;
-                if (CanSymbolToLevel(suffixCode[i]) || command.CanCommandNameToRecommend(suffixCode[i]))
+                if (CanSymbolToLevel(suffixCode[i]) || command.CanCommandNameToRecommends(suffixCode[i]))
                 {
                     for (j = i; j < suffixCode.Count - 1; j++)
                     {
@@ -485,11 +473,10 @@ public class _runCommands
             {
                 if (CanSymbolToLevel(suffixCode[i]))
                 {
-                    if (2 == symbolToLevel(suffixCode[i]))
+                    if (2 == getSymbolArgCount(suffixCode[i]))
                     {
                         string sa = calcStack.Pop();
                         string s = calcStack.Pop();
-                        symbolIndexStack.Pop();
                         symbolIndexStack.Pop();
                         if (argsStack.Count > 0)
                         {
@@ -499,39 +486,39 @@ public class _runCommands
                         calcStack.Push(getSymbolFunc(suffixCode[i])(s, sa, this).jsonValueTojsonString());
                         if (argsStack.Count > 0)
                         {
-                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
+                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])(s, sa, this).jsonValueTojsonString());
                         }
                     }
-                    else if(1 == symbolToLevel(suffixCode[i]))
+                    else if(1 == getSymbolArgCount(suffixCode[i]))
                     {
                         string s = calcStack.Pop();
-                        symbolIndexStack.Pop();
                         if (argsStack.Count > 0)
                         {
                             argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
                         }
                         calcStack.Push(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
+                        symbolIndexStack.Push(i);
                         if (argsStack.Count > 0)
                         {
                             argsStack.Peek().Add(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
                         }
                     }
-                    else if(-1 == symbolToLevel(suffixCode[i]))
+                    else if(-1 == getSymbolArgCount(suffixCode[i]))
                     {
                         string s = calcStack.Pop();
-                        symbolIndexStack.Pop();
                         if (argsStack.Count > 0)
                         {
                             argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
                         }
                         calcStack.Push(getSymbolFunc(suffixCode[i])(s, "", this).jsonValueTojsonString());
+                        symbolIndexStack.Push(i);
                         if (argsStack.Count > 0)
                         {
-                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
+                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])(s, "", this).jsonValueTojsonString());
                         }
                     }
                 }
-                else if (command.CanCommandNameToRecommend(suffixCode[i]))
+                else if (command.CanCommandNameToRecommends(suffixCode[i]))
                 {
                     command runCommand = command.stringToCommands(suffixCode[i]);
                     for (int j = 0; argsStack.Peek().Count > j; j++)
@@ -571,7 +558,7 @@ public class _runCommands
                 break;
             }
             if (calcStack.Count > 1) {
-                Debug.LogError("计算错误：第" + commands[commandI] + "行第" + valueIndexs[symbolIndexStack.Peek()] + "列的运算符应去除");
+                Debug.LogError("计算错误：第" + commandI + "行第" + valueIndexs[symbolIndexStack.Peek()] + "列的运算符应去除");
                 goto errorEnd;
             }
         errorEnd:;
