@@ -7,6 +7,11 @@ using UnityEngine;
 using static change;
 using static symbol;
 
+public abstract class commandClasses
+{
+    public static string[] classes = { "int", "float", "string", "bool", "null", "array", "class" };
+}
+
 public abstract class command
 {
     public static List<IEnumerator> funcs => trigger.funcs;
@@ -48,91 +53,63 @@ public abstract class command
         }
         return str;
     }
-    public static transitionMode? stringToTransitionModes(string str){
+    public static transitionMode stringToTransitionModes(string str){
         str = str.ToLower().Trim();
-        if (stringOfTransitionModes.ContainsKey(str))
-        {
-            return (transitionMode)stringOfTransitionModes[str];
-        }
-        return null;
+        return (transitionMode)stringOfTransitionModes[str];
     }
-    public static wasd? stringToWASDs(string str){
+    public static wasd stringToWASDs(string str){
         str = str.ToLower().Trim();
-        if (stringOfWASDs.ContainsKey(str))
-        {
-            return (wasd)stringOfWASDs[str];
-        }
-        return null;
+        return (wasd)stringOfWASDs[str];
     }
-    public static bool? stringToBools(string str){
+    public static bool stringToBools(string str){
         str = str.ToLower().Trim();
-        if (stringOfBools.ContainsKey(str))
-        {
-            return (bool)stringOfBools[str];
-        }
-        return null;
+        return (bool)stringOfBools[str];
     }
-    public static bool? stringToNull(string str) {
+    public static object stringToNull(string str) {
         str = str.ToLower().Trim();
-        if (stringOfNull.ContainsKey(str))
-        {
-            return null;
-        }
-        return false;
+        return stringOfNull[str];
     }
 #nullable enable
-    public static string? valueNameToHelp(string str)
+    public static string valueNameToHelp(string str)
 #nullable disable
     {
         str = str.ToLower().Trim();
-        if (valueHelps.ContainsKey(str))
-        {
-            return (string)valueHelps[str];
-        }
-        return null;
+        return (string)valueHelps[str];
     }
     public static bool CanStrToTransitionModes(string str)
     {
-        return null != stringToTransitionModes(str);
+        return stringOfTransitionModes.ContainsKey(str);
     }
     public static bool CanStrToWASDs(string str)
     {
-        return null != stringToWASDs(str);
+        return stringOfWASDs.ContainsKey(str);
     }
     public static bool CanStrToBools(string str)
     {
-        return null != stringToBools(str);
+        return stringOfBools.ContainsKey(str);
     }
     public static bool CanStrToNull(string str)
     {
-        return null == stringToNull(str);
+        return stringOfNull.ContainsKey(str);
     }
     public static bool CanVauleNameToHelp(string str)
     {
-        return null != valueNameToHelp(str);
+        return valueHelps.ContainsKey(str);
     }
-    public static bool CanCommandNameToRecommend(string str)
+    public static bool CanCommandNameToRecommends(string str)
     {
-        return null != commandNameToRecommends(str);
+        return CommandRecommends.ContainsKey(str);
     }
 #nullable enable
-    public static command? stringToCommands(string str)
+    public static command stringToCommands(string str)
     {
         str = str.ToLower().Trim();
-        if (stringCommands.ContainsKey(str))
-        {
-            return (command)stringCommands[str];
-        }
-        return null;
+        return (command)stringCommands[str];
     }
-    public static string? commandNameToRecommends(string str)
+    public static string commandNameToRecommends(string str)
     {
         str = str.ToLower().Trim();
-        if (CommandRecommends.ContainsKey(str))
-        {
-            return (string)CommandRecommends[str];
-        }
-        return null;
+        return (string)CommandRecommends[str];
     }
 }
 public class tele : command
@@ -158,13 +135,13 @@ public class tele : command
         switch (valueNumber)
         {
             case 0:
-                exitMode = null != stringToTransitionModes(value) ? stringToTransitionModes(value) : change.transitionMode.exitNone;
+                exitMode = CanStrToTransitionModes(value) ? stringToTransitionModes(value) : change.transitionMode.exitNone;
                 break;
             case 1:
                 exitTime = float.TryParse(value, out tempTime) ? tempTime : null;
                 break;
             case 2:
-                enterMode = null != stringToTransitionModes(value) ? stringToTransitionModes(value) : change.transitionMode.exitNone;
+                enterMode = CanStrToTransitionModes(value) ? stringToTransitionModes(value) : change.transitionMode.exitNone;
                 break;
             case 3:
                 enterTime = float.TryParse(value, out tempTime) ? tempTime : null;
@@ -187,7 +164,7 @@ public class tele : command
                     face = you.face;
                     break;
                 }
-                face = null != stringToWASDs(value) ? stringToWASDs(value) : (wasd)int.Parse(value);
+                face = CanStrToWASDs(value) ? stringToWASDs(value) : (wasd)int.Parse(value);
                 break;
             case 9:
                 if ("null" != value.ToLower())
@@ -202,7 +179,7 @@ public class tele : command
                 }
                 break;
             case 11:
-                if (null != stringToBools(value))
+                if (CanStrToBools(value))
                 {
                     autoClearMenu = stringToBools(value);
                 }
@@ -340,7 +317,7 @@ public class _show : command
     public override string commandRecommend => "show命令：显示玩家(命令格式：show  [是否自动清空当前打开的菜单 = true])";
     public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
     {
-        if (null != stringToBools(value))
+        if (CanStrToBools(value))
         {
             autoClearMenu = (bool)stringToBools(value);
             return true;
@@ -364,7 +341,7 @@ public class _hide : command
     public override string commandRecommend => "hide命令：隐藏玩家(命令格式：hide  [是否自动清空当前打开的菜单 = true])";
     public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
     {
-        if (null != stringToBools(value))
+        if (CanStrToBools(value))
         {
             autoClearMenu = (bool)stringToBools(value);
             return true;
@@ -398,7 +375,7 @@ public class _play : command
                 soundIndex = int.Parse(value);
                 break;
             case 1:
-                if (null != stringToBools(value))
+                if (CanStrToBools(value))
                 {
                     isWaitSoundEnd = (bool)stringToBools(value);
                 }
