@@ -9,8 +9,8 @@ public class effectItem : item
 {
     public effect effect;
     public static int effectCount = 18;
-    public static string[] effectNames = { "", "天使", "锁门" };
-    public static string[] effectRecommendTexts = { "原本之物", "同根之害", "空象虚门" };
+    public static string[] effectNames = { "", "澶╀娇", "閿侀棬" };
+    public static string[] effectRecommendTexts = { "鍘熸湰涔嬬墿", "鍚屾牴涔嬪", "绌鸿薄铏氶棬" };
     public static AudioClip[] effectWalkSounds;
     public static AudioClip effectEqiupSound;
     public static AudioClip effectCancelEqiupSound;
@@ -63,7 +63,7 @@ public class angel : effectUse
     public static Action useAct = () => { new angel().use(); };
     public override void use()
     {
-        you.speed = 2;
+        you.speed = 7;
         You.transform.position = new Vector3(You.transform.position.x, You.High + 2f, You.transform.position.z);
         You.GetComponent<Float>().enabled = true;
         You.GetComponent<changeColor>().enabled = true;
