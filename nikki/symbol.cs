@@ -13,7 +13,6 @@ public abstract class symbol
     public abstract int symbolPrior { get; }
     public abstract int symbolArgCount { get; }
     public abstract Func<string, string, _runCommands, jsonValue> symbolFunc { get; }
-    public jsonValue result;
     static symbol()
     {
         symbolFuncs = new Hashtable();
@@ -29,45 +28,33 @@ public abstract class symbol
             }
         }
     }
-    public static int? symbolToLevel(string str)
+    public static int symbolToLevel(string str)
     {
         str = str.ToLower().Trim();
-        if (symbolPriors.ContainsKey(str))
-        {
-            return (int)symbolPriors[str];
-        }
-        return null;
+        return (int)symbolPriors[str];
     }
-    public static int? getSymbolArgCount(string str)
+    public static int getSymbolArgCount(string str)
     {
         str = str.ToLower().Trim();
-        if (symbolArgCounts.ContainsKey(str))
-        {
-            return (int)symbolArgCounts[str];
-        }
-        return null;
+        return (int)symbolArgCounts[str];
     }
 #nullable enable
-    public static Func<string, string, _runCommands, jsonValue>? getSymbolFunc(string str)
+    public static Func<string, string, _runCommands, jsonValue> getSymbolFunc(string str)
     {
         str = str.ToLower().Trim();
-        if (symbolFuncs.ContainsKey(str))
-        {
-            return (Func<string, string, _runCommands, jsonValue>)symbolFuncs[str];
-        }
-        return null;
+        return (Func<string, string, _runCommands, jsonValue>)symbolFuncs[str];
     }
     public static bool CanSymbolToLevel(string str)
     {
-        return null != symbolToLevel(str);
+        return symbolPriors.ContainsKey(str);
     }
     public static bool CanGetSymbolArgCount(string str)
     {
-        return null != getSymbolArgCount(str);
+        return symbolArgCounts.ContainsKey(str);
     }
-    public static bool CanGetSymbolAction(string str)
+    public static bool CanGetSymbolFunc(string str)
     {
-        return null != getSymbolFunc(str);
+        return symbolFuncs.ContainsKey(str);
     }
 }
 public class setSymbol : symbol
@@ -100,7 +87,28 @@ public class addSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 3;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue(int.Parse(s) + int.Parse(sa));
+        jsonValue json = new jsonValue(s, commandValues);
+        jsonValue jsona = new jsonValue(sa, commandValues);
+        if (jsonValue.valueClass.array == json.ThisClass && jsonValue.valueClass.array == jsona.ThisClass)
+        {
+            json.catArray(jsona);
+        }
+        if (("int" == json.getRealType() || "float" == json.getRealType() || "bool" == json.getRealType()) && ("int" == jsona.getRealType() || "float" == jsona.getRealType() || "bool" == jsona.getRealType())){
+            if (json.getValue() is bool)
+            {
+                json.setValue(json.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            if (jsona.getValue() is bool)
+            {
+                jsona.setValue(jsona.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            return new jsonValue(json.getValue().ConvertTo<float>() + jsona.getValue().ConvertTo<float>());
+        }
+        if ("string" == json.getRealType() && "string" == jsona.getRealType())
+        {
+            return new jsonValue(json.getValue().ConvertTo<string>() + jsona.getValue().ConvertTo<string>());
+        }
+        throw new Exception("类型不匹配错误");
     };
 }
 
@@ -110,7 +118,21 @@ public class subSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 3;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue(int.Parse(s) - int.Parse(sa));
+        jsonValue json = new jsonValue(s, commandValues);
+        jsonValue jsona = new jsonValue(sa, commandValues);
+        if (("int" == json.getRealType() || "float" == json.getRealType() || "bool" == json.getRealType()) && ("int" == jsona.getRealType() || "float" == jsona.getRealType() || "bool" == jsona.getRealType()))
+        {
+            if (json.getValue() is bool)
+            {
+                json.setValue(json.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            if (jsona.getValue() is bool)
+            {
+                jsona.setValue(jsona.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            return new jsonValue(json.getValue().ConvertTo<float>() - jsona.getValue().ConvertTo<float>());
+        }
+        throw new Exception("类型不匹配错误");
     };
 }
 
@@ -120,7 +142,21 @@ public class timSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 2;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        jsonValue json = new jsonValue(s, commandValues);
+        jsonValue jsona = new jsonValue(sa, commandValues);
+        if (("int" == json.getRealType() || "float" == json.getRealType() || "bool" == json.getRealType()) && ("int" == jsona.getRealType() || "float" == jsona.getRealType() || "bool" == jsona.getRealType()))
+        {
+            if (json.getValue() is bool)
+            {
+                json.setValue(json.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            if (jsona.getValue() is bool)
+            {
+                jsona.setValue(jsona.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            return new jsonValue(json.getValue().ConvertTo<float>() * jsona.getValue().ConvertTo<float>());
+        }
+        throw new Exception("类型不匹配错误");
     };
 }
 
@@ -130,7 +166,21 @@ public class divSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 2;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        jsonValue json = new jsonValue(s, commandValues);
+        jsonValue jsona = new jsonValue(sa, commandValues);
+        if (("int" == json.getRealType() || "float" == json.getRealType() || "bool" == json.getRealType()) && ("int" == jsona.getRealType() || "float" == jsona.getRealType() || "bool" == jsona.getRealType()))
+        {
+            if (json.getValue() is bool)
+            {
+                json.setValue(json.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            if (jsona.getValue() is bool)
+            {
+                jsona.setValue(jsona.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            return new jsonValue(json.getValue().ConvertTo<float>() / jsona.getValue().ConvertTo<float>());
+        }
+        throw new Exception("类型不匹配错误");
     };
 }
 
@@ -140,7 +190,21 @@ public class divToIntSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 2;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        jsonValue json = new jsonValue(s, commandValues);
+        jsonValue jsona = new jsonValue(sa, commandValues);
+        if (("int" == json.getRealType() || "float" == json.getRealType() || "bool" == json.getRealType()) && ("int" == jsona.getRealType() || "float" == jsona.getRealType() || "bool" == jsona.getRealType()))
+        {
+            if (json.getValue() is bool)
+            {
+                json.setValue(json.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            if (jsona.getValue() is bool)
+            {
+                jsona.setValue(jsona.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            return new jsonValue(json.getValue().ConvertTo<int>() / jsona.getValue().ConvertTo<float>());
+        }
+        throw new Exception("类型不匹配错误");
     };
 }
 
@@ -150,7 +214,21 @@ public class powSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 2;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        jsonValue json = new jsonValue(s, commandValues);
+        jsonValue jsona = new jsonValue(sa, commandValues);
+        if (("int" == json.getRealType() || "float" == json.getRealType() || "bool" == json.getRealType()) && ("int" == jsona.getRealType() || "float" == jsona.getRealType() || "bool" == jsona.getRealType()))
+        {
+            if (json.getValue() is bool)
+            {
+                json.setValue(json.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            if (jsona.getValue() is bool)
+            {
+                jsona.setValue(jsona.getValue().ConvertTo<bool>() ? 1 : 0);
+            }
+            return new jsonValue(Mathf.Pow(json.getValue().ConvertTo<float>(), jsona.getValue().ConvertTo<float>()));
+        }
+        throw new Exception("类型不匹配错误");
     };
 }
 
@@ -160,7 +238,21 @@ public class andSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 10;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        jsonValue json = new jsonValue(s, commandValues);
+        jsonValue jsona = new jsonValue(sa, commandValues);
+        if (("int" == json.getRealType() || "float" == json.getRealType() || "bool" == json.getRealType()) && ("int" == jsona.getRealType() || "float" == jsona.getRealType() || "bool" == jsona.getRealType()))
+        {
+            if (!(json.getValue() is bool))
+            {
+                json.setValue(json.getValue().ConvertTo<float>() != 0);
+            }
+            if (!(jsona.getValue() is bool))
+            {
+                jsona.setValue(jsona.getValue().ConvertTo<float>() != 0);
+            }
+            return new jsonValue(json.getValue().ConvertTo<bool>() && jsona.getValue().ConvertTo<bool>());
+        }
+        throw new Exception("类型不匹配错误");
     };
 }
 
@@ -170,7 +262,21 @@ public class orSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 11;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        jsonValue json = new jsonValue(s, commandValues);
+        jsonValue jsona = new jsonValue(sa, commandValues);
+        if (("int" == json.getRealType() || "float" == json.getRealType() || "bool" == json.getRealType()) && ("int" == jsona.getRealType() || "float" == jsona.getRealType() || "bool" == jsona.getRealType()))
+        {
+            if (!(json.getValue() is bool))
+            {
+                json.setValue(json.getValue().ConvertTo<float>() != 0);
+            }
+            if (!(jsona.getValue() is bool))
+            {
+                jsona.setValue(jsona.getValue().ConvertTo<float>() != 0);
+            }
+            return new jsonValue(json.getValue().ConvertTo<bool>() || jsona.getValue().ConvertTo<bool>());
+        }
+        throw new Exception("类型不匹配错误");
     };
 }
 
@@ -180,7 +286,7 @@ public class addsetSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 14;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return getSymbolFunc("=")(s, getSymbolFunc(".*+")(s, sa, commandValues), commandValues);
     };
 }
 
@@ -190,7 +296,7 @@ public class subsetSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 14;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return getSymbolFunc("=")(s, getSymbolFunc(".*-")(s, sa, commandValues), commandValues);
     };
 }
 
@@ -200,7 +306,7 @@ public class timsetSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 14;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return getSymbolFunc("=")(s, getSymbolFunc("*")(s, sa, commandValues), commandValues);
     };
 }
 
@@ -210,7 +316,7 @@ public class divsetSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 14;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return getSymbolFunc("=")(s, getSymbolFunc("/")(s, sa, commandValues), commandValues);
     };
 }
 
@@ -220,7 +326,7 @@ public class divToIntsetSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 14;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return getSymbolFunc("=")(s, getSymbolFunc("//")(s, sa, commandValues), commandValues);
     };
 }
 
@@ -230,7 +336,7 @@ public class powsetSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 14;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return getSymbolFunc("=")(s, getSymbolFunc("**")(s, sa, commandValues), commandValues);
     };
 }
 
@@ -240,7 +346,7 @@ public class orsetSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 14;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return getSymbolFunc("=")(s, getSymbolFunc("||")(s, sa, commandValues), commandValues);
     };
 }
 
@@ -250,7 +356,7 @@ public class andsetSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 14;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return getSymbolFunc("=")(s, getSymbolFunc("&&")(s, sa, commandValues), commandValues);
     };
 }
 
@@ -260,7 +366,7 @@ public class equalSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 6;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return new jsonValue(new jsonValue(s).rootValue == new jsonValue(sa).rootValue);
     };
 }
 
@@ -270,7 +376,7 @@ public class notEqualSymbol : symbol
     public override int symbolArgCount => 2;
     public override int symbolPrior => 6;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
-        return new jsonValue();
+        return new jsonValue(new jsonValue(s).rootValue != new jsonValue(sa).rootValue);
     };
 }
 
@@ -565,9 +671,19 @@ public class nullIndexCheckSymbol : symbol
 public class toClassSymbol : symbol
 {
     public override string symbolName => "(class)";
-    public override int symbolArgCount => 1;
+    public override int symbolArgCount => 2;
     public override int symbolPrior => 0;
     public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
         return new jsonValue();
+    };
+}
+
+public class CommaSymbol : symbol
+{
+    public override string symbolName => ",";
+    public override int symbolArgCount => 2;
+    public override int symbolPrior => 16;
+    public override Func<string, string, _runCommands, jsonValue> symbolFunc => (string s, string sa, _runCommands commandValues) => {
+        return new jsonValue(sa);
     };
 }
