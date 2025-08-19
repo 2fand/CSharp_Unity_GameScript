@@ -1137,7 +1137,7 @@ public class you : MonoBehaviour
     public static IEnumerator tele(transitionMode exitMode, float exitModeTime, transitionMode enterMode, float enterModeTime, string worldName, int teleX, int teleY, float teleHigh, wasd face = wasd.s, AudioClip? closeSound = null, AudioClip? teleSound = null, bool waitTeleSound = false)
 #nullable disable
     {
-        if (teleIsEnd)
+        if (you.Menus.Count == 0 && teleIsEnd)
         {
             teleIsEnd = false;
             canMove = false;
@@ -1146,9 +1146,9 @@ public class you : MonoBehaviour
             npcMove.stopAnimation = true;
             //Debug.Log(enterMode + "," + exitMode);
             you.transitionMode = enterMode;
+            You.CoroutineStart((IEnumerator)transition.transitions[exitMode]);
             you.teleSound = teleSound ?? you.teleSound;
             yield return new WaitForSeconds(waitTeleSound && null != teleSound ? teleSound.length : 0);
-            You.CoroutineStart((IEnumerator)transition.transitions[exitMode]);
             yield return new WaitUntil(() => transition.TransitionIsEnd);
             you.teleX = teleX;
             you.teleY = teleY;
