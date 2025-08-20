@@ -9,7 +9,14 @@ using static symbol;
 
 public abstract class commandClasses
 {
-    public static string[] classes = { "int", "float", "string", "bool", "null", "array", "class" };
+    public static readonly string[] classes = { "int", "float", "string", "bool", "null", "array", "class" };
+    public static readonly Hashtable classIsHas;
+    static commandClasses(){
+        classIsHas = new Hashtable();
+        for (int i = 0; i < classes.Length; i++) {
+            classIsHas.Add(classes[i], true);
+        }
+    }
 }
 
 public abstract class command
@@ -657,6 +664,10 @@ public class set : command
         if (0 == valueNumber)
         { 
             if (commandsValues.vars.ContainsKey(value))
+            {
+                return false;
+            }
+            if (!Regex.Match(value, "[a-zA-Z_]+").Success)
             {
                 return false;
             }
