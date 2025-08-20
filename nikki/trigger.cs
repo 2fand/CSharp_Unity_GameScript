@@ -48,9 +48,11 @@ public class _runCommands
         {
             left = i;
             if (getValue(command, "[a-zA-Z_]+", ref i)) { }//读取非运算符
+            else if (getValue(command, "\\(" + jsonValue.classRegex + "\\)", ref i)) { }
             else if (getValue(command, "true", ref i)) { }
             else if (getValue(command, "false", ref i)) { }
             else if (getValue(command, "null", ref i)) { }
+            else if (getValue(command, jsonValue.classRegex + "(\\(\\)|\\[\\s*.+\\s*\\]|{((" + jsonValue.stringRegex + ":\\s*.+\\s*,\\s*)*" + jsonValue.stringRegex + "\\s*:\\s*.+\\s*)?}|{((\\s*.+\\s*,\\s*)*.+\\s*)?}", ref i)) { }
             else if (getValue(command, jsonValue.stringRegex, ref i)) { }
             else if (getValue(command, "\\+", ref i)) { }
             else if (getValue(command, "-", ref i)) { }
@@ -622,13 +624,6 @@ public class trigger : MonoBehaviour
         }
     }
     public static bool isDone = false;
-    public static bool IsDone
-    {
-        get
-        {
-            return isDone;
-        }
-    }
     public bool tempSwitch = false;
     public static List<IEnumerator> funcs = new List<IEnumerator>();
     public static IEnumerator debugStr(string str)
