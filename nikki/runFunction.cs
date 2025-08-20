@@ -8,7 +8,7 @@ public class runFunction : MonoBehaviour
     IEnumerator runFunc()
     {
         funcIsEnd = false;
-        if (IsDone)
+        if (isDone)
         {
             you.canMove = false;
             while (funcs.Count > 0)
