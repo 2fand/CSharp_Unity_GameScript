@@ -42,14 +42,24 @@ public class jsonValue
     public static string varRegex => "[a-zA-Z_]+";
     public static string classRegex => "int|float|string|bool|null|array|class";
     public static implicit operator jsonValue(string str) => new jsonValue(str);
+    public static implicit operator jsonValue(bool b) => new jsonValue(b);
+    public static implicit operator jsonValue(int i) => new jsonValue(i);
+    public static implicit operator jsonValue(float f) => new jsonValue(f);
     public static implicit operator string(jsonValue jsonValue) => jsonValue.jsonValueTojsonString();
     public jsonValue()
     {
         setValue(null);
     }
-    public jsonValue(object v)
+    public jsonValue(object o)
     {
-        setValue(v);
+        if (typeof(jsonValue) == o.GetType())
+        {
+            rootValue.value = new Hashtable(o.ConvertTo<jsonValue>().rootValue.value);
+        }
+        else
+        {
+            setValue(o);
+        }
     }
     public jsonValue(string json)
     {
@@ -74,6 +84,14 @@ public class jsonValue
             }
         }
         setValue(json);
+    }
+    public bool isNull()
+    {
+        return "null" == getRealType();
+    }
+    public bool isClass()
+    {
+        return getRealType() == "string" && commandClasses.classIsHas.ContainsKey(getValue().ToString());
     }
     public jsonValue(uint size, object defaultObject = null)
     {
@@ -112,14 +130,24 @@ public class jsonValue
         return hashType.value[0];
     }
 
-    public object indexToValue(int index)
+    public object getIndexValue(int index)
     {
         return rootValue.value[index.ToString()];
     }
 
-    public object indexToValue(hashType hashType, int index)
+    public object getIndexValue(hashType hashType, int index)
     {
         return hashType.value[index.ToString()];
+    }
+
+    public bool tryGetIndexValue(int index)
+    {
+        return rootValue.value.ContainsKey(index.ToString());
+    }
+
+    public bool tryGetIndexValue(hashType hashType, int index)
+    {
+        return hashType.value.ContainsKey(index.ToString());
     }
 
     public void setArray(uint size, object defaultObject = null)
@@ -416,14 +444,33 @@ public class jsonValue
         }
         return hashType.value[0].GetType().ToString();
     }
-
-    public object attributeNameToValue(string attributeName)
+    public int getChildValueCount()
+    {
+        return rootValue.value.Count;
+    }
+    public ICollection getRootValueKeys()
+    {
+        return rootValue.value.Keys;
+    }
+    public ICollection getRootValueValues()
+    {
+        return rootValue.value.Values;
+    }
+    public object getAttribute(string attributeName)
     {
         return rootValue.value[attributeName];
     }
-    public object attributeNameToValue(hashType hashType, string attributeName)
+    public object getAttribute(hashType hashType, string attributeName)
     {
         return hashType.value[attributeName];
+    }
+    public bool tryGetAttribute(string attributeName)
+    {
+        return rootValue.value.ContainsKey(attributeName);
+    }
+    public bool tryGetAttribute(hashType hashType, string attributeName)
+    {
+        return hashType.value.ContainsKey(attributeName);
     }
     public object pathToValue(string path)
     {
@@ -795,7 +842,7 @@ public class jsonValue
             json += "[";
             for (int i = 0; i < rootValue.value.Count; i++)
             {
-                json += jsonValueTojsonString(indexToValue(i));
+                json += jsonValueTojsonString(getIndexValue(i));
                 if (i != rootValue.value.Count - 1)
                 {
                     json += ", ";
@@ -810,7 +857,7 @@ public class jsonValue
             int i = 0;
             foreach (string label in rootValue.value.Keys)
             {
-                json += label + " : " + jsonValueTojsonString(attributeNameToValue(label));
+                json += label + " : " + jsonValueTojsonString(getAttribute(label));
                 if (i++ != rootValue.value.Count - 1)
                 {
                     json += ", ";
@@ -830,7 +877,7 @@ public class jsonValue
             json += "[";
             for (int i = 0; i < hashType.ConvertTo<hashType>().value.Count; i++)
             {
-                json += jsonValueTojsonString(indexToValue(hashType.ConvertTo<hashType>(), i));
+                json += jsonValueTojsonString(getIndexValue(hashType.ConvertTo<hashType>(), i));
                 if (i != hashType.ConvertTo<hashType>().value.Count - 1)
                 {
                     json += ", ";
@@ -845,7 +892,7 @@ public class jsonValue
             int i = 0;
             foreach (string label in hashType.ConvertTo<hashType>().value.Keys)
             {
-                json += label + " : " + jsonValueTojsonString(attributeNameToValue(hashType.ConvertTo<hashType>(), label));
+                json += label + " : " + jsonValueTojsonString(getAttribute(hashType.ConvertTo<hashType>(), label));
                 if (i++ != hashType.ConvertTo<hashType>().value.Count - 1)
                 {
                     json += ", ";
