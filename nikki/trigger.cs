@@ -16,6 +16,7 @@ public class _runCommands
     public Hashtable labels = new Hashtable();
     public static Hashtable keyWordHas = new Hashtable();
     public Hashtable vars = new Hashtable();
+    public Hashtable classes = new Hashtable();
 #nullable enable
     public jsonValue? getVar(string strvar)
     {
@@ -42,88 +43,44 @@ public class _runCommands
     public List<string>? getValues(string command, ref List<int> valueIndexs) {
 #nullable disable
         List<string> values = new List<string>();
-        int left = 0; 
+        int left = 0; //^\\s*{\\s*((.+\\s*,\\s*)*.+)?\\s*}\\s*$ class
         int right = 0;
         for (int i = 0; i < command.Length;)
         {
             left = i;
-            if (getValue(command, "[a-zA-Z_]+", ref i)) { }//读取非运算符
+            //Debug.Log("(" + jsonValue.classRegex + "|" + jsonValue.classRegex + "\\[\\s*[^[\\]]+\\s*\\]|{\\s*((" + jsonValue.stringRegex + ":\\s*[^,]+\\s*,\\s*)*" + jsonValue.stringRegex + "\\s*:\\s*[^,]+\\s*)?}|{\\s*(\\s*(\\s*[^,]+\\s*,)*\\s*[^,]+\\s*)?})");
+            if (getValue(command, "(" + jsonValue.classRegex + "\\(\\)|" + jsonValue.classRegex + "\\[\\s*[^[\\]]+\\s*\\]|{\\s*((" + jsonValue.stringRegex + ":\\s*[^,]+\\s*,\\s*)*" + jsonValue.stringRegex + "\\s*:\\s*[^,]+\\s*)?}|{\\s*(\\s*(\\s*[^,]+\\s*,)*\\s*[^,]+\\s*)?})", ref i)) { }
             else if (getValue(command, "\\(" + jsonValue.classRegex + "\\)", ref i)) { }
-            else if (getValue(command, "true", ref i)) { }
-            else if (getValue(command, "false", ref i)) { }
-            else if (getValue(command, "null", ref i)) { }
-            else if (getValue(command, jsonValue.classRegex + "(\\(\\)|\\[\\s*.+\\s*\\]|{((" + jsonValue.stringRegex + ":\\s*.+\\s*,\\s*)*" + jsonValue.stringRegex + "\\s*:\\s*.+\\s*)?}|{((\\s*.+\\s*,\\s*)*.+\\s*)?}", ref i)) { }
             else if (getValue(command, jsonValue.stringRegex, ref i)) { }
-            else if (getValue(command, "\\+", ref i)) { }
-            else if (getValue(command, "-", ref i)) { }
+            else if (getValue(command, "\\+[+=]?", ref i)) { }//读取运算符
+            else if (getValue(command, "-[-=]?", ref i)) { }
             else if (getValue(command, "[+-]?[0-9]+", ref i)) { }
             else if (getValue(command, "[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?", ref i)) { }
-            else if (getValue(command, "\\+=", ref i)) { }//读取运算符
-            else if (getValue(command, "\\+\\+", ref i)) { }
-            else if (getValue(command, "-=", ref i)) { }
-            else if (getValue(command, "--", ref i)) { }
-            else if (getValue(command, "\\*\\*=", ref i)) { }
-            else if (getValue(command, "\\*\\*", ref i)) { }
-            else if (getValue(command, "\\*=", ref i)) { }
-            else if (getValue(command, "\\*", ref i)) { }
-            else if (getValue(command, "//=", ref i)) { }
-            else if (getValue(command, "/=", ref i)) { }
-            else if (getValue(command, "//", ref i)) { }
-            else if (getValue(command, "/", ref i)) { }
-            else if (getValue(command, "\\?\\?", ref i)) { }
-            else if (getValue(command, "\\?\\.", ref i)) { }
-            else if (getValue(command, "\\?=", ref i)) { }
-            else if (getValue(command, "\\?", ref i)) { }
-            else if (getValue(command, ":", ref i)) { }
-            else if (getValue(command, "==", ref i)) { }
-            else if (getValue(command, "=", ref i)) { }
-            else if (getValue(command, "&&=", ref i)) { }
-            else if (getValue(command, "&&", ref i)) { }
-            else if (getValue(command, "&=", ref i)) { }
-            else if (getValue(command, "&", ref i)) { }
-            else if (getValue(command, "\\|\\|=", ref i)) { }
-            else if (getValue(command, "\\|\\|", ref i)) { }
-            else if (getValue(command, "\\|=", ref i)) { }
-            else if (getValue(command, "\\|", ref i)) { }
-            else if (getValue(command, "\\^", ref i)) { }
-            else if (getValue(command, "\\^=", ref i)) { }
-            else if (getValue(command, ">>=", ref i)) { }
-            else if (getValue(command, ">>", ref i)) { }
-            else if (getValue(command, ">=", ref i)) { }
-            else if (getValue(command, ">", ref i)) { }
-            else if (getValue(command, "<<=", ref i)) { }
-            else if (getValue(command, "<<", ref i)) { }
-            else if (getValue(command, "<=", ref i)) { }
-            else if (getValue(command, "<", ref i)) { }
-            else if (getValue(command, ",", ref i)) { }
-            else if (getValue(command, "\\[", ref i)) { }
-            else if (getValue(command, "\\]", ref i)) { }
-            else if (getValue(command, "\\(", ref i)) { }
-            else if (getValue(command, "\\)", ref i)) { }
-            else if (getValue(command, "!=", ref i)) { }
-            else if (getValue(command, "!", ref i)) { }
-            else if (getValue(command, "%=", ref i)) { }
-            else if (getValue(command, "%", ref i)) { }
-            else if (getValue(command, "\\.", ref i)) { }
-            else if (getValue(command, "~", ref i)) { }
-            else if (getValue(command, "is", ref i)) { }
-            else if (getValue(command, "as", ref i)) { }
-            else if (getValue(command, "new", ref i)) { }
-            else if (getValue(command, "typeof", ref i)) { }
-            else if (getValue(command, "sizeof", ref i)) { }
+            else if (getValue(command, "\\*\\*?=?", ref i)) { }
+            else if (getValue(command, "//?=?", ref i)) { }
+            else if (getValue(command, "\\?[?.=]?", ref i)) { }
+            else if (getValue(command, "[!=]=?", ref i)) { }
+            else if (getValue(command, "&&?=?", ref i)) { }
+            else if (getValue(command, "\\|\\|?=?", ref i)) { }
+            else if (getValue(command, "\\^=?", ref i)) { }
+            else if (getValue(command, ">>?=?", ref i)) { }
+            else if (getValue(command, "<<?=?", ref i)) { }
+            else if (getValue(command, "[[\\](),.~:]", ref i)) { }
+            else if (getValue(command, "%=?", ref i)) { }
+            else if (getValue(command, "[ai]s|new|(type|size)of|true|false|null|[a-zA-Z_]+", ref i)) { }//读取非运算符
             else
             {
                 getValue(command, "[^\\s]*", ref i);
             }
             right = i - 1;
-            values.Add(command.Substring(left, right - left + 1));
+            values.Add(command.Substring(left, right - left + 1).Trim());
             valueIndexs.Add(left);
         }
         return values;
     }
     public void runCommands(string[] commands, AudioClip[] sounds = null, you u = null)
     {
-        new set();
+        new wait();
         new setSymbol();
         commands ??= new string[0];
         int[] runCounts = new int[commands.Length];
@@ -161,7 +118,7 @@ public class _runCommands
             Stack<int>groupStack = new Stack<int>();
             Hashtable groupLeftIndexToGroupRightIndex = new Hashtable();
             Hashtable groupRightIndexToGroupLeftIndex = new Hashtable();
-            Hashtable groupLeftStringToGroupRightString = new Hashtable { { "(", ")" }, { "[", "]" }, { "?[", "]" } };
+            Hashtable groupLeftStringToGroupRightString = new Hashtable { { "(", ")" }, { "[", "]" }, { "?[", "]" }};
             for (int i = 0; i < values.Count; i++)
             {
                 if ("(" == values[i] || "[" == values[i] || "?[" == values[i])
@@ -179,6 +136,20 @@ public class _runCommands
                     groupRightIndexToGroupLeftIndex.Add(i, groupStack.Pop());
                 }
             }
+            List<string> tempValues = new List<string>();
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (i > 0 && i < values.Count - 1 && "(" == values[i - 1].Trim() && ")" == values[i + 1].Trim() && commandClasses.classIsHas.ContainsKey(values[i].Trim()))
+                {
+                    tempValues[tempValues.Count - 1] = values[i].Trim();
+                    tempValues.Add("(class)");
+                }
+                else
+                {
+                    tempValues.Add(values[i]);
+                }
+            }
+            values = new List<string>(tempValues);
             List<int> beforeLevels = new List<int>{-1};
             List<int> beforeLefts = new List<int>{-1};
             List<int> beforeRights = new List<int>{-1};
@@ -216,7 +187,7 @@ public class _runCommands
                     beforeLefts.Add(-1);
                     beforeRights.Add(-1);
                     beforeLevels.Add(-1);
-                    groupStrings.Push(value.Trim());
+                    groupStrings.Push(value);
                     groupIndexs.Push(i);
                     addBrackets[i]++;
                     addBrackets[(int)groupLeftIndexToGroupRightIndex[i]]--;
@@ -253,13 +224,15 @@ public class _runCommands
                     }
                     values.RemoveAt(groupIndexs.Peek());
                     values.Insert(i, groupStrings.Peek());
+                    values[i] += values[i + 1];
+                    values.RemoveAt(i + 1);
                     groupStrings.Pop();
                     groupIndexs.Pop();
                     if (-1 != beforeLevels[beforeLevels.Count - 1])
                     {
                         if (beforeLevels[beforeLevels.Count - 1] >= symbolToLevel(value))
                         {
-                            addBrackets["(" == values[i - 1].Trim() ? (int)groupRightIndexToGroupLeftIndex[i] : i - 1]--;
+                            addBrackets[(int)groupRightIndexToGroupLeftIndex[i]]--;
                             addBrackets[beforeLefts[beforeLefts.Count - 1]]++;
                         }
                         else
@@ -268,29 +241,16 @@ public class _runCommands
                             addBrackets[i]--;
                         }
                     }
-                    beforeLefts[beforeLefts.Count - 1] = "(" == values[i - 1].Trim() ? (int)groupRightIndexToGroupLeftIndex[i] : i - 1;
+                    beforeLefts[beforeLefts.Count - 1] = (int)groupRightIndexToGroupLeftIndex[i];
                     beforeRights[beforeRights.Count - 1] = i;
                 }
                 if (CanSymbolToLevel(value))
                 {
-                    switch((int)getSymbolArgCount(value))
+                    switch(getSymbolArgCount(value))
                     {
                         case 1:
-                            if ("(" == value.Trim() || "[" == value.Trim() || "?[" == value.Trim())
-                            {
-                                beforeLefts.Add(-1);
-                                beforeRights.Add(-1);
-                                beforeLevels.Add(-1);
-                                groupStrings.Push(value.Trim());
-                                groupIndexs.Push(i);
-                            }
-                            if (i == values.Count - 1 || CanSymbolToLevel(values[i + 1]))
-                            {
-                                Debug.LogError("运算符错误：第" + commandI + "行第" + valueIndexs[i] + "列的运算符右边参数格式不对");
-                                goto errorEnd;
-                            }
                             addBrackets[i]++;
-                            addBrackets[")" == values[i + 1].Trim() ? (int)groupLeftIndexToGroupRightIndex[i] : i + 1]--;
+                            addBrackets[i + 1]--;
                             if (-1 != beforeLevels[beforeLevels.Count - 1])
                             {
                                 if (beforeLevels[beforeLevels.Count - 1] <= symbolToLevel(value))
@@ -301,18 +261,13 @@ public class _runCommands
                                 else
                                 {
                                     addBrackets[beforeRights[beforeRights.Count - 1]]++;
-                                    addBrackets[")" == values[i + 1].Trim() ? (int)groupLeftIndexToGroupRightIndex[i] : i + 1]--;
+                                    addBrackets[i + 1]--;
                                 }
                             }
                             beforeLefts[beforeLefts.Count - 1] = i;
-                            beforeRights[beforeRights.Count - 1] = ")" == values[i + 1].Trim() ? (int)groupLeftIndexToGroupRightIndex[i] : i + 1;
+                            beforeRights[beforeRights.Count - 1] = i + 1;
                             break;
                         case 2:
-                            if (0 == i || i == values.Count - 1 || CanSymbolToLevel(values[i - 1]) || CanSymbolToLevel(values[i + 1]))
-                            {
-                                Debug.LogError("运算符错误：第" + commandI + "行第" + valueIndexs[i] + "列的运算符两边至少有一处参数格式不对");
-                                goto errorEnd;
-                            }
                             addBrackets[i - 1]++;
                             addBrackets[i + 1]--;
                             if (-1 != beforeLevels[beforeLevels.Count - 1])
@@ -334,38 +289,13 @@ public class _runCommands
                             beforeRights[beforeRights.Count-1] = i + 1;
                             break;
                         case -1:
-                            if (")" == value.Trim() || "]" == value.Trim())
-                            {
-                                beforeLefts.RemoveAt(beforeLefts.Count - 1);
-                                beforeRights.RemoveAt(beforeRights.Count - 1);
-                                beforeLevels.RemoveAt(beforeLevels.Count - 1);
-                                if ((string)groupLeftStringToGroupRightString[groupStrings.Peek()] != value.Trim())
-                                {
-                                    Debug.LogError("括号错误：第" + commandI + "行第" + valueIndexs[i]  + "列匹配的括号不对");
-                                    goto errorEnd;
-                                }
-                                values.RemoveAt(groupIndexs.Peek());
-                                values.Insert(i, groupStrings.Peek());
-                                groupStrings.Pop();
-                                groupIndexs.Pop();
-                                if (0 != rbracketPoses.Count)
-                                {
-                                    rbracketPoses[rbracketPoses.Count - 1]--;
-                                    rbracketPoses.RemoveAt(rbracketPoses.Count - 1);
-                                }
-                            }
-                            if (0 == i || CanSymbolToLevel(values[i - 1]))
-                            {
-                                Debug.LogError("运算符错误：第" + commandI + "行第" + valueIndexs[i] + "列的运算符左边参数格式不对");
-                                goto errorEnd;
-                            }
-                            addBrackets["(" == values[i - 1].Trim() ? (int)groupRightIndexToGroupLeftIndex[i] : i - 1]++;
+                            addBrackets[i - 1]++;
                             addBrackets[i]--;
                             if (-1 != beforeLevels[beforeLevels.Count-1])
                             {
                                 if (beforeLevels[beforeLevels.Count - 1] <= symbolToLevel(value))
                                 {
-                                    addBrackets["(" == values[i - 1].Trim() ? (int)groupRightIndexToGroupLeftIndex[i] : i - 1]--;
+                                    addBrackets[i - 1]--;
                                     addBrackets[beforeLefts[beforeLefts.Count-1]]++;
                                 }
                                 else
@@ -374,8 +304,8 @@ public class _runCommands
                                     addBrackets[i]--;
                                 }
                             }
-                            beforeLefts[beforeLefts.Count-1] = "(" == values[i - 1].Trim() ? (int)groupRightIndexToGroupLeftIndex[i] : i - 1;
-                            beforeRights[beforeRights.Count-1] = i;
+                            beforeLefts[beforeLefts.Count - 1] = i - 1;
+                            beforeRights[beforeRights.Count - 1] = i;
                             break;
                         default:
                             break;
@@ -479,16 +409,15 @@ public class _runCommands
                     {
                         string sa = calcStack.Pop();
                         string s = calcStack.Pop();
-                        symbolIndexStack.Pop();
                         if (argsStack.Count > 0)
                         {
                             argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
                             argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
                         }
-                        calcStack.Push(getSymbolFunc(suffixCode[i])(s, sa, this).jsonValueTojsonString());
+                        calcStack.Push(getSymbolFunc(suffixCode[i])(s, sa, commandI, valueIndexs[symbolIndexStack.Peek()], valueIndexs[symbolIndexStack.Pop()], this).jsonValueTojsonString());
                         if (argsStack.Count > 0)
                         {
-                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])(s, sa, this).jsonValueTojsonString());
+                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])(s, sa, commandI, valueIndexs[symbolIndexStack.Peek()], valueIndexs[symbolIndexStack.Pop()], this).jsonValueTojsonString());
                         }
                     }
                     else if(1 == getSymbolArgCount(suffixCode[i]))
@@ -498,11 +427,11 @@ public class _runCommands
                         {
                             argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
                         }
-                        calcStack.Push(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
+                        calcStack.Push(getSymbolFunc(suffixCode[i])(s, "", commandI, valueIndexs[symbolIndexStack.Peek()], -1, this).jsonValueTojsonString());
                         symbolIndexStack.Push(i);
                         if (argsStack.Count > 0)
                         {
-                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])("", s, this).jsonValueTojsonString());
+                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])(s, "", commandI, valueIndexs[symbolIndexStack.Peek()], -1, this).jsonValueTojsonString());
                         }
                     }
                     else if(-1 == getSymbolArgCount(suffixCode[i]))
@@ -512,11 +441,11 @@ public class _runCommands
                         {
                             argsStack.Peek().RemoveAt(argsStack.Peek().Count - 1);
                         }
-                        calcStack.Push(getSymbolFunc(suffixCode[i])(s, "", this).jsonValueTojsonString());
+                        calcStack.Push(getSymbolFunc(suffixCode[i])(s, "", commandI, valueIndexs[symbolIndexStack.Peek()], -1, this).jsonValueTojsonString());
                         symbolIndexStack.Push(i);
                         if (argsStack.Count > 0)
                         {
-                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])(s, "", this).jsonValueTojsonString());
+                            argsStack.Peek().Add(getSymbolFunc(suffixCode[i])(s, "", commandI, valueIndexs[symbolIndexStack.Peek()], -1, this).jsonValueTojsonString());
                         }
                     }
                 }
@@ -525,7 +454,7 @@ public class _runCommands
                     command runCommand = command.stringToCommands(suffixCode[i]);
                     for (int j = 0; argsStack.Peek().Count > j; j++)
                     {
-                        if (!runCommand.setValue(argsStack.Peek()[j].Trim(), j, this))
+                        if (!runCommand.setValue(new jsonValue(argsStack.Peek()[j].Trim(), this), j, this))
                         {
                             break;
                         }
@@ -615,6 +544,7 @@ public class trigger : MonoBehaviour
     public Sprite[] sprites;
     public int soundsCount;
     public int spritesCount;
+    public string commandsStr = "";
     private _runCommands _runCommands;
     public you u
     {
