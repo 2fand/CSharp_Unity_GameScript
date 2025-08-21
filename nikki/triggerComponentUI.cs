@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using static funcsForComponentUI;
@@ -13,12 +14,13 @@ public class triggerComponentUI : Editor
     bool openSprites = true;
     bool openCommandHelps = false;
     bool openValueHelps = false;
+    Vector2 scrollPos = new Vector2();
     private void OnEnable()
     {
         trigger = (trigger)target;
     }
     public override void OnInspectorGUI()
-    {   
+    {
         trigger.x = EditorGUILayout.IntField("触发区域x坐标", Mathf.Max(0, trigger.x));
         trigger.y = EditorGUILayout.IntField("触发区域y坐标", Mathf.Max(0, trigger.y));
         trigger.ChangeTransform = EditorGUILayout.Toggle("是否改变位置", trigger.ChangeTransform);
@@ -55,15 +57,21 @@ public class triggerComponentUI : Editor
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.BeginHorizontal();
         openCommands = EditorGUILayout.BeginFoldoutHeaderGroup(openCommands, "命令");
-        trigger.commandsCount = EditorGUILayout.IntField(Mathf.Max(0, trigger.commandsCount));
-        updateArray(ref trigger.commands, trigger.commandsCount);
-        EditorGUILayout.EndHorizontal();
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Height(250));
+        EditorStyles.textField.clipping = TextClipping.Overflow;
         EditorGUI.indentLevel++;
-        for (int i = 0; openCommands && i < trigger.commandsCount; i++)
+        if (openCommands)
         {
-            trigger.commands[i] = EditorGUILayout.TextField(i.ToString(), trigger.commands[i]);
+            trigger.commandsStr = EditorGUILayout.TextArea(trigger.commandsStr, new GUILayoutOption[] { GUILayout.ExpandHeight(true) });
         }
         EditorGUI.indentLevel--;
+        EditorGUILayout.EndScrollView();
+        EditorGUILayout.EndHorizontal();
+        updateArray(ref trigger.commands, trigger.commandsStr.Split(new char[] { '\n' }).Length);
+        for (int i = 0; i < trigger.commandsStr.Split(new char[] { '\n' }).Length; i++)
+        {
+            trigger.commands[i] = trigger.commandsStr.Split(new char[] { '\n' })[i];
+        }
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.BeginHorizontal();
         openSounds = EditorGUILayout.BeginFoldoutHeaderGroup(openSounds, "音频");
