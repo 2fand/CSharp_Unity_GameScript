@@ -9,7 +9,7 @@ using static symbol;
 
 public abstract class commandClasses
 {
-    public static readonly string[] classes = { "int", "float", "string", "bool", "null", "array", "class" };
+    public static readonly string[] classes = { "int", "float", "string", "bool", "null", "array", "object" };
     public static readonly Hashtable classIsHas;
     static commandClasses(){
         classIsHas = new Hashtable();
@@ -27,7 +27,7 @@ public abstract class command
 #nullable enable
     public jsonValue? result = null;
 #nullable disable
-    public abstract bool setValue(string value, int valueNumber, _runCommands commandsValues);
+    public abstract bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues);
     public abstract bool execute();
     public static Hashtable stringCommands = new Hashtable();
     public static Hashtable CommandRecommends = new Hashtable();
@@ -43,7 +43,8 @@ public abstract class command
         _runCommands.keyWordHas = new Hashtable();
         stringCommands = new Hashtable();
         Type[] types = typeof(command).Assembly.GetTypes();
-        for (int i = 0; i < types.Length; i++) {
+        for (int i = 0; i < types.Length; i++)
+        {
             if (null != types[i].BaseType && typeof(command) == types[i].BaseType)
             {
                 stringCommands.Add(Activator.CreateInstance(types[i]).ConvertTo<command>().commandName, Activator.CreateInstance(types[i]).ConvertTo<command>());
@@ -137,7 +138,7 @@ public class tele : command
 #nullable disable
     public override string commandName => "tele";
     public override string commandRecommend => "tele命令：让玩家传送至指定地点(命令格式：tele 退出转场 退出转场时间 进入转场 进入转场时间 [世界名 = \"nexus\"] [传送x坐标 = 0] [传送y坐标 = 0] [朝向 = 你的朝向] [传送时音效在sounds的索引 = 0(可为null)] [传送后音效在sounds的索引 = 0(可为null)] [是否自动清空当前打开的菜单 = true])";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         switch (valueNumber)
         {
@@ -166,7 +167,7 @@ public class tele : command
                 teleHigh = float.Parse(value);
                 break;
             case 8:
-                if ("u" == value.ToLower())
+                if ("u" == value.getString().ToLower())
                 {
                     face = you.face;
                     break;
@@ -174,13 +175,13 @@ public class tele : command
                 face = CanStrToWASDs(value) ? stringToWASDs(value) : (wasd)int.Parse(value);
                 break;
             case 9:
-                if ("null" != value.ToLower())
+                if ("null" != value.getString().ToLower())
                 {
                     closeSoundIndex = int.Parse(value);
                 }
                 break;
             case 10:
-                if ("null" != value.ToLower())
+                if ("null" != value.getString().ToLower())
                 {
                     teleSoundIndex = int.Parse(value);
                 }
@@ -210,7 +211,7 @@ public class note : command
 {
     public override string commandName => "#";
     public override string commandRecommend => "#命令：用来注释命令(命令格式：# ...)";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         return false;
     }
@@ -226,7 +227,7 @@ public class help : command
 #nullable disable
     public override string commandName => "help";
     public override string commandRecommend => "help命令：了解命令的主要作用(命令格式：help 命令名称)";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         if (0 == valueNumber && null != commandNameToRecommends(getRealStr(value)))
         {
@@ -263,14 +264,14 @@ public class _move : command
         }
         return (isNegative ? "-" : "") + absNum;
     }
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         if (0 == valueNumber)
         {
             int delimiterIndex = -1;
-            for (int j = 0; j < value.Length; j++)
+            for (int j = 0; j < value.getString().Length; j++)
             {
-                if (char.IsLetter(value[j]))
+                if (char.IsLetter(value.getString()[j]))
                 {
                     delimiterIndex = j;
                     break;
@@ -278,15 +279,15 @@ public class _move : command
             }
             if (-1 == delimiterIndex)
             {
-                delimiterIndex = value.Length;
+                delimiterIndex = value.getString().Length;
             }
             if (0 != delimiterIndex)
             {
-                tempSpeed = float.Parse(easyNum(value.Substring(0, delimiterIndex)));
+                tempSpeed = float.Parse(easyNum(value.getString().Substring(0, delimiterIndex)));
             }
-            if (CanStrToWASDs(value.Substring(delimiterIndex)))
+            if (CanStrToWASDs(value.getString().Substring(delimiterIndex)))
             {
-                face = ("u" == value.Substring(delimiterIndex) || "U" == value.Substring(delimiterIndex) ? you.face : (wasd)stringToWASDs(value.Substring(delimiterIndex)));
+                face = ("u" == value.getString().Substring(delimiterIndex) || "U" == value.getString().Substring(delimiterIndex) ? you.face : (wasd)stringToWASDs(value.getString().Substring(delimiterIndex)));
             }
         }
         else if (1 == valueNumber)
@@ -322,7 +323,7 @@ public class _show : command
     bool? autoClearMenu = null;
     public override string commandName => "show";
     public override string commandRecommend => "show命令：显示玩家(命令格式：show  [是否自动清空当前打开的菜单 = true])";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         if (CanStrToBools(value))
         {
@@ -346,7 +347,7 @@ public class _hide : command
     bool? autoClearMenu = null;
     public override string commandName => "hide";
     public override string commandRecommend => "hide命令：隐藏玩家(命令格式：hide  [是否自动清空当前打开的菜单 = true])";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         if (CanStrToBools(value))
         {
@@ -374,7 +375,7 @@ public class _play : command
     int ia;
     public override string commandName => "play";
     public override string commandRecommend => "play命令：播放一段声音(命令格式：play [声音在sounds的索引 = 0] [是否等待声音结束 = false]  [是否自动清空当前打开的菜单 = false])";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         switch (valueNumber)
         {
@@ -425,7 +426,7 @@ public class turn : command
     bool? autoClearMenu = null;
     public override string commandName => "turn";
     public override string commandRecommend => "turn命令：改变玩家的朝向(命令格式：turn [朝向 = s]|[玩家转的方式 = (l(eft)|b(ack)|r(ight))]  [是否自动清空当前打开的菜单 = true]))";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         switch (valueNumber)
         {
@@ -438,9 +439,9 @@ public class turn : command
                 {
                     face = (wasd)stringToWASDs(value);
                 }
-                else if (turnModes.ContainsKey(value.ToLower()))
+                else if (turnModes.ContainsKey(value.getString().ToLower()))
                 {
-                    face = turnArray[(rturnArray[(int)you.face] + (int)turnModes[value.ToLower()]) % 4];
+                    face = turnArray[(rturnArray[(int)you.face] + (int)turnModes[value.getString().ToLower()]) % 4];
                 }
                 break;
             default:
@@ -467,7 +468,7 @@ public class stop : command
 {
     public override string commandName => "stop";
     public override string commandRecommend => "stop命令：停止发出声音(命令格式：stop)";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         return true;
     }
@@ -483,8 +484,9 @@ public class wait : command
     float waitTime;
     public override string commandName => "wait";
     public override string commandRecommend => "wait命令：等待一段时间(命令格式：wait [等待时间 = 1])";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
+        value = new jsonValue(value, commandsValues);
         waitTime = float.Parse(value);
         return false;
     }
@@ -503,8 +505,9 @@ public class use : command
     bool? autoClearMenu = null;
     public override string commandName => "use";
     public override string commandRecommend => "use命令：使用物品栏里第一个道具名相同的道具(命令格式：use [道具名 = \"default\"]  [是否自动清空当前打开的菜单 = true])";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
+        value = new jsonValue(value, commandsValues);
         if (0 == valueNumber)
         {
             itemName = value;
@@ -537,16 +540,16 @@ public class use : command
     }
 }
 
-public class debug : command
+public class print : command
 {
 #nullable enable
     string? str = null;
 #nullable disable
-    public override string commandName => "debug";
-    public override string commandRecommend => "debug命令：输出一些信息(命令格式：debug (信息))";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override string commandName => "print";
+    public override string commandRecommend => "print命令：输出一些信息(命令格式：print (信息))";
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
-        str = getRealStr(value);
+        str = getRealStr(new jsonValue(value, commandsValues));
         return false;
     }
     public override bool execute()
@@ -563,7 +566,7 @@ public class value : command
 #nullable disable
     public override string commandName => "value";
     public override string commandRecommend => "value命令：查看关于某些特殊类型变量的详细介绍(命令格式：value)";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         if (CanVauleNameToHelp(getRealStr(value)))
         {
@@ -582,7 +585,7 @@ public class _goto : command
 {
     public override string commandName => "goto";
     public override string commandRecommend => "goto命令：跳转到某一行(命令格式：goto (标签(标签格式：“(标签名):”)))";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         if (!commandsValues.labels.ContainsKey(getRealStr(value)))
         {
@@ -603,7 +606,7 @@ public class exit : command
     bool? autoClearMenu = null;
     public override string commandName => "exit";
     public override string commandRecommend => "exit命令：退出游戏(命令格式：exit  [是否自动清空当前打开的菜单 = false])";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         if (CanStrToBools(value))
         {
@@ -626,7 +629,7 @@ public class close : command
 {
     public override string commandName => "close";
     public override string commandRecommend => "close命令：跳出当前菜单(命令格式：close)";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         return false;
     }
@@ -641,7 +644,7 @@ public class clear : command
 {
     public override string commandName => "clear";
     public override string commandRecommend => "clear命令：清空当前的菜单(命令格式：clear)";
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
         return false;
     }
@@ -651,39 +654,41 @@ public class clear : command
         return true;
     }
 }
-
-public class set : command
+public class customsizeCommand : command
 {
-    string _varName = "";
-    string jsonObject = "";
-    public override string commandName => "set";
-    public override string commandRecommend => "set命令(同=运算符)：设置变量，定义变量(命令格式：set 变量 值)";//数 字符串 枚举 对象 数组 布尔
-    public override bool setValue(string value, int valueNumber, _runCommands commandsValues)
+    public List<string> commands;
+    public List<string> args;
+    public Hashtable realArgs;
+    public override string commandName => "";
+    public override string commandRecommend => "";
+    public override bool setValue(jsonValue value, int valueNumber, _runCommands commandsValues)
     {
-        //"".+?"" string true false null ^([+-]?([0-9]+(\.([+-]?[0-9]+)?)?|\.[0-9]+)([Ee][+-]?[0-9]+)?)$ num
         if (0 == valueNumber)
-        { 
-            if (commandsValues.vars.ContainsKey(value))
-            {
-                return false;
-            }
-            if (!Regex.Match(value, "[a-zA-Z_]+").Success)
-            {
-                return false;
-            }
-            commandsValues.vars.Add(value, null);
-            _varName = value;
-        }
-        else
         {
-            jsonObject = value;
-            commandsValues.vars[_varName] = new jsonValue(jsonObject);
-            return false;
+            commands = new List<string>();
+            args = new List<string>();
+            realArgs = new Hashtable();
+            jsonValue[] commandsArray =  jsonValue.getArray(value.getIndexValue(0).ConvertTo<hashType>());
+            jsonValue[] argsArray = jsonValue.getArray(value.getIndexValue(0).ConvertTo<hashType>());
+            for (int i = 0; i < commandsArray.Length; i++) 
+            {
+                commands.Add(commandsArray[i].getString()); 
+            }
+            for (int i = 0; i < argsArray.Length; i++)
+            {
+                commands.Add(argsArray[i].getString());
+            }
+            return true;
         }
-        return true;//set a 111|a=111
+        if (args.Count >= valueNumber)
+        {
+            realArgs.Add(args[valueNumber - 1], value);
+        }
+        return false;
     }
     public override bool execute()
     {
+        trigger.runCommands(commands.ToArray());
         return true;
     }
 }
