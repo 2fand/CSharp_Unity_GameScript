@@ -8,6 +8,19 @@ using System.Text.RegularExpressions;
 using Unity.VisualScripting;
 using UnityEngine;
 
+//class {a,b,cd,e} (特点：似数组，有别名，子数据变量形式，转换为对象过程为
+//  , -> " = null, "
+//  { -> "
+//  } -> " = null}
+//)
+//enum {a,b,cd,e} (特点：似类，可以设值(int)，转换为对象过程为
+//  转为值为空对象
+//  根据成员及设定值创建对象
+//)
+//func a &b &c &d{ (特点：字符串数组为命令，是变量)
+//        b=2
+//        c=3
+//     }
 
 public class hashType
 {
@@ -40,7 +53,7 @@ public class jsonValue
     public static string integerRegex => "[+-]?[0-9]+";
     public static string floatRegex => "[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?";
     public static string varRegex => "[a-zA-Z_]+";
-    public static string classRegex => "int|float|string|bool|null|array|class";
+    public static string classRegex => "(int|float|string|bool|null|array|object)";
     public static implicit operator jsonValue(string str) => new jsonValue(str);
     public static implicit operator jsonValue(bool b) => new jsonValue(b);
     public static implicit operator jsonValue(int i) => new jsonValue(i);
@@ -63,7 +76,10 @@ public class jsonValue
     }
     public jsonValue(string json)
     {
-        setValue(json);
+        if (!setValue(json))
+        {
+            throw new Exception("“" + json + "”值不合法");
+        }
     }
     public jsonValue(string json, _runCommands commandValues)
     {
@@ -83,19 +99,42 @@ public class jsonValue
                 i += Regex.Match(json.Substring(i), "^\\s*" + varRegex).Length - 1;
             }
         }
-        setValue(json);
+        if (!setValue(json))
+        {
+            throw new Exception("json数据“" + json + "”不合法");
+        }
     }
     public bool isNull()
     {
         return "null" == getRealType();
     }
-    public bool isClass()
+    public bool isInt()
+    {
+        return "int" == getRealType();
+    }
+    public bool isBool()
+    {
+        return "bool" == getRealType();
+    }
+    public bool isString()
+    {
+        return "string" == getRealType();
+    }
+    public bool isFloat()
+    {
+        return "float" == getRealType();
+    }
+    public bool isType()
     {
         return getRealType() == "string" && commandClasses.classIsHas.ContainsKey(getValue().ToString());
     }
-    public jsonValue(uint size, object defaultObject = null)
+    public jsonValue(uint size, object defaultObject)
     {
         setArray(size, defaultObject);
+    }
+    public jsonValue(uint size, string json)
+    {
+        setArray(size, json);
     }
     public jsonValue(string[] attributeNames, object[] objects)
     {
@@ -115,7 +154,73 @@ public class jsonValue
     {
         return rootValue.value[0];
     }
-    public object setValue(hashType hashType, object v)
+    public string getString()
+    {
+        if ("string" == getRealType())
+        {
+            return rootValue.value[0].ToString();
+        }
+        throw new Exception("类型错误：当前的值类型为“" + getRealType() + "”");
+    }
+    public int getInt()
+    {
+        if ("int" == getRealType())
+        {
+            return rootValue.value[0].ConvertTo<int>();
+        }
+        throw new Exception("类型错误：当前的值类型为“" + getRealType() + "”");
+    }
+    public float getFloat()
+    {
+        if ("string" == getRealType())
+        {
+            return rootValue.value[0].ConvertTo<float>();
+        }
+        throw new Exception("类型错误：当前的值类型为“" + getRealType() + "”");
+    }
+    public bool getBool()
+    {
+        if ("bool" == getRealType())
+        {
+            return rootValue.value[0].ConvertTo<bool>();
+        }
+        throw new Exception("类型错误：当前的值类型为“" + getRealType() + "”");
+    }
+    public jsonValue[] getArray()
+    {
+        if ("array" == getRealType())
+        {
+            jsonValue[] array = new jsonValue[getChildValueCount()];
+            for (int i = 0; i < getChildValueCount(); i++)
+            {
+                array[i] = new jsonValue(getIndexValue(i));
+            }
+            return array;
+        }
+        throw new Exception("类型错误：当前的值类型为“" + getRealType() + "”");
+    }
+    public static jsonValue[] getArray(hashType hashType)
+    {
+        if ("array" == getRealType(hashType))
+        {
+            jsonValue[] array = new jsonValue[getChildValueCount(hashType)];
+            for (int i = 0; i < getChildValueCount(hashType); i++)
+            {
+                array[i] = new jsonValue(getIndexValue(hashType, i));
+            }
+            return array;
+        }
+        throw new Exception("类型错误：当前的值类型为“" + getRealType(hashType) + "”");
+    }
+    public Hashtable getObject()
+    {
+        if ("object" == getRealType())
+        {
+            return rootValue.value;
+        }
+        throw new Exception("类型错误：当前的值类型为“" + getRealType() + "”");
+    }
+    public static object setValue(hashType hashType, object v)
     {
         hashType.valueClass = valueClass.value;
         if (!hashType.value.ContainsKey(0))
@@ -125,7 +230,7 @@ public class jsonValue
         hashType.value[0] = v;
         return v;
     }
-    public object getValue(hashType hashType)
+    public static object getValue(hashType hashType)
     {
         return hashType.value[0];
     }
@@ -135,7 +240,7 @@ public class jsonValue
         return rootValue.value[index.ToString()];
     }
 
-    public object getIndexValue(hashType hashType, int index)
+    public static object getIndexValue(hashType hashType, int index)
     {
         return hashType.value[index.ToString()];
     }
@@ -145,7 +250,7 @@ public class jsonValue
         return rootValue.value.ContainsKey(index.ToString());
     }
 
-    public bool tryGetIndexValue(hashType hashType, int index)
+    public static bool tryGetIndexValue(hashType hashType, int index)
     {
         return hashType.value.ContainsKey(index.ToString());
     }
@@ -160,7 +265,7 @@ public class jsonValue
         }
     }
 
-    public void setArray(hashType hashType, uint size, object defaultObject = null)
+    public static void setArray(hashType hashType, uint size, object defaultObject = null)
     {
         hashType.valueClass = valueClass.array;
         hashType.value.Clear();
@@ -181,13 +286,13 @@ public class jsonValue
         rootValue.value.Add(rootValue.value.Count.ToString(), jsonValue.rootValue);
     }
 
-    public void arrayAndValue(hashType hashType, string json)
+    public static void arrayAndValue(hashType hashType, string json)
     {
         hashType.value.Add(hashType.value.Count.ToString(), new hashType(valueClass.value));
         setValue(hashType.value[hashType.value.Count - 1].ConvertTo<hashType>(), json);
     }
 
-    public void arrayAndValue(hashType hashType, jsonValue jsonValue)
+    public static void arrayAndValue(hashType hashType, jsonValue jsonValue)
     {
         hashType.value.Add(hashType.value.Count.ToString(), jsonValue.rootValue);
     }
@@ -214,21 +319,21 @@ public class jsonValue
             rootValue.value.Add(rootValue.value.Count.ToString(), jsonValue.rootValue.value[i]);
         }
     }
-    public void catArray(hashType hashType, uint size, object Object = null)
+    public static void catArray(hashType hashType, uint size, object Object = null)
     {
         for (int i = 0; i < size; i++)
         {
             hashType.value.Add(hashType.value.Count.ToString(), Object);
         }
     }
-    public void catArray(hashType hashType, jsonValue jsonValue)
+    public static void catArray(hashType hashType, jsonValue jsonValue)
     {
         for (int i = 0; valueClass.array == jsonValue.ThisClass && i < jsonValue.rootValue.value.Count; i++)
         {
             hashType.value.Add(hashType.value.Count.ToString(), jsonValue.rootValue.value[i]);
         }
     }
-    public void catArray(hashType hashType, string json)
+    public static void catArray(hashType hashType, string json)
     {
         jsonValue jsonValue = new jsonValue(json);
         for (int i = 0; valueClass.array == jsonValue.ThisClass && i < jsonValue.rootValue.value.Count; i++)
@@ -259,7 +364,7 @@ public class jsonValue
         }
     }
 
-    public void arrayInsert(hashType hashType, int index, object o)
+    public static void arrayInsert(hashType hashType, int index, object o)
     {
         if ("array" == getRealType(hashType))
         {
@@ -291,7 +396,7 @@ public class jsonValue
         }
     }
 
-    public void arraySwap(hashType hashType, int index, int indexa)
+    public static void arraySwap(hashType hashType, int index, int indexa)
     {
         if ("array" == getRealType(hashType))
         {
@@ -315,9 +420,9 @@ public class jsonValue
         }
     }
 
-    public void arrayErase(hashType hashType, int index, object o)
+    public static void arrayErase(hashType hashType, int index, object o)
     {
-        if ("array" == getRealType(hashType) && index > 0 && index < rootValue.value.Count)
+        if ("array" == getRealType(hashType) && index > 0 && index < hashType.value.Count)
         {
             hashType.value.Remove(index.ToString());
         }
@@ -337,7 +442,7 @@ public class jsonValue
         }
     }
 
-    public void arrayRemove(hashType hashType)
+    public static void arrayRemove(hashType hashType)
     {
         if ("array" == getRealType(hashType) && 0 != hashType.value.Count)
         {
@@ -355,7 +460,7 @@ public class jsonValue
         }
     }
 
-    public void setObject(hashType hashType, string[] attributeNames, object[] objects)
+    public static void setObject(hashType hashType, string[] attributeNames, object[] objects)
     {
         hashType.valueClass = valueClass.@object;
         hashType.value.Clear();
@@ -372,7 +477,7 @@ public class jsonValue
         rootValue.value.Add(attributeName, @object);
     }
 
-    public void setObjectAttribute(hashType hashType, string attributeName, object @object)
+    public static void setObjectAttribute(hashType hashType, string attributeName, object @object)
     {
         hashType.valueClass = valueClass.@object;
         hashType.value.Clear();
@@ -448,6 +553,10 @@ public class jsonValue
     {
         return rootValue.value.Count;
     }
+    public static int getChildValueCount(hashType hashType)
+    {
+        return hashType.value.Count;
+    }
     public ICollection getRootValueKeys()
     {
         return rootValue.value.Keys;
@@ -456,11 +565,19 @@ public class jsonValue
     {
         return rootValue.value.Values;
     }
+    public static ICollection getValueKeys(hashType hashType)
+    {
+        return hashType.value.Keys;
+    }
+    public static ICollection getValueValues(hashType hashType)
+    {
+        return hashType.value.Values;
+    }
     public object getAttribute(string attributeName)
     {
         return rootValue.value[attributeName];
     }
-    public object getAttribute(hashType hashType, string attributeName)
+    public static object getAttribute(hashType hashType, string attributeName)
     {
         return hashType.value[attributeName];
     }
@@ -468,19 +585,11 @@ public class jsonValue
     {
         return rootValue.value.ContainsKey(attributeName);
     }
-    public bool tryGetAttribute(hashType hashType, string attributeName)
+    public static bool tryGetAttribute(hashType hashType, string attributeName)
     {
         return hashType.value.ContainsKey(attributeName);
     }
-    public object pathToValue(string path)
-    {
-        throw new NotImplementedException();
-    }
-    public object pathToValue(hashType hashType, string path)
-    {
-        throw new NotImplementedException();
-    }
-    public float ToScienceFloat(string floatStr)
+    public static float ToScienceFloat(string floatStr)
     {
         return float.Parse(Regex.Match(floatStr, "^\\s*" + floatRegex).Value) * (Regex.Match(floatStr, "[eE][+-]?[0-9]+").Success ? Mathf.Pow(10, int.Parse(Regex.Match(floatStr, "[eE][+-]?[0-9]+").Value.Substring(1))) : 1);
     }
@@ -508,12 +617,12 @@ public class jsonValue
         };
         Action EndOther = () =>
         {
-            Hashtable tempTable = stack.Pop().value;
+            hashType tempTable = stack.Pop();
             hasValue.RemoveAt(hasValue.Count - 1);
             indexStack.RemoveAt(indexStack.Count - 1);
             if (0 == indexStack.Count)
             {
-                rootValue.value = tempTable;
+                rootValue.value = tempTable.value;
                 rootValue.valueClass = classStack.Pop();
             }
             else
@@ -542,33 +651,39 @@ public class jsonValue
         };
         for (int i = 0; i < json.Length; )
         {
-            while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*\\[\\s*").Success)
+            while (i < json.Length && (Regex.Match(json.Substring(i), "^\\s*\\[\\s*").Success || Regex.Match(json.Substring(i), "^\\s*{\\s*").Success))
             {
-                addOther(valueClass.array);
-                i += Regex.Match(json.Substring(i), "^\\s*\\[\\s*").Length;
-            }
-            while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*{\\s*").Success)
-            {
-                addOther(valueClass.@object);
-                i += Regex.Match(json.Substring(i), "^\\s*{\\s*").Length;
-            }
-            while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*\\]\\s*").Success)
-            {
-                if (0 == hasValue[hasValue.Count - 1] || valueClass.@object == classStack.Peek())
+                while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*\\[\\s*").Success)
                 {
-                    return false;
+                    addOther(valueClass.array);
+                    i += Regex.Match(json.Substring(i), "^\\s*\\[\\s*").Length;
                 }
-                EndOther();
-                i += Regex.Match(json.Substring(i), "^\\s*\\]\\s*").Length;
-            }
-            while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*}\\s*").Success)
-            {
-                if (0 == hasValue[hasValue.Count - 1] || valueClass.array == classStack.Peek())
+                while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*{\\s*").Success)
                 {
-                    return false;
+                    addOther(valueClass.@object);
+                    i += Regex.Match(json.Substring(i), "^\\s*{\\s*").Length;
                 }
-                EndOther();
-                i += Regex.Match(json.Substring(i), "^\\s*}\\s*").Length;
+            }
+            while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*\\]\\s*").Success || Regex.Match(json.Substring(i), "^\\s*}\\s*").Success)
+            {
+                while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*\\]\\s*").Success)
+                {
+                    if (0 == hasValue[hasValue.Count - 1] || valueClass.@object == classStack.Peek())
+                    {
+                        return false;
+                    }
+                    EndOther();
+                    i += Regex.Match(json.Substring(i), "^\\s*\\]\\s*").Length;
+                }
+                while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*}\\s*").Success)
+                {
+                    if (0 == hasValue[hasValue.Count - 1] || valueClass.array == classStack.Peek())
+                    {
+                        return false;
+                    }
+                    EndOther();
+                    i += Regex.Match(json.Substring(i), "^\\s*}\\s*").Length;
+                }
             }
             if (stack.Count != 0 && -1 != hasValue[hasValue.Count - 1])
             {
@@ -658,17 +773,17 @@ public class jsonValue
         return stack.Count == 0;
     }
 
-    public bool setValue(hashType hashType, string json, bool applyEspase = true)
+    public static bool setValue(hashType hashType, string json, bool applyEspase = true)
     {
-        stack = new Stack<hashType>();
-        classStack = new Stack<valueClass>();
-        indexStack = new List<string>();
-        hasValue = new List<int>();
+        Stack<hashType> stack = new Stack<hashType>();
+        Stack<valueClass> classStack = new Stack<valueClass>();
+        List<string> indexStack = new List<string>();
+        List<int> hasValue = new List<int>();
         Action<object> addValue = (object o) =>
         {
             if (0 == stack.Count)
             {
-                setValue(o);
+                setValue(hashType, o);
             }
             else
             {
@@ -857,7 +972,7 @@ public class jsonValue
             int i = 0;
             foreach (string label in rootValue.value.Keys)
             {
-                json += label + " : " + jsonValueTojsonString(getAttribute(label));
+                json += "\"" + label + "\" : " + jsonValueTojsonString(getAttribute(label));
                 if (i++ != rootValue.value.Count - 1)
                 {
                     json += ", ";
@@ -892,7 +1007,7 @@ public class jsonValue
             int i = 0;
             foreach (string label in hashType.ConvertTo<hashType>().value.Keys)
             {
-                json += label + " : " + jsonValueTojsonString(getAttribute(hashType.ConvertTo<hashType>(), label));
+                json += "\"" + label + "\" : " + jsonValueTojsonString(getAttribute(hashType.ConvertTo<hashType>(), label));
                 if (i++ != hashType.ConvertTo<hashType>().value.Count - 1)
                 {
                     json += ", ";
@@ -904,16 +1019,12 @@ public class jsonValue
         return hashType.ToString();
     }
 
-    public static bool isInteger(string jsonvalue) {
+    public static bool isInt(string jsonvalue) {
         return Regex.Match(jsonvalue, "^\\s[+-]?[0-9]+\\s$").Success;
     }
-    public static bool isTrue(string jsonvalue)
+    public static bool isBool(string jsonvalue)
     {
-        return Regex.Match(jsonvalue, "^\\s*true\\s*$").Success;
-    }
-    public static bool isFalse(string jsonvalue)
-    {
-        return Regex.Match(jsonvalue, "^\\s*false\\s*$").Success;
+        return Regex.Match(jsonvalue, "^\\s*(true|false)\\s*$").Success;
     }
     public static bool isNull(string jsonvalue)
     {
@@ -927,28 +1038,28 @@ public class jsonValue
     {
         return Regex.Match(jsonvalue, "^\\s*[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*$").Success;
     }
-    public static string getInteger(string jsonvalue)
+    public static Match getIntegerMatchInJsonString(string jsonvalue)
     {
-        return Regex.Match(jsonvalue, "^\\s[+-]?[0-9]+\\s*").Value;
+        return Regex.Match(jsonvalue, "^\\s[+-]?[0-9]+\\s*");
     }
-    public static string getTrue(string jsonvalue)
+    public static Match getTrueMatchInJsonString(string jsonvalue)
     {
-        return Regex.Match(jsonvalue, "^\\s*true\\s*").Value;
+        return Regex.Match(jsonvalue, "^\\s*true\\s*");
     }
-    public static string getFalse(string jsonvalue)
+    public static Match getFalseMatchInJsonString(string jsonvalue)
     {
-        return Regex.Match(jsonvalue, "^\\s*false\\s*").Value;
+        return Regex.Match(jsonvalue, "^\\s*false\\s*");
     }
-    public static string getNull(string jsonvalue)
+    public static Match getNullMatchInJsonString(string jsonvalue)
     {
-        return Regex.Match(jsonvalue, "^\\s*null\\s*").Value;
+        return Regex.Match(jsonvalue, "^\\s*null\\s*");
     }
-    public static string getString(string jsonvalue)
+    public static Match getStringMatchInJsonString(string jsonvalue)
     {
-        return Regex.Match(jsonvalue, "^\\s*" + stringRegex + "\\s*").Value;
+        return Regex.Match(jsonvalue, "^\\s*" + stringRegex + "\\s*");
     }
-    public static string getFloat(string jsonvalue)
+    public static Match getFloatMatchInJsonString(string jsonvalue)
     {
-        return Regex.Match(jsonvalue, "^\\s*[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*").Value;
+        return Regex.Match(jsonvalue, "^\\s*[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?\\s*");
     }
 }
