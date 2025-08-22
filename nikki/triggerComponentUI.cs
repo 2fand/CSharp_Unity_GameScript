@@ -57,12 +57,12 @@ public class triggerComponentUI : Editor
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.BeginHorizontal();
         openCommands = EditorGUILayout.BeginFoldoutHeaderGroup(openCommands, "命令");
-        scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Height(250));
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.ExpandWidth(true));
         EditorStyles.textField.clipping = TextClipping.Overflow;
         EditorGUI.indentLevel++;
         if (openCommands)
         {
-            trigger.commandsStr = EditorGUILayout.TextArea(trigger.commandsStr, new GUILayoutOption[] { GUILayout.ExpandHeight(true) });
+            trigger.commandsStr = EditorGUILayout.TextArea(trigger.commandsStr, new GUILayoutOption[] { GUILayout.ExpandWidth(true) });
         }
         EditorGUI.indentLevel--;
         EditorGUILayout.EndScrollView();
