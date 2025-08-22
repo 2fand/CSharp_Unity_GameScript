@@ -118,16 +118,16 @@ public class _runCommands
             Stack<int>groupStack = new Stack<int>();
             Hashtable groupLeftIndexToGroupRightIndex = new Hashtable();
             Hashtable groupRightIndexToGroupLeftIndex = new Hashtable();
-            Hashtable groupLeftStringToGroupRightString = new Hashtable { { "(", ")" }, { "[", "]" }, { "?[", "]" }};
+            Hashtable groupLeftStringToGroupRightString = new Hashtable { { "(", ")" }, { "[", "]" }, { "?[", "]" }, { "?", ":" } };
             for (int i = 0; i < values.Count; i++)
             {
-                if ("(" == values[i] || "[" == values[i] || "?[" == values[i])
+                if ("(" == values[i] || "[" == values[i] || "?[" == values[i] || "?" == values[i])
                 {
                     groupStack.Push(i);
                 }
-                if (")" == values[i] || "]" == values[i])
+                if (")" == values[i] || "]" == values[i] || ":" == values[i])
                 {
-                    if ((string)groupLeftStringToGroupRightString[groupStack.Peek()] != values[i])
+                    if ((string)groupLeftStringToGroupRightString[values[groupStack.Peek()]] != values[i])
                     {
                         Debug.LogError("括号错误：前文中第" + commandI + "行第" + valueIndexs[groupStack.Peek()] + "列的“" + values[groupStack.Peek()] + "”不可匹配于第" + commandI + "行第" + valueIndexs[i] + "列的“" + values[i] + "”");
                         goto errorEnd;
@@ -150,18 +150,20 @@ public class _runCommands
                 }
             }
             values = new List<string>(tempValues);
-            List<int> beforeLevels = new List<int>{-1};
+            List<float> beforeLevels = new List<float>{-1};
             List<int> beforeLefts = new List<int>{-1};
             List<int> beforeRights = new List<int>{-1};
             Stack<string> groupStrings = new Stack<string>();
             Stack<int> groupIndexs = new Stack<int>();
             List<int> addBrackets = new List<int>();
+            int offset = 0;
             for (int i = 0; i < values.Count; i++)
             {
                 addBrackets.Add(0);
             }
             bool frontHasValue = false;
             List<int> rbracketPoses = new List<int>();
+            int delIndex = 0;
             //优先级<=左变
             for (int i = 0; i < values.Count; i++) {
                 value = values[i];
@@ -190,10 +192,10 @@ public class _runCommands
                     groupStrings.Push(value);
                     groupIndexs.Push(i);
                     addBrackets[i]++;
-                    addBrackets[(int)groupLeftIndexToGroupRightIndex[i]]--;
+                    addBrackets[(int)groupLeftIndexToGroupRightIndex[i + offset] - offset]--;
                     if (-1 != beforeLevels[beforeLevels.Count - 1])
                     {
-                        if (beforeLevels[beforeLevels.Count - 1] <= symbolToLevel(value))
+                        if (beforeLevels[beforeLevels.Count - 1] <= 0)
                         {
                             addBrackets[i]--;
                             addBrackets[beforeLefts[beforeLefts.Count - 1]]++;
@@ -201,11 +203,12 @@ public class _runCommands
                         else
                         {
                             addBrackets[beforeRights[beforeRights.Count - 1]]++;
-                            addBrackets[(int)groupLeftIndexToGroupRightIndex[i]]--;
+                            addBrackets[(int)groupLeftIndexToGroupRightIndex[i + offset] - offset]--;
                         }
+                        continue;
                     }
                     beforeLefts[beforeLefts.Count - 1] = i;
-                    beforeRights[beforeRights.Count - 1] = (int)groupLeftIndexToGroupRightIndex[i];
+                    beforeRights[beforeRights.Count - 1] = (int)groupLeftIndexToGroupRightIndex[delIndex = i + offset] - offset;
                 }
                 if ("]" == value || ")" == value)
                 {
@@ -222,35 +225,22 @@ public class _runCommands
                         Debug.LogError("括号错误：第" + commandI + "行第" + valueIndexs[i] + "列匹配的括号不对");
                         goto errorEnd;
                     }
+                    values[i] = groupStrings.Peek() + values[i--];
                     values.RemoveAt(groupIndexs.Peek());
-                    values.Insert(i, groupStrings.Peek());
-                    values[i] += values[i + 1];
-                    values.RemoveAt(i + 1);
+                    addBrackets[groupIndexs.Peek()] += addBrackets[groupIndexs.Peek() + 1];
+                    addBrackets.RemoveAt(groupIndexs.Peek() + 1);
                     groupStrings.Pop();
                     groupIndexs.Pop();
-                    if (-1 != beforeLevels[beforeLevels.Count - 1])
-                    {
-                        if (beforeLevels[beforeLevels.Count - 1] >= symbolToLevel(value))
-                        {
-                            addBrackets[(int)groupRightIndexToGroupLeftIndex[i]]--;
-                            addBrackets[beforeLefts[beforeLefts.Count - 1]]++;
-                        }
-                        else
-                        {
-                            addBrackets[beforeRights[beforeRights.Count - 1]]++;
-                            addBrackets[i]--;
-                        }
-                    }
-                    beforeLefts[beforeLefts.Count - 1] = (int)groupRightIndexToGroupLeftIndex[i];
-                    beforeRights[beforeRights.Count - 1] = i;
+                    offset++;
+                    continue;
                 }
                 if (CanSymbolToLevel(value))
                 {
-                    switch(getSymbolArgCount(value))
+                    switch (getSymbolArgCount(value))
                     {
                         case 1:
                             addBrackets[i]++;
-                            addBrackets[i + 1]--;
+                            addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] : i + 1]--;
                             if (-1 != beforeLevels[beforeLevels.Count - 1])
                             {
                                 if (beforeLevels[beforeLevels.Count - 1] <= symbolToLevel(value))
@@ -261,41 +251,41 @@ public class _runCommands
                                 else
                                 {
                                     addBrackets[beforeRights[beforeRights.Count - 1]]++;
-                                    addBrackets[i + 1]--;
+                                    addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] : i + 1]--;
                                 }
                             }
                             beforeLefts[beforeLefts.Count - 1] = i;
-                            beforeRights[beforeRights.Count - 1] = i + 1;
+                            beforeRights[beforeRights.Count - 1] = groupLeftIndexToGroupRightIndex.ContainsKey(i + 1 + offset) ? (int)groupLeftIndexToGroupRightIndex[i + 1 + offset] - offset : i + 1;
                             break;
                         case 2:
-                            addBrackets[i - 1]++;
-                            addBrackets[i + 1]--;
+                            addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1]++;
+                            addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] - offset : i + 1]--;
                             if (-1 != beforeLevels[beforeLevels.Count - 1])
                             {
-                                if (beforeLevels[beforeLevels.Count-1] <= symbolToLevel(value))
+                                if (beforeLevels[beforeLevels.Count - 1] <= symbolToLevel(value))
                                 {
                                     //“(”左移
-                                    addBrackets[i - 1]--;
+                                    addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1]--;
                                     addBrackets[beforeLefts[beforeLefts.Count-1]]++;
                                 }
                                 else
                                 {
                                     //“)”右移
                                     addBrackets[beforeRights[beforeRights.Count - 1]]++;
-                                    addBrackets[i + 1]--;
+                                    addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] : i + 1]--;
                                 }
-                            }
-                            beforeLefts[beforeLefts.Count-1] = i - 1;
-                            beforeRights[beforeRights.Count-1] = i + 1;
+                             }
+                            beforeLefts[beforeLefts.Count - 1] = groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1;
+                            beforeRights[beforeRights.Count - 1] = groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] : i + 1;
                             break;
                         case -1:
-                            addBrackets[i - 1]++;
+                            addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1]++;
                             addBrackets[i]--;
                             if (-1 != beforeLevels[beforeLevels.Count-1])
                             {
                                 if (beforeLevels[beforeLevels.Count - 1] <= symbolToLevel(value))
                                 {
-                                    addBrackets[i - 1]--;
+                                    addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1]--;
                                     addBrackets[beforeLefts[beforeLefts.Count-1]]++;
                                 }
                                 else
@@ -304,7 +294,7 @@ public class _runCommands
                                     addBrackets[i]--;
                                 }
                             }
-                            beforeLefts[beforeLefts.Count - 1] = i - 1;
+                            beforeLefts[beforeLefts.Count - 1] = groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1;
                             beforeRights[beforeRights.Count - 1] = i;
                             break;
                         default:
@@ -359,11 +349,16 @@ public class _runCommands
             }
             List<string> tempCode = new List<string>();
             //移动运算符
+            bool[] canMove = new bool[suffixCode.Count];
+            for (int i = 0; i < suffixCode.Count; i++)
+            {
+                canMove[i] = true;
+            }
             for (int i = 0; i < suffixCode.Count; i++)
             {
                 int groupCount = 0;
                 int j = 0;
-                if (CanSymbolToLevel(suffixCode[i]) || command.CanCommandNameToRecommends(suffixCode[i]))
+                while (canMove[i] && (CanSymbolToLevel(suffixCode[i]) || command.CanCommandNameToRecommends(suffixCode[i])))
                 {
                     for (j = i; j < suffixCode.Count - 1; j++)
                     {
@@ -375,13 +370,17 @@ public class _runCommands
                         {
                             groupCount--;
                         }
-                        if (0 > groupCount)
+                        if (0 > groupCount || 0 == groupCount && CanSymbolToLevel(suffixCode[j]) && CanSymbolToLevel(suffixCode[j + 1]) && symbolToLevel(suffixCode[j]) < symbolToLevel(suffixCode[j + 1]))
                         {
+                            canMove[j] = false;
                             break;
                         }
                         string swapString = suffixCode[j];
                         suffixCode[j] = suffixCode[j + 1];
                         suffixCode[j + 1] = swapString;
+                        bool swapCanMove = canMove[j];
+                        canMove[j] = canMove[j + 1];
+                        canMove[j + 1] = swapCanMove;
                     }
                 }
             }
@@ -399,7 +398,6 @@ public class _runCommands
             Stack<string> calcStack = new Stack<string>();
             Stack<int> symbolIndexStack = new Stack<int>();
             Stack<List<string>> argsStack = new Stack<List<string>>();
-            Stack<command> commandStack = new Stack<command>();
             bool canExecute = true;
             for (int i = 0; i < suffixCode.Count; i++)
             {
