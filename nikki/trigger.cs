@@ -258,14 +258,14 @@ public class _runCommands
                             beforeRights[beforeRights.Count - 1] = groupLeftIndexToGroupRightIndex.ContainsKey(i + 1 + offset) ? (int)groupLeftIndexToGroupRightIndex[i + 1 + offset] - offset : i + 1;
                             break;
                         case 2:
-                            addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1]++;
+                            addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i - 1 + offset) ? (int)groupRightIndexToGroupLeftIndex[i - 1 + offset] : i - 1]++;
                             addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] - offset : i + 1]--;
                             if (-1 != beforeLevels[beforeLevels.Count - 1])
                             {
                                 if (beforeLevels[beforeLevels.Count - 1] <= symbolToLevel(value))
                                 {
                                     //“(”左移
-                                    addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1]--;
+                                    addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i - 1 + offset) ? (int)groupRightIndexToGroupLeftIndex[i - 1 + offset] : i - 1]--;
                                     addBrackets[beforeLefts[beforeLefts.Count-1]]++;
                                 }
                                 else
@@ -275,17 +275,17 @@ public class _runCommands
                                     addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] : i + 1]--;
                                 }
                              }
-                            beforeLefts[beforeLefts.Count - 1] = groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1;
+                            beforeLefts[beforeLefts.Count - 1] = groupRightIndexToGroupLeftIndex.ContainsKey(i - 1 + offset) ? (int)groupRightIndexToGroupLeftIndex[i - 1 + offset] : i - 1;
                             beforeRights[beforeRights.Count - 1] = groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] : i + 1;
                             break;
                         case -1:
-                            addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1]++;
+                            addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i - 1 + offset) ? (int)groupRightIndexToGroupLeftIndex[i - 1 + offset] : i - 1]++;
                             addBrackets[i]--;
                             if (-1 != beforeLevels[beforeLevels.Count-1])
                             {
                                 if (beforeLevels[beforeLevels.Count - 1] <= symbolToLevel(value))
                                 {
-                                    addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1]--;
+                                    addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i - 1 + offset) ? (int)groupRightIndexToGroupLeftIndex[i - 1 + offset] : i - 1]--;
                                     addBrackets[beforeLefts[beforeLefts.Count-1]]++;
                                 }
                                 else
@@ -294,7 +294,7 @@ public class _runCommands
                                     addBrackets[i]--;
                                 }
                             }
-                            beforeLefts[beforeLefts.Count - 1] = groupRightIndexToGroupLeftIndex.ContainsKey(i + 1 - offset) ? (int)groupRightIndexToGroupLeftIndex[i + 1 - offset] : i - 1;
+                            beforeLefts[beforeLefts.Count - 1] = groupRightIndexToGroupLeftIndex.ContainsKey(i - 1 + offset) ? (int)groupRightIndexToGroupLeftIndex[i - 1 + offset] : i - 1;
                             beforeRights[beforeRights.Count - 1] = i;
                             break;
                         default:
@@ -624,3 +624,4 @@ if (0 != i && !_command.setValue(value, i - 1, this))
     goto normalEnd;
 }
 */
+
