@@ -231,7 +231,7 @@ public class help : command
     {
         if (0 == valueNumber && null != commandNameToRecommends(getRealStr(value)))
         {
-            str = (string)commandNameToRecommends(getRealStr(value));
+            str = commandNameToRecommends(getRealStr(value));
             return true;
         }
         return false;
