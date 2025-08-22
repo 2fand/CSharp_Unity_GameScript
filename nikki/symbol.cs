@@ -11,7 +11,7 @@ public abstract class symbol
     public readonly static Hashtable symbolArgCounts;
     public readonly static Hashtable symbolFuncs;
     public abstract string symbolName { get; }
-    public abstract int symbolPrior { get; }
+    public abstract float symbolPrior { get; }
     public abstract int symbolArgCount { get; }
     public abstract System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc { get; }
     static symbol()
@@ -29,10 +29,10 @@ public abstract class symbol
             }
         }
     }
-    public static int symbolToLevel(string str)
+    public static float symbolToLevel(string str)
     {
         str = str.ToLower().Trim();
-        return (int)symbolPriors[str];
+        return (float)symbolPriors[str];
     }
     public static int getSymbolArgCount(string str)
     {
@@ -62,11 +62,11 @@ public class setSymbol : symbol
 {
     public override string symbolName => "=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         if (!Regex.Match(s, "[a-zA-Z_]+").Success)
         {
-            return false;
+            throw new Exception("在第" + commandI + "行第" + valueColumn + "列的变量“" + s + "”不合法");
         }
         if (!commandValues.vars.ContainsKey(s))
         {
@@ -84,7 +84,7 @@ public class notSymbol : symbol
 {
     public override string symbolName => "!";
     public override int symbolArgCount => 1;
-    public override int symbolPrior => 12;
+    public override float symbolPrior => 12;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(sa, commandValues);
         if ("bool" == json.getRealType())
@@ -100,7 +100,7 @@ public class addSymbol : symbol
 {
     public override string symbolName => ".*+";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 3;
+    public override float symbolPrior => 3;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -132,7 +132,7 @@ public class subSymbol : symbol
 {
     public override string symbolName => ".*-";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 3;
+    public override float symbolPrior => 3;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -157,7 +157,7 @@ public class timSymbol : symbol
 {
     public override string symbolName => "*";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 2;
+    public override float symbolPrior => 2;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -182,7 +182,7 @@ public class divSymbol : symbol
 {
     public override string symbolName => "/";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 2;
+    public override float symbolPrior => 2;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -207,7 +207,7 @@ public class divToIntSymbol : symbol
 {
     public override string symbolName => "//";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 2;
+    public override float symbolPrior => 2;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -232,7 +232,7 @@ public class powSymbol : symbol
 {
     public override string symbolName => "**";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 2;
+    public override float symbolPrior => 1.9f;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -257,7 +257,7 @@ public class andSymbol : symbol
 {
     public override string symbolName => "&&";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 10;
+    public override float symbolPrior => 10;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -282,7 +282,7 @@ public class orSymbol : symbol
 {
     public override string symbolName => "||";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 11;
+    public override float symbolPrior => 11;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -307,7 +307,7 @@ public class addsetSymbol : symbol
 {
     public override string symbolName => "+=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc(".*+")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -317,7 +317,7 @@ public class subsetSymbol : symbol
 {
     public override string symbolName => "-=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc(".*-")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -327,7 +327,7 @@ public class timsetSymbol : symbol
 {
     public override string symbolName => "*=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("*")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -337,7 +337,7 @@ public class divsetSymbol : symbol
 {
     public override string symbolName => "/=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("/")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -347,7 +347,7 @@ public class divToIntsetSymbol : symbol
 {
     public override string symbolName => "//=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("//")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -357,7 +357,7 @@ public class powsetSymbol : symbol
 {
     public override string symbolName => "**=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("**")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -367,7 +367,7 @@ public class orsetSymbol : symbol
 {
     public override string symbolName => "||=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("||")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -377,7 +377,7 @@ public class andsetSymbol : symbol
 {
     public override string symbolName => "&&=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("&&")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -387,7 +387,7 @@ public class equalSymbol : symbol
 {
     public override string symbolName => "==";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 6;
+    public override float symbolPrior => 6;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(new jsonValue(s).rootValue == new jsonValue(sa).rootValue);
     };
@@ -397,7 +397,7 @@ public class notEqualSymbol : symbol
 {
     public override string symbolName => "!=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 6;
+    public override float symbolPrior => 6;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(new jsonValue(s).rootValue != new jsonValue(sa).rootValue);
     };
@@ -407,7 +407,7 @@ public class greaterThanSymbol : symbol
 {
     public override string symbolName => ">";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 5;
+    public override float symbolPrior => 5;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = s;
         jsonValue jsona = sa;
@@ -432,7 +432,7 @@ public class lowerThanSymbol : symbol
 {
     public override string symbolName => "<";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 5;
+    public override float symbolPrior => 5;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = s;
         jsonValue jsona = sa;
@@ -457,7 +457,7 @@ public class greaterEqualSymbol : symbol
 {
     public override string symbolName => ">=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 5;
+    public override float symbolPrior => 5;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = s;
         jsonValue jsona = sa;
@@ -482,7 +482,7 @@ public class lowerEqualSymbol : symbol
 {
     public override string symbolName => "<=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = s;
         jsonValue jsona = sa;
@@ -507,7 +507,7 @@ public class isSymbol : symbol
 {
     public override string symbolName => "is";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 5;
+    public override float symbolPrior => 5;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(new jsonValue(s, commandValues).getRealType() == new jsonValue(sa, commandValues));
     };
@@ -517,7 +517,7 @@ public class asSymbol : symbol
 {
     public override string symbolName => "as";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 5;
+    public override float symbolPrior => 5;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         if ("bool" == new jsonValue(sa, commandValues).getValue().ToString())
         {
@@ -572,7 +572,7 @@ public class typeofSymbol : symbol
 {
     public override string symbolName => "typeof";
     public override int symbolArgCount => 1;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(s, commandValues).getRealType();
     };
@@ -582,7 +582,7 @@ public class trieAddOneSymbol : symbol
 {
     public override string symbolName => "++";
     public override int symbolArgCount => 1;
-    public override int symbolPrior => 1;
+    public override float symbolPrior => 1;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("+=")(s, "1", commandI, valueColumn, -1, commandValues);
     };
@@ -592,7 +592,7 @@ public class suffixAddOneSymbol : symbol
 {
     public override string symbolName => ".*++";
     public override int symbolArgCount => -1;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue before = s;
         getSymbolFunc("+=")(s, "1", commandI, valueColumn, -1, commandValues);
@@ -604,7 +604,7 @@ public class trieSubOneSymbol : symbol
 {
     public override string symbolName => "--";
     public override int symbolArgCount => 1;
-    public override int symbolPrior => 1;
+    public override float symbolPrior => 1;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("-=")(s, "1", commandI, valueColumn, -1, commandValues);
     };
@@ -614,7 +614,7 @@ public class suffixSubOneSymbol : symbol
 {
     public override string symbolName => ".*--";
     public override int symbolArgCount => -1;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue before = s;
         getSymbolFunc("-=")(s, "1", commandI, valueColumn, -1, commandValues);
@@ -626,7 +626,7 @@ public class newSymbol : symbol
 {
     public override string symbolName => "new";
     public override int symbolArgCount => 1;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         if (Regex.Match(s, "^\\s*" + jsonValue.classRegex + "\\s*$").Success)
         {
@@ -713,7 +713,7 @@ public class bracketSymbol : symbol
 {
     public override string symbolName => "()";
     public override int symbolArgCount => 1;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(s);
     };
@@ -723,7 +723,7 @@ public class SquareBracketSymbol : symbol
 {
     public override string symbolName => "[]";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(new jsonValue(s).getIndexValue(new jsonValue(sa).getValue().ConvertTo<int>()));
     };
@@ -733,7 +733,7 @@ public class dotSymbol : symbol
 {
     public override string symbolName => ".";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(new jsonValue(s).getAttribute(sa));
     };
@@ -743,7 +743,7 @@ public class digitRerveseSymbol : symbol
 {
     public override string symbolName => "~";
     public override int symbolArgCount => 1;
-    public override int symbolPrior => 1;
+    public override float symbolPrior => 1;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         if ("int" == json.getRealType() || "bool" == json.getRealType())
@@ -763,7 +763,7 @@ public class digitAndSymbol : symbol
 {
     public override string symbolName => "&";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 7;
+    public override float symbolPrior => 7;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -788,7 +788,7 @@ public class digitOrSymbol : symbol
 {
     public override string symbolName => "|";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 9;
+    public override float symbolPrior => 9;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -813,7 +813,7 @@ public class digitAndsetSymbol : symbol
 {
     public override string symbolName => "&=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("&")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -823,7 +823,7 @@ public class digitOrsetSymbol : symbol
 {
     public override string symbolName => "|=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("|")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -832,7 +832,7 @@ public class digitXORSymbol : symbol
 {
     public override string symbolName => "^";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 8;
+    public override float symbolPrior => 8;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -857,7 +857,7 @@ public class digitXORsetSymbol : symbol
 {
     public override string symbolName => "^=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("^")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -866,7 +866,7 @@ public class digitLeftMoveSymbol : symbol
 {
     public override string symbolName => "<<";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 4;
+    public override float symbolPrior => 4;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -891,7 +891,7 @@ public class digitRightMoveSymbol : symbol
 {
     public override string symbolName => ">>";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 4;
+    public override float symbolPrior => 4;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         jsonValue json = new jsonValue(s, commandValues);
         jsonValue jsona = new jsonValue(sa, commandValues);
@@ -916,7 +916,7 @@ public class digitLeftMovesetSymbol : symbol
 {
     public override string symbolName => "<<=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc("<<")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -926,7 +926,7 @@ public class digitRightMovesetSymbol : symbol
 {
     public override string symbolName => ">>=";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("=")(s, getSymbolFunc(">>")(s, sa, commandI, valueColumn, valueaColumn, commandValues), commandI, valueColumn, valueaColumn, commandValues);
     };
@@ -936,7 +936,7 @@ public class nullMergeSymbol : symbol
 {
     public override string symbolName => "??";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 13;
+    public override float symbolPrior => 13;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(new jsonValue(s, commandValues).getValue() ?? new jsonValue(sa, commandValues).getValue());
     };
@@ -946,7 +946,7 @@ public class nullCheckSymbol : symbol
 {
     public override string symbolName => "?.";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(new jsonValue(s, commandValues).tryGetAttribute(sa) ? new jsonValue(s, commandValues).getAttribute(sa) : null);
     };
@@ -956,7 +956,7 @@ public class nullIndexCheckSymbol : symbol
 {
     public override string symbolName => "?[]";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(new jsonValue(s, commandValues).tryGetIndexValue(new jsonValue(sa, commandValues).getValue().ConvertTo<int>()) ? new jsonValue(s, commandValues).getIndexValue(new jsonValue(sa, commandValues).getValue().ConvertTo<int>()) : null);
     };
@@ -966,7 +966,7 @@ public class toClassSymbol : symbol
 {
     public override string symbolName => "(class)";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 0;
+    public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("as")(sa, s, commandI, valueaColumn, valueColumn, commandValues);
     };
@@ -976,7 +976,7 @@ public class CommaSymbol : symbol
 {
     public override string symbolName => ",";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 16;
+    public override float symbolPrior => 16;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(sa);
     };
@@ -985,7 +985,7 @@ public class ifSymbol : symbol
 {
     public override string symbolName => "?";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return new jsonValue(s, commandValues).getBool() ? sa : null;
     };
@@ -994,7 +994,7 @@ public class elseSymbol : symbol
 {
     public override string symbolName => ":";
     public override int symbolArgCount => 2;
-    public override int symbolPrior => 14;
+    public override float symbolPrior => 14;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
         return getSymbolFunc("??")(s, sa, commandI, valueColumn, valueaColumn, commandValues);
     };
