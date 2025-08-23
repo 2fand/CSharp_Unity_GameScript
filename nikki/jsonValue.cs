@@ -53,7 +53,32 @@ public class jsonValue
     public static string integerRegex => "[+-]?[0-9]+";
     public static string floatRegex => "[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?";
     public static string varRegex => "[a-zA-Z_]+";
-    public static string classRegex => "(int|float|string|bool|null|array|object)";
+    public static string arrayRegex => "\\[((\\s*[^,]+\\s*,)*\\s*[^,]+\\s*)?\\]";
+    public static string classRegex => "{((\\s*[a-zA-Z_]+\\s*,)*\\s*[a-zA-Z_]+\\s*)?}";
+    public static string enumRegex => "{((\\s*[a-zA-Z_]+(\\s*=\\s*" + integerRegex + ")?\\s*,)*\\s*[a-zA-Z_]+(\\s*=\\s*" + integerRegex + ")?\\s*)?}";
+    public static string objectRegex => "{((\\s*" + stringRegex + "\\s*:\\s*[^,:]+\\s*,)*\\s*" + stringRegex + "\\s*:\\s*[^,:]+\\s*)?}";
+    private static string _typeRegex = "";
+    private static List<string> types = new List<string>();
+    public static string typeRegex 
+    {
+        get
+        {
+            if (types.ToArray() != commandClasses.classes)
+            {
+                types = new List<string>(commandClasses.classes);
+                _typeRegex = "(";
+                for (int i = 0; i < types.Count; i++) { 
+                    _typeRegex += types[i];
+                    if (types.Count - 1 != i)
+                    {
+                        _typeRegex += "|";
+                    }
+                }
+                _typeRegex += ")";
+            }
+            return _typeRegex;
+        }
+    }
     public static implicit operator jsonValue(string str) => new jsonValue(str);
     public static implicit operator jsonValue(bool b) => new jsonValue(b);
     public static implicit operator jsonValue(int i) => new jsonValue(i);
@@ -61,13 +86,18 @@ public class jsonValue
     public static implicit operator string(jsonValue jsonValue) => jsonValue.jsonValueTojsonString();
     public jsonValue()
     {
-        setValue(null);
+        setValue();
     }
     public jsonValue(object o)
     {
         if (typeof(jsonValue) == o.GetType())
         {
             rootValue.value = new Hashtable(o.ConvertTo<jsonValue>().rootValue.value);
+        }
+        else if(typeof(hashType) == o.GetType())
+        {
+            rootValue.value = new Hashtable(o.ConvertTo<hashType>().value);
+            rootValue.valueClass = o.ConvertTo<hashType>().valueClass;
         }
         else
         {
@@ -104,6 +134,31 @@ public class jsonValue
             throw new Exception("json数据“" + json + "”不合法");
         }
     }
+    public static bool isCorrectJsonValue(string json)
+    {
+        return new jsonValue().setValue(json);
+    }
+    public static bool isCorrectJsonValue(string json, _runCommands commandValues)
+    {
+        jsonValue jsonValue = new jsonValue();
+        bool isInStr = false;
+        for (int i = 0; i < json.Length; i++)
+        {
+            if ('\"' == json[i])
+            {
+                isInStr = !isInStr;
+            }
+            if (!isInStr && Regex.Match(json.Substring(i), "^\\s*" + varRegex).Success)
+            {
+                if (commandValues.vars.ContainsKey(Regex.Match(json.Substring(i), "^\\s*" + varRegex).Value))
+                {
+                    json = json.Substring(0, i) + Regex.Replace(json.Substring(i), "^\\s*" + varRegex, commandValues.vars[Regex.Match(json.Substring(i), "^\\s*" + varRegex).Value].ConvertTo<jsonValue>().jsonValueTojsonString());
+                }
+                i += Regex.Match(json.Substring(i), "^\\s*" + varRegex).Length - 1;
+            }
+        }
+        return jsonValue.setValue(json);
+    }
     public bool isNull()
     {
         return "null" == getRealType();
@@ -124,9 +179,49 @@ public class jsonValue
     {
         return "float" == getRealType();
     }
+    public bool isArray()
+    {
+        return "array" == getRealType();
+    }
+    public bool isObject()
+    {
+        return "object" == getRealType();
+    }
     public bool isType()
     {
         return getRealType() == "string" && commandClasses.classIsHas.ContainsKey(getValue().ToString());
+    }
+    public static bool isNull(hashType hashType)
+    {
+        return "null" == getRealType(hashType);
+    }
+    public static bool isInt(hashType hashType)
+    {
+        return "int" == getRealType(hashType);
+    }
+    public static bool isBool(hashType hashType)
+    {
+        return "bool" == getRealType(hashType);
+    }
+    public static bool isString(hashType hashType)
+    {
+        return "string" == getRealType(hashType);
+    }
+    public static bool isFloat(hashType hashType)
+    {
+        return "float" == getRealType(hashType);
+    }
+    public static bool isArray(hashType hashType)
+    {
+        return "array" == getRealType(hashType);
+    }
+    public static bool isObject(hashType hashType)
+    {
+        return "object" == getRealType(hashType);
+    }
+    public static bool isType(hashType hashType)
+    {
+        return getRealType(hashType) == "string" && commandClasses.classIsHas.ContainsKey(getValue(hashType).ToString());
     }
     public jsonValue(uint size, object defaultObject)
     {
@@ -219,6 +314,14 @@ public class jsonValue
             return rootValue.value;
         }
         throw new Exception("类型错误：当前的值类型为“" + getRealType() + "”");
+    }
+    public object setValue()
+    {
+        return setValue(null as object);
+    }
+    public static object setValue(hashType hashType)
+    {
+        return setValue(hashType, null as object);
     }
     public static object setValue(hashType hashType, object v)
     {
@@ -668,7 +771,7 @@ public class jsonValue
             {
                 while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*\\]\\s*").Success)
                 {
-                    if (0 == hasValue[hasValue.Count - 1] || valueClass.@object == classStack.Peek())
+                    if (0 == stack.Count || 0 == hasValue[hasValue.Count - 1] || valueClass.@object == classStack.Peek())
                     {
                         return false;
                     }
@@ -677,7 +780,7 @@ public class jsonValue
                 }
                 while (i < json.Length && Regex.Match(json.Substring(i), "^\\s*}\\s*").Success)
                 {
-                    if (0 == hasValue[hasValue.Count - 1] || valueClass.array == classStack.Peek())
+                    if (0 == stack.Count || 0 == hasValue[hasValue.Count - 1] || valueClass.array == classStack.Peek())
                     {
                         return false;
                     }
