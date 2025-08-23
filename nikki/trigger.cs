@@ -32,6 +32,7 @@ public class _runCommands
     }
     bool getValue(string command, string partten, ref int i)
     {
+        //Debug.Log("^\\s*" + partten + "\\s*");
         if (Regex.Match(command.Substring(i), "^\\s*" + partten + "\\s*").Success)
         {
             i += Regex.Match(command.Substring(i), "^\\s*" + partten + "\\s*").Length;
@@ -45,28 +46,59 @@ public class _runCommands
         List<string> values = new List<string>();
         int left = 0; //^\\s*{\\s*((.+\\s*,\\s*)*.+)?\\s*}\\s*$ class
         int right = 0;
+        bool canbeArray = true;
+        int groupCount = 0;
+        Func<string, int, int> isArray = (string command, int i) =>
+        {
+            if ('[' != command.Substring(i)[0])
+            {
+                return 0;
+            }
+            int groupCount = 0;
+            string substr = "";
+            for (int j = 1; j <= command.Substring(i).Length; j++)
+            {
+                substr = command.Substring(i, j);
+                if ('[' == substr[substr.Length - 1])
+                {
+                    groupCount++;
+                }
+                if (']' == substr[substr.Length - 1])
+                {
+                    groupCount--;
+                }
+                if (0 == groupCount)
+                {
+                    return j;
+                }
+                if (0 > groupCount)
+                {
+                    return 0;
+                }
+            }
+            return 0;
+        };
         for (int i = 0; i < command.Length;)
         {
             left = i;
-            //Debug.Log("(" + jsonValue.classRegex + "|" + jsonValue.classRegex + "\\[\\s*[^[\\]]+\\s*\\]|{\\s*((" + jsonValue.stringRegex + ":\\s*[^,]+\\s*,\\s*)*" + jsonValue.stringRegex + "\\s*:\\s*[^,]+\\s*)?}|{\\s*(\\s*(\\s*[^,]+\\s*,)*\\s*[^,]+\\s*)?})");
-            if (getValue(command, "(" + jsonValue.classRegex + "\\(\\)|" + jsonValue.classRegex + "\\[\\s*[^[\\]]+\\s*\\]|{\\s*((" + jsonValue.stringRegex + ":\\s*[^,]+\\s*,\\s*)*" + jsonValue.stringRegex + "\\s*:\\s*[^,]+\\s*)?}|{\\s*(\\s*(\\s*[^,]+\\s*,)*\\s*[^,]+\\s*)?})", ref i)) { }
-            else if (getValue(command, "\\(" + jsonValue.classRegex + "\\)", ref i)) { }
+            if (getValue(command, "(" + jsonValue.typeRegex + "\\(\\)|" + jsonValue.typeRegex + "\\[\\s*[^[\\]]+\\s*\\]|" + jsonValue.objectRegex + ")", ref i)) { }
+            else if (canbeArray && 0 != isArray(command, i)) {
+                i += isArray(command, i);
+                canbeArray = false;
+                right = i - 1;
+                values.Add(command.Substring(left, right - left + 1).Trim());
+                valueIndexs.Add(left);
+                continue;
+            }
+            else if (getValue(command, "\\(" + jsonValue.typeRegex + "\\)", ref i)) { }
             else if (getValue(command, jsonValue.stringRegex, ref i)) { }
             else if (getValue(command, "\\+[+=]?", ref i)) { }//读取运算符
             else if (getValue(command, "-[-=]?", ref i)) { }
             else if (getValue(command, "[+-]?[0-9]+", ref i)) { }
             else if (getValue(command, "[+-]?([0-9]+(\\.([0-9]+)?)?|\\.[0-9]+)([eE][+-]?[0-9]+)?", ref i)) { }
-            else if (getValue(command, "\\*\\*?=?", ref i)) { }
-            else if (getValue(command, "//?=?", ref i)) { }
             else if (getValue(command, "\\?[?.=]?", ref i)) { }
-            else if (getValue(command, "[!=]=?", ref i)) { }
-            else if (getValue(command, "&&?=?", ref i)) { }
-            else if (getValue(command, "\\|\\|?=?", ref i)) { }
-            else if (getValue(command, "\\^=?", ref i)) { }
-            else if (getValue(command, ">>?=?", ref i)) { }
-            else if (getValue(command, "<<?=?", ref i)) { }
+            else if (getValue(command, "(&&|\\|\\||<<|>>|\\^|%|[!=]|//?|\\*\\*?)=?", ref i)) { }
             else if (getValue(command, "[[\\](),.~:]", ref i)) { }
-            else if (getValue(command, "%=?", ref i)) { }
             else if (getValue(command, "[ai]s|new|(type|size)of|true|false|null|[a-zA-Z_]+", ref i)) { }//读取非运算符
             else
             {
@@ -75,6 +107,23 @@ public class _runCommands
             right = i - 1;
             values.Add(command.Substring(left, right - left + 1).Trim());
             valueIndexs.Add(left);
+            if (canbeArray && jsonValue.isCorrectJsonValue(values[values.Count - 1], this) && new jsonValue(values[values.Count - 1], this).isArray())
+            {
+                canbeArray = false;
+                continue;
+            }
+            if (!canbeArray && "[" == values[values.Count - 1])
+            {
+                groupCount++;
+            }
+            else if (!canbeArray && "]" == values[values.Count - 1])
+            {
+                groupCount--;
+            }
+            else if(0 == groupCount && "[" != values[values.Count - 1])
+            {
+                canbeArray = true;
+            }
         }
         return values;
     }
@@ -186,28 +235,27 @@ public class _runCommands
                 }
                 if ("(" == value || "[" == value || "?[" == value) 
                 {
-                    beforeLefts.Add(-1);
-                    beforeRights.Add(-1);
-                    beforeLevels.Add(-1);
                     groupStrings.Push(value);
                     groupIndexs.Push(i);
-                    addBrackets[i]++;
+                    addBrackets[i - offset - ("(" != value ? 1 : 0)]++;
                     addBrackets[(int)groupLeftIndexToGroupRightIndex[i + offset] - offset]--;
                     if (-1 != beforeLevels[beforeLevels.Count - 1])
                     {
                         if (beforeLevels[beforeLevels.Count - 1] <= 0)
                         {
-                            addBrackets[i]--;
-                            addBrackets[beforeLefts[beforeLefts.Count - 1]]++;
+                            addBrackets[i - offset - ("(" != value ? 1 : 0)]--;
+                            addBrackets[beforeLefts[beforeLefts.Count - 1] - offset]++;
                         }
                         else
                         {
                             addBrackets[beforeRights[beforeRights.Count - 1]]++;
                             addBrackets[(int)groupLeftIndexToGroupRightIndex[i + offset] - offset]--;
                         }
-                        continue;
                     }
-                    beforeLefts[beforeLefts.Count - 1] = i;
+                    beforeLefts.Add(-1);
+                    beforeRights.Add(-1);
+                    beforeLevels.Add(-1);
+                    beforeLefts[beforeLefts.Count - 1] = i - offset - ("(" != value ? 1 : 0);
                     beforeRights[beforeRights.Count - 1] = (int)groupLeftIndexToGroupRightIndex[delIndex = i + offset] - offset;
                 }
                 if ("]" == value || ")" == value)
@@ -219,6 +267,7 @@ public class _runCommands
                     }
                     beforeLefts.RemoveAt(beforeLefts.Count - 1);
                     beforeRights.RemoveAt(beforeRights.Count - 1);
+                    beforeRights[beforeRights.Count - 1]--;
                     beforeLevels.RemoveAt(beforeLevels.Count - 1);
                     if ((string)groupLeftStringToGroupRightString[groupStrings.Peek()] != values[i].Trim())
                     {
@@ -259,7 +308,7 @@ public class _runCommands
                             break;
                         case 2:
                             addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i - 1 + offset) ? (int)groupRightIndexToGroupLeftIndex[i - 1 + offset] : i - 1]++;
-                            addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] - offset : i + 1]--;
+                            addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1 + offset) ? (int)groupLeftIndexToGroupRightIndex[i + 1 + offset] - offset : i + 1]--;
                             if (-1 != beforeLevels[beforeLevels.Count - 1])
                             {
                                 if (beforeLevels[beforeLevels.Count - 1] <= symbolToLevel(value))
@@ -272,11 +321,11 @@ public class _runCommands
                                 {
                                     //“)”右移
                                     addBrackets[beforeRights[beforeRights.Count - 1]]++;
-                                    addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] : i + 1]--;
+                                    addBrackets[groupLeftIndexToGroupRightIndex.ContainsKey(i + 1 + offset) ? (int)groupLeftIndexToGroupRightIndex[i + 1 + offset] - offset : i + 1]--;
                                 }
                              }
                             beforeLefts[beforeLefts.Count - 1] = groupRightIndexToGroupLeftIndex.ContainsKey(i - 1 + offset) ? (int)groupRightIndexToGroupLeftIndex[i - 1 + offset] : i - 1;
-                            beforeRights[beforeRights.Count - 1] = groupLeftIndexToGroupRightIndex.ContainsKey(i + 1) ? (int)groupLeftIndexToGroupRightIndex[i + 1] : i + 1;
+                            beforeRights[beforeRights.Count - 1] = groupLeftIndexToGroupRightIndex.ContainsKey(i + 1 + offset) ? (int)groupLeftIndexToGroupRightIndex[i + 1 + offset] - offset : i + 1;
                             break;
                         case -1:
                             addBrackets[groupRightIndexToGroupLeftIndex.ContainsKey(i - 1 + offset) ? (int)groupRightIndexToGroupLeftIndex[i - 1 + offset] : i - 1]++;
@@ -307,7 +356,12 @@ public class _runCommands
                 {
                     values.Insert(i++, "\x02");
                     addBrackets.Insert(i, 1);
-                    rbracketPoses.Add(i);
+                    if (-1 != beforeRights[beforeRights.Count - 1])
+                    {
+                        beforeRights[beforeRights.Count - 1]++;
+                    }
+                    offset++;
+                    rbracketPoses.Add(i--);
                 }
                 else
                 {
@@ -452,6 +506,10 @@ public class _runCommands
                     command runCommand = command.stringToCommands(suffixCode[i]);
                     for (int j = 0; argsStack.Peek().Count > j; j++)
                     {
+                        if (typeof(note) == runCommand.GetType())
+                        {
+                            continue;
+                        }
                         if (!runCommand.setValue(new jsonValue(argsStack.Peek()[j].Trim(), this), j, this))
                         {
                             break;
@@ -487,7 +545,7 @@ public class _runCommands
                 break;
             }
             if (calcStack.Count > 1) {
-                Debug.LogError("计算错误：第" + commandI + "行第" + valueIndexs[symbolIndexStack.Peek()] + "列的运算符应去除");
+                Debug.LogError("计算错误：第" + commandI + "行第" + valueIndexs[symbolIndexStack.Peek()] + "列的运算符“" + values[symbolIndexStack.Peek()] + "”应去除");
                 goto errorEnd;
             }
         errorEnd:;
@@ -624,4 +682,3 @@ if (0 != i && !_command.setValue(value, i - 1, this))
     goto normalEnd;
 }
 */
-
