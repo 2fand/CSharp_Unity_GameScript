@@ -26,6 +26,7 @@ public abstract class symbol
                 symbolPriors.Add(Activator.CreateInstance(types[i]).ConvertTo<symbol>().symbolName, Activator.CreateInstance(types[i]).ConvertTo<symbol>().symbolPrior);
                 symbolArgCounts.Add(Activator.CreateInstance(types[i]).ConvertTo<symbol>().symbolName, Activator.CreateInstance(types[i]).ConvertTo<symbol>().symbolArgCount);
                 symbolFuncs.Add(Activator.CreateInstance(types[i]).ConvertTo<symbol>().symbolName, Activator.CreateInstance(types[i]).ConvertTo<symbol>().symbolFunc);
+                _runCommands.keyWordHas.Add(Activator.CreateInstance(types[i]).ConvertTo<symbol>().symbolName, true);
             }
         }
     }
@@ -563,7 +564,7 @@ public class asSymbol : symbol
             }
             return new jsonValue(s, commandValues).getValue().ConvertTo<float>();
         }
-        Debug.LogError("类型不匹配错误：无法将" + new jsonValue(s, commandValues).getRealType() + "转换为" + new jsonValue(sa, commandValues).getValue() + "，请注意在第" + commandI + "行第" + valueColumn + "或" + valueaColumn + "列的值");
+        Debug.LogError("(第" + commandI + "行第" + valueColumn +" 列，第" + commandI + "行第" + valueaColumn +" 列)类型不匹配错误：无法将" + new jsonValue(s, commandValues).getRealType() + "转换为" + new jsonValue(sa, commandValues).getValue());
         throw new Exception();
     };
 }
@@ -628,9 +629,9 @@ public class newSymbol : symbol
     public override int symbolArgCount => 1;
     public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
-        if (Regex.Match(s, "^\\s*" + jsonValue.classRegex + "\\s*$").Success)
+        if (Regex.Match(s, "^\\s*" + jsonValue.typeRegex + "\\s*$").Success)
         {
-            string strclass = Regex.Match(s, jsonValue.classRegex).Value;
+            string strclass = Regex.Match(s, jsonValue.typeRegex).Value;
             if (strclass == "string") 
             {
                 return getSymbolFunc("=")(s, "", commandI, valueColumn, -1, commandValues);
@@ -660,11 +661,11 @@ public class newSymbol : symbol
                 return getSymbolFunc("=")(s, "{}", commandI, valueColumn, -1, commandValues);
             }
         }
-        else if (Regex.Match(s, "^\\s*" + jsonValue.classRegex + "\\[.+\\]\\s*$").Success)
+        else if (Regex.Match(s, "^\\s*" + jsonValue.typeRegex + "\\[.+\\]\\s*$").Success)
         {
             string arrsize = Regex.Match(s, "\\[.+\\]").Value;
             arrsize = arrsize.Substring(1, arrsize.Length - 2);
-            string strclass = Regex.Match(s, jsonValue.classRegex).Value;
+            string strclass = Regex.Match(s, jsonValue.typeRegex).Value;
             if (strclass == "string")
             {
                 return getSymbolFunc("=")(s, new jsonValue(new jsonValue(arrsize).getValue().ConvertTo<uint>(), ""), commandI, valueColumn, -1, commandValues);
@@ -694,15 +695,13 @@ public class newSymbol : symbol
                 return getSymbolFunc("=")(s, new jsonValue(new jsonValue(arrsize).getValue().ConvertTo<uint>(), new jsonValue("{}")), commandI, valueColumn, -1, commandValues);
             }
         }
-        else if (Regex.Match(s, "^\\s*{(\\s*(\\s*" + jsonValue.stringRegex + "\\s*:\\s*.+\\s*,)*\\s*" + jsonValue.stringRegex + "\\s*:\\s*.+\\s*)?}\\s*$").Success)
+        else if (Regex.Match(s, "^\\s*" + jsonValue.objectRegex + "\\s*$").Success)
         {
             return Regex.Match(s, "{.+}").Value;
         }
-        else if (Regex.Match(s, "^\\s*{(\\s*(\\s*[^,]+?\\s*,)*\\s*[^,]+?\\s*)?}\\s*$").Success)
+        else if (Regex.Match(s, "^\\s*" + jsonValue.arrayRegex + "\\s*$").Success)
         {
-            string arrayJson = Regex.Match(s, "{.+}").Value;
-            arrayJson = "[" + arrayJson.Substring(1, arrayJson.Length - 2) + "]";
-            return arrayJson;
+            return Regex.Match(s, "\\[.+\\]").Value;
         }
         Debug.LogError("格式错误：第" + commandI + "行第" + valueColumn + "列的“" + s + "”格式错误");
         throw new Exception();
@@ -725,7 +724,16 @@ public class SquareBracketSymbol : symbol
     public override int symbolArgCount => 2;
     public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
-        return new jsonValue(new jsonValue(s).getIndexValue(new jsonValue(sa).getValue().ConvertTo<int>()));
+        jsonValue json = new jsonValue(s, commandValues);
+        if (!json.isArray())
+        {
+            throw new Exception("(第" + commandI + "行第" + valueColumn + "列)类型错误：“" + s + "”类型不能为“" + json.getRealType() + "”");
+        }
+        if (json.tryGetIndexValue(new jsonValue(sa, commandValues).getInt()))
+        {
+            return new jsonValue(json.getIndexValue(new jsonValue(sa, commandValues).getInt()));
+        }
+        throw new ArgumentOutOfRangeException("(第" + commandI + "行第" + valueaColumn + "列)索引溢出错误：当前“s”数组大小为" + json.getChildValueCount() + "，索引“" + new jsonValue(sa, commandValues).jsonValueTojsonString() + "”无法访问");
     };
 }
 
@@ -735,7 +743,16 @@ public class dotSymbol : symbol
     public override int symbolArgCount => 2;
     public override float symbolPrior => 0;
     public override System.Func<string, string, int, int, int, _runCommands, jsonValue> symbolFunc => (string s, string sa, int commandI, int valueColumn, int valueaColumn, _runCommands commandValues) => {
-        return new jsonValue(new jsonValue(s).getAttribute(sa));
+        jsonValue json = new jsonValue(s, commandValues);
+        if (!json.isObject())
+        {
+            throw new Exception("(第" + commandI + "行第" + valueaColumn + "列)类型错误：“" + json.jsonValueTojsonString() + "”不是对象");
+        }
+        if (json.tryGetAttribute(sa))
+        {
+            return new jsonValue(json.getAttribute(sa));
+        }
+        throw new Exception();
     };
 }
 
